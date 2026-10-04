@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block content %}<div class="card"><h1>Local development sign in</h1><p class="notice">Development accounts are for this local pilot only.</p><form method="post">{% csrf_token %}{{ form.as_p }}<button>Sign in</button></form></div>{% endblock %}

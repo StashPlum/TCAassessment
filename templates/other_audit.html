@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block content %}<h1>Other audit: {{ item.title }}</h1><p class="notice">Audit presence does not make a TCA requirement Yes. Accepted clause coverage is reviewed in the evidence register.</p><div class="card"><form method="post">{% csrf_token %}{{ form.as_p }}<button>Save audit scope</button></form></div>{% endblock %}

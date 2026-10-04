@@ -1,0 +1,479 @@
+from datetime import date
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db import transaction
+from django.db.models import Q
+from django.http import FileResponse, Http404, HttpResponse, HttpResponseForbidden, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+from .forms import ActionForm, BenefitForm, DocumentUpdateForm, EvidenceForm, KaizenForm, KaizenStageForm, KaizenTemplateForm, ObservationForm, OpportunityForm, OtherAuditForm, ParticipantForm, ResponseForm, SessionForm
+from .models import Assessment, AssessmentSession, AuditEvent, Benefit, Category, Clause, Coverage, Evidence, Kaizen, Membership, Opportunity, OtherAudit, Requirement, Response, Site
+from .scoring import category_result
+from .measurements import compare_observations, event_benefits
+from .quality import results_criterion, sustain_types_criterion
+from .exports import archive_xlsx, export_errors
+from .readiness import accepted_codes, assessment_snapshot
+
+def site_access(request, site_code, roles=None):
+    site = get_object_or_404(Site, code=site_code)
+    memberships = Membership.objects.filter(user=request.user, site=site)
+    if not memberships.exists() or (roles and not memberships.filter(role__in=roles).exists()): raise Http404
+    return site
+
+def active_assessment(site, user):
+    draft = Assessment.objects.filter(site=site, status='draft').first()
+    if draft: return draft
+    previous = site.assessments.first()
+    if previous: return previous
+    return Assessment.objects.create(site=site, version=1, created_by=user)
+
+def log(site, user, action, obj, detail=None):
+    AuditEvent.objects.create(site=site, actor=user, action=action, object_type=type(obj).__name__, object_id=str(obj.pk), detail=detail or {})
+
+@login_required
+def home(request):
+    return render(request, 'home.html', {'sites':Site.objects.filter(membership__user=request.user).distinct()})
+
+@login_required
+def site_progress(request, site_code):
+    site = site_access(request, site_code)
+    draft = site.assessments.filter(status='draft').first()
+    approved = site.assessments.filter(status='approved').first()
+    latest = draft or approved
+    codes,unverified=accepted_codes(site,latest)
+    dated={row['category']:row['result']['earned'] for row in approved.snapshot.get('categories',[])} if approved else {}
+    rows = []
+    for category in Category.objects.all():
+        requirements = list(category.requirements.all())
+        result = category_result({r.position:codes.get(r.code,'') for r in requirements})
+        blockers = [r for r in requirements if r.position <= {'C':5,'B':8,'A':10}[site.target_level] and codes.get(r.code) != 'Y']
+        rows.append((category,result,dated.get(category.number),blockers))
+    return render(request, 'site.html', {'site':site,'latest':latest,'draft':draft,'approved':approved,'rows':rows,'unverified':unverified})
+
+@login_required
+def assessment(request, site_code):
+    site = site_access(request, site_code)
+    obj = active_assessment(site, request.user)
+    query = request.GET.get('q','').strip()
+    category = request.GET.get('category','')
+    reqs = Requirement.objects.all()
+    if category.isdigit(): reqs = reqs.filter(category_id=int(category))
+    if query: reqs = reqs.filter(Q(code__icontains=query)|Q(detail_text__icontains=query)|Q(expected_evidence__icontains=query))
+    page = Paginator(reqs,20).get_page(request.GET.get('page'))
+    codes = {r.requirement_id:r.code for r in obj.responses.filter(requirement__in=page.object_list)}
+    for req in page.object_list: req.response_code = codes.get(req.code,'')
+    context={'site':site,'assessment':obj,'page':page,'query':query,'category':category,'categories':Category.objects.all(),
+             'history':site.assessments.all()}
+    return render(request,'assessment_results.html' if request.headers.get('HX-Request')=='true' else 'assessment.html',context)
+
+@login_required
+def respond(request, site_code, req_code):
+    site = site_access(request,site_code,['assessor','manager','admin'])
+    req = get_object_or_404(Requirement.objects.prefetch_related('clauses'),code=req_code)
+    obj = active_assessment(site,request.user)
+    existing = Response.objects.filter(assessment=obj,requirement=req).first()
+    if request.method == 'POST':
+        form = ResponseForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                obj = Assessment.objects.select_for_update().get(pk=obj.pk)
+                if obj.status != 'draft': return HttpResponseForbidden('Approved records are immutable.')
+                if obj.revision != form.cleaned_data['revision']:
+                    form.add_error(None,'Another edit was saved. Reload and review the latest response.')
+                else:
+                    if form.cleaned_data['code']=='Y':
+                        from django.db.models import Q
+                        if not form.cleaned_data['conclusion'].strip(): form.add_error('conclusion','Explain the assessor conclusion for Yes.')
+                        valid_coverage=Coverage.objects.filter(evidence__site=site,clause__requirement=req,accepted=True,
+                            reviewed_by__isnull=False,reviewed_at__isnull=False).filter(~Q(evidence__evidence_type='audit')|Q(evidence__other_audit__isnull=False)).filter(Q(evidence__valid_until__isnull=True)|Q(evidence__valid_until__gte=timezone.localdate()))
+                        covered=set(valid_coverage.values_list('clause_id',flat=True))
+                        missing=[c.ordinal for c in req.clauses.all() if c.id not in covered]
+                        if missing: form.add_error('code',f'Cannot accept Yes. Clauses {missing} lack accepted, currently valid evidence coverage.')
+                    if form.errors:
+                        return render(request,'respond.html',{'site':site,'req':req,'form':form,'assessment':obj})
+                    Response.objects.update_or_create(assessment=obj,requirement=req,defaults={'code':form.cleaned_data['code'],'conclusion':form.cleaned_data['conclusion'],'updated_by':request.user})
+                    obj.revision += 1; obj.save(update_fields=['revision'])
+                    log(site,request.user,'response_saved',req,{'code':form.cleaned_data['code'],'assessment':obj.pk})
+                    messages.success(request,f'{req.code} saved.')
+                    return redirect('assessment',site_code=site.code)
+    else:
+        form = ResponseForm(initial={'code':existing.code if existing else '', 'conclusion':existing.conclusion if existing else '', 'revision':obj.revision})
+    return render(request,'respond.html',{'site':site,'req':req,'form':form,'assessment':obj})
+
+@login_required
+@require_POST
+def approve(request,site_code):
+    site=site_access(request,site_code,['manager','admin'])
+    with transaction.atomic():
+        obj=Assessment.objects.select_for_update().filter(site=site,status='draft').first()
+        if not obj: raise Http404
+        obj.status='approved'; obj.approved_by=request.user; obj.approved_at=timezone.now(); obj.rationale=request.POST.get('rationale',''); obj.save()
+        obj.snapshot=assessment_snapshot(site,obj);obj.save(update_fields=['snapshot'])
+        log(site,request.user,'local_snapshot_approved',obj,{'policy':'draft-v1'})
+    messages.success(request,'Dated local assessment saved. Draft scoring policy is unapproved; this is not an official certification.')
+    return redirect('site',site_code=site.code)
+
+@login_required
+@require_POST
+def new_draft(request,site_code):
+    site=site_access(request,site_code,['assessor','manager','admin'])
+    with transaction.atomic():
+        if not site.assessments.filter(status='draft').exists():
+            previous=site.assessments.first()
+            obj=Assessment.objects.create(site=site,version=previous.version+1 if previous else 1,created_by=request.user,rationale=request.POST.get('rationale',''))
+            if previous:
+                Response.objects.bulk_create([Response(assessment=obj,requirement=r.requirement,code=r.code,conclusion=r.conclusion,updated_by=request.user) for r in previous.responses.all()])
+            log(site,request.user,'new_draft',obj,{'from':previous.pk if previous else None})
+        else: messages.info(request,'An editable draft already exists.')
+    return redirect('assessment',site_code=site.code)
+
+@login_required
+def opportunities(request,site_code):
+    site=site_access(request,site_code)
+    form=OpportunityForm(request.POST or None)
+    if request.method=='POST':
+        site_access(request,site_code,['assessor','manager','admin','staff'])
+        if form.is_valid():
+            if form.cleaned_data.get('priority_override') is not None and not Membership.objects.filter(user=request.user,site=site,role__in=['manager','admin']).exists():
+                form.add_error('priority_override','Only a site manager may override the suggested order.')
+        if form.is_valid():
+            obj=form.save(commit=False);obj.site=site;obj.save();log(site,request.user,'opportunity_created',obj)
+            messages.success(request,'Opportunity saved. A Kaizen requires separate acceptance.')
+            return redirect('opportunities',site_code=site.code)
+    items=list(Opportunity.objects.filter(site=site).select_related('requirement'))
+    current=site.assessments.first()
+    codes,_=accepted_codes(site,current)
+    limit={'C':5,'B':8,'A':10}[site.target_level]
+    for item in items:
+        item.target_blocker=bool(item.requirement and item.requirement.position<=limit and codes.get(item.requirement_id)!='Y')
+        item.sequence_reason=('Immediate corrective need' if item.immediate_corrective else
+                              'Blocker for target level' if item.target_blocker else
+                              'Prerequisite' if item.prerequisite else 'Other opportunity')
+    items.sort(key=lambda x:(x.priority_override if x.priority_override is not None else 100,
+                             0 if x.immediate_corrective else 1,0 if x.target_blocker else 1,
+                             0 if x.prerequisite else 1,x.due_date or date.max,x.id))
+    return render(request,'opportunities.html',{'site':site,'items':items,'form':form})
+
+@login_required
+def sessions(request,site_code):
+    site=site_access(request,site_code)
+    form=SessionForm(request.POST or None)
+    if request.method=='POST':
+        site_access(request,site_code,['assessor','manager','admin'])
+        if form.is_valid():
+            obj=form.save(commit=False);obj.site=site;obj.save();form.save_m2m()
+            log(site,request.user,'session_created',obj)
+            messages.success(request,'Session saved. Each linked requirement still needs its own conclusion.')
+            return redirect('sessions',site_code=site.code)
+    return render(request,'sessions.html',{'site':site,'form':form,'items':AssessmentSession.objects.filter(site=site).order_by('-date')})
+
+@login_required
+def kaizens(request,site_code):
+    site=site_access(request,site_code)
+    form=KaizenForm(request.POST or None)
+    form.fields['opportunity'].queryset=Opportunity.objects.filter(site=site)
+    if request.method=='POST':
+        site_access(request,site_code,['coach','manager','admin'])
+        if form.is_valid():
+            obj=form.save(commit=False);obj.site=site;obj.created_by=request.user;obj.save()
+            if obj.opportunity and obj.opportunity.requirement: obj.linked_requirements.add(obj.opportunity.requirement)
+            log(site,request.user,'kaizen_accepted',obj)
+            return redirect('kaizen_detail',site_code=site.code,pk=obj.pk)
+    return render(request,'kaizens.html',{'site':site,'items':Kaizen.objects.filter(site=site).order_by('-updated_at'),'form':form})
+
+@login_required
+def kaizen_detail(request,site_code,pk):
+    site=site_access(request,site_code)
+    obj=get_object_or_404(Kaizen,pk=pk,site=site)
+    if request.method=='POST':
+        site_access(request,site_code,['coach','manager','admin','staff'])
+        form=KaizenStageForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                obj=Kaizen.objects.select_for_update().get(pk=obj.pk)
+                if obj.revision != form.cleaned_data['revision']:
+                    form.add_error(None,'Another edit was saved. Reload and review the latest event.')
+                else:
+                    obj.data={**obj.data,**{k:(v.isoformat() if isinstance(v,date) else str(v) if v is not None else '') for k,v in form.cleaned_data.items() if k!='revision'}}
+                    action=request.POST.get('action','save')
+                    if action=='request_reassessment':
+                        if obj.status not in ('verified','sustained'):
+                            form.add_error(None,'Coach verification is required before reassessment can be requested.')
+                        else: obj.status='reassessment_pending'
+                    elif action=='accept_reassessment':
+                        if not Membership.objects.filter(user=request.user,site=site,role__in=['manager','admin']).exists():
+                            form.add_error(None,'Site manager authority is required.')
+                        elif obj.status!='reassessment_pending':
+                            form.add_error(None,'A reassessment must be pending first.')
+                        else:
+                            approved=site.assessments.filter(status='approved').first()
+                            accepted,_=accepted_codes(site,approved)
+                            linked=list(obj.linked_requirements.values_list('code',flat=True))
+                            if not linked or any(accepted.get(code)!='Y' for code in linked):
+                                form.add_error(None,'Every linked requirement needs a current accepted Yes in an approved dated assessment.')
+                            else: obj.status='reassessment_accepted'
+                    elif action=='verify':
+                        if not Membership.objects.filter(user=request.user,site=site,role__in=['coach','manager','admin']).exists():
+                            form.add_error(None,'Coach or manager authority is required.')
+                        elif obj.status != 'results_under_review':
+                            form.add_error(None,'Move through Plan, Do, implementation, and results review before verification.')
+                        elif any(not obj.data.get(k) for k in ('overall_problem','specific_problem','solution','baseline','actual','unit','population','data_source','coach_review','sustain')):
+                            form.add_error(None,'Complete the problem, solution, comparable measure, data source, sustain plan, and coach review before verification.')
+                        elif not any(c['difference'] is not None for c in compare_observations(obj.observations.all())):
+                            form.add_error(None,'Record comparable before and after observations before verification.')
+                        elif not obj.actions.filter(phase='DO').exists() or not obj.actions.filter(phase='ACT').exists():
+                            form.add_error(None,'Record at least one Do action and one Act sustain action before verification.')
+                        elif obj.data.get('star_7')=='Y' and not results_criterion(obj.data,list(obj.observations.all())):
+                            form.add_error(None,'Star 7 cannot be confirmed: comparable results must span more than 30 days and five after points, with target met or a follow-up action.')
+                        elif obj.data.get('star_8')=='Y' and obj.document_updates.values('document_type').distinct().count()<2:
+                            form.add_error(None,'Star 8 cannot be confirmed without two different document or site-tool types.')
+                        else: obj.status='verified'
+                    elif action=='advance':
+                        order=['proposed','planned','in_progress','implemented','results_under_review']
+                        if obj.status in order:
+                            needed={'proposed':('overall_problem','specific_problem'), 'planned':('solution',),
+                                    'in_progress':('solution',), 'implemented':('baseline','actual','unit','population','data_source')}.get(obj.status,())
+                            if any(not obj.data.get(k) for k in needed): form.add_error(None,'Complete the current PDCA fields before advancing.')
+                            elif obj.status=='results_under_review': form.add_error(None,'Coach verification is required before sustain status.')
+                            else: obj.status=order[min(order.index(obj.status)+1,len(order)-1)]
+                        elif obj.status=='verified':
+                            if not obj.actions.filter(phase='ACT').exists() or not obj.document_updates.exists():
+                                form.add_error(None,'Sustain status needs an Act action and a document or site-tool update.')
+                            else: obj.status='sustained'
+                    if form.errors:
+                        obj.refresh_from_db()
+                    else:
+                        obj.revision+=1;obj.save();log(site,request.user,'kaizen_saved',obj,{'status':obj.status})
+                        messages.success(request,'Kaizen saved. Linked TCA responses were not changed.')
+                        return redirect('kaizen_detail',site_code=site.code,pk=obj.pk)
+    else: form=KaizenStageForm(initial={**obj.data,'revision':obj.revision})
+    quality={'results_over_30_days_and_5_points':results_criterion(obj.data,list(obj.observations.all())),
+             'two_document_types':len(set(obj.document_updates.values_list('document_type',flat=True)))>=2}
+    star_count=sum(obj.data.get(f'star_{i}')=='Y' for i in range(1,11))
+    financial_access=Membership.objects.filter(user=request.user,site=site,role__in=['manager','admin']).exists()
+    participant_access=Membership.objects.filter(user=request.user,site=site,role__in=['coach','manager','admin']).exists()
+    participants=list(obj.participants.all())
+    unique_participants=len({p.email.lower() if p.email else (p.first_initial.lower(),p.last_name.lower()) for p in participants})
+    return render(request,'kaizen_detail.html',{'site':site,'event':obj,'form':form,'quality':quality,'star_count':star_count,
+        'action_form':ActionForm(),'observation_form':ObservationForm(),'benefit_form':BenefitForm(),
+        'participant_form':ParticipantForm(),'document_form':DocumentUpdateForm(),'unique_participants':unique_participants,
+        'visible_participants':participants if participant_access else [],'participant_access':participant_access,
+        'comparisons':compare_observations(obj.observations.all()),'visible_benefits':obj.benefits.all() if financial_access else [],
+        'financial_access':financial_access,'benefit_totals':event_benefits(obj.benefits.all()) if financial_access else {}})
+
+@login_required
+@require_POST
+def kaizen_add(request,site_code,pk,kind):
+    allowed=['manager','admin'] if kind=='benefit' else ['coach','manager','admin'] if kind=='participant' else ['staff','coach','manager','admin']
+    site=site_access(request,site_code,allowed)
+    event=get_object_or_404(Kaizen,site=site,pk=pk)
+    forms={'action':ActionForm,'observation':ObservationForm,'benefit':BenefitForm,'participant':ParticipantForm,'document':DocumentUpdateForm}
+    if kind not in forms: raise Http404
+    form=forms[kind](request.POST)
+    if form.is_valid():
+        obj=form.save(commit=False);obj.event=event;obj.save()
+        log(site,request.user,f'kaizen_{kind}_added',obj)
+        messages.success(request,f'{kind.title()} saved in the full archive.')
+    else: messages.error(request,'Could not save the item: '+str(form.errors))
+    return redirect('kaizen_detail',site_code=site.code,pk=event.pk)
+
+@login_required
+def kaizen_template_details(request,site_code,pk):
+    site=site_access(request,site_code,['staff','coach','manager','admin'])
+    event=get_object_or_404(Kaizen,site=site,pk=pk)
+    if request.method=='POST':
+        form=KaizenTemplateForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                event=Kaizen.objects.select_for_update().get(pk=event.pk)
+                if event.revision != form.cleaned_data['revision']:
+                    form.add_error(None,'Another edit was saved. Reload and review the latest fields.')
+                else:
+                    event.data={**event.data,**{k:v for k,v in form.cleaned_data.items() if k!='revision'}}
+                    event.revision+=1;event.save();log(site,request.user,'template_details_saved',event)
+                    messages.success(request,'Source template details saved without truncation.')
+                    return redirect('kaizen_template_details',site_code=site.code,pk=event.pk)
+    else: form=KaizenTemplateForm(initial={**event.data,'revision':event.revision})
+    return render(request,'kaizen_template_details.html',{'site':site,'event':event,'form':form})
+
+@login_required
+@require_POST
+def validate_benefit(request,site_code,pk):
+    site=site_access(request,site_code,['manager','admin'])
+    obj=get_object_or_404(Benefit,event__site=site,pk=pk)
+    obj.validated=True;obj.validated_by=request.user;obj.save(update_fields=['validated','validated_by'])
+    log(site,request.user,'benefit_validated',obj)
+    return redirect('kaizen_detail',site_code=site.code,pk=obj.event_id)
+
+@login_required
+def evidence(request,site_code):
+    site=site_access(request,site_code)
+    form=EvidenceForm(request.POST or None,request.FILES or None)
+    if request.method=='POST':
+        site_access(request,site_code,['assessor','coach','manager','admin'])
+        if form.is_valid():
+            code=request.POST.get('requirement_code','').strip();ordinal=request.POST.get('clause_ordinal','').strip()
+            clause=None
+            if code or ordinal:
+                clause=Clause.objects.filter(requirement_id=code,ordinal=int(ordinal)).first() if ordinal.isdigit() else None
+                if not clause: form.add_error(None,'Select a valid requirement ID and clause number or leave both blank.')
+        if form.is_valid():
+            obj=form.save(commit=False);obj.site=site;obj.created_by=request.user;obj.save()
+            if clause: Coverage.objects.create(evidence=obj,clause=clause,accepted=False)
+            log(site,request.user,'evidence_created',obj)
+            messages.success(request,'Evidence saved. Clause coverage awaits assessor acceptance.')
+            return redirect('evidence',site_code=site.code)
+    items=Evidence.objects.filter(site=site).order_by('-created_at')
+    if not Membership.objects.filter(user=request.user,site=site,role__in=['manager','admin','assessor']).exists(): items=items.filter(classification='internal')
+    return render(request,'evidence.html',{'site':site,'items':items,'form':form})
+
+@login_required
+def other_audit(request,site_code,pk):
+    site=site_access(request,site_code,['assessor','manager','admin'])
+    item=get_object_or_404(Evidence,site=site,pk=pk,evidence_type='audit')
+    existing=OtherAudit.objects.filter(evidence=item).first()
+    form=OtherAuditForm(request.POST or None,instance=existing)
+    if request.method=='POST' and form.is_valid():
+        obj=form.save(commit=False);obj.evidence=item;obj.save()
+        log(site,request.user,'other_audit_saved',obj)
+        messages.success(request,'Other audit scope saved. No TCA requirement was marked Yes.')
+        return redirect('evidence',site_code=site.code)
+    return render(request,'other_audit.html',{'site':site,'item':item,'form':form})
+
+@login_required
+@require_POST
+def link_evidence(request,site_code,pk):
+    site=site_access(request,site_code,['assessor','manager','admin'])
+    item=get_object_or_404(Evidence,site=site,pk=pk)
+    code=request.POST.get('requirement_code','').strip()
+    ordinal=request.POST.get('clause_ordinal','').strip()
+    clause=Clause.objects.filter(requirement_id=code,ordinal=int(ordinal)).first() if ordinal.isdigit() else None
+    if not clause: return HttpResponseForbidden('Choose an existing requirement and clause number.')
+    Coverage.objects.get_or_create(evidence=item,clause=clause)
+    log(site,request.user,'evidence_linked',item,{'clause':clause.pk})
+    messages.success(request,'Clause link added as pending; an assessor must review it.')
+    return redirect('evidence',site_code=site.code)
+
+@login_required
+def preparation(request,site_code):
+    site=site_access(request,site_code)
+    current=site.assessments.first()
+    codes,_=accepted_codes(site,current)
+    reqs=Requirement.objects.all()
+    category=request.GET.get('category','')
+    level=request.GET.get('level','')
+    kind=request.GET.get('evidence_type','')
+    owner=request.GET.get('owner','').strip()
+    due=request.GET.get('due','')
+    if category.isdigit(): reqs=reqs.filter(category_id=int(category))
+    if level in ('C','B','A'): reqs=reqs.filter(level_code=level)
+    from collections import defaultdict
+    accepted_by_req=defaultdict(set)
+    coverage=Coverage.objects.filter(evidence__site=site,accepted=True).select_related('clause','evidence')
+    if kind: coverage=coverage.filter(evidence__evidence_type=kind)
+    for link in coverage: accepted_by_req[link.clause.requirement_id].add(link.evidence_id)
+    opportunities_by_req=defaultdict(list)
+    opportunity_query=Opportunity.objects.filter(site=site)
+    if owner: opportunity_query=opportunity_query.filter(owner__icontains=owner)
+    if due:
+        try: opportunity_query=opportunity_query.filter(due_date__lte=date.fromisoformat(due))
+        except ValueError: pass
+    for item in opportunity_query: opportunities_by_req[item.requirement_id].append(item)
+    items=[]
+    for req in reqs.select_related('category'):
+        options=opportunities_by_req.get(req.code,[])
+        if (owner or due) and not options: continue
+        first=options[0] if options else None
+        items.append({'requirement':req,'response':codes.get(req.code,''),'accepted':len(accepted_by_req[req.code]),
+                      'action_type':first.get_kind_display() if first else 'Pending verification',
+                      'owner':first.owner if first else '', 'due_date':first.due_date if first else None})
+    if request.GET.get('format')=='csv':
+        import csv
+        response=HttpResponse(content_type='text/csv')
+        response['Content-Disposition']='attachment; filename="evidence-preparation.csv"'
+        writer=csv.writer(response)
+        writer.writerow(['Requirement ID','Category','Level','Official detail','Expected evidence','Response','Accepted evidence records','Action type','Owner','Due date'])
+        for row in items:
+            r=row['requirement'];writer.writerow([r.code,r.category.name,r.level_code,r.detail_text,r.expected_evidence,row['response'],row['accepted'],row['action_type'],row['owner'],row['due_date'] or ''])
+        return response
+    return render(request,'preparation.html',{'site':site,'items':items,'categories':Category.objects.all()})
+
+@login_required
+@require_POST
+def review_coverage(request,site_code,pk):
+    site=site_access(request,site_code,['assessor','manager','admin'])
+    coverage=get_object_or_404(Coverage.objects.select_related('evidence','clause'),pk=pk,evidence__site=site)
+    decision=request.POST.get('decision','')
+    if decision not in ('accept','reject'): return HttpResponseForbidden('Choose accept or reject.')
+    reason=request.POST.get('reason','').strip()
+    if not reason: return HttpResponseForbidden('An assessor decision reason is required.')
+    if decision=='accept' and coverage.evidence.valid_until and coverage.evidence.valid_until<timezone.localdate():
+        return HttpResponseForbidden('Expired evidence cannot be accepted for current reuse.')
+    if decision=='accept' and coverage.evidence.evidence_type=='audit' and not OtherAudit.objects.filter(evidence=coverage.evidence).exists():
+        return HttpResponseForbidden('Record audit scope, period, tested control, and finding before accepting coverage.')
+    coverage.accepted=decision=='accept';coverage.decision=reason;coverage.reviewed_by=request.user;coverage.reviewed_at=timezone.now();coverage.save()
+    log(site,request.user,'coverage_reviewed',coverage,{'accepted':coverage.accepted})
+    messages.success(request,'Clause coverage decision saved. Requirement response remains separate.')
+    return redirect('evidence',site_code=site.code)
+
+@login_required
+def download(request,site_code,pk):
+    site=site_access(request,site_code)
+    item=get_object_or_404(Evidence,site=site,pk=pk)
+    if item.classification!='internal' and not Membership.objects.filter(user=request.user,site=site,role__in=['manager','admin','assessor']).exists(): raise Http404
+    if not item.file: raise Http404
+    return FileResponse(item.file.open('rb'),as_attachment=True,filename=item.file.name.split('/')[-1])
+
+@login_required
+def report(request,site_code):
+    site=site_access(request,site_code);latest=site.assessments.first()
+    approved=site.assessments.filter(status='approved').first()
+    data={'site':site.name,'policy':'draft-v1 (unapproved)','assessment':None,'dated_snapshot':approved.snapshot if approved else None,'categories':[]}
+    if latest:
+        data['assessment']={'version':latest.version,'status':latest.status,'approved_at':latest.approved_at.isoformat() if latest.approved_at else None}
+        codes,unverified=accepted_codes(site,latest)
+        data['unverified_yes']=unverified
+        for cat in Category.objects.all(): data['categories'].append({'name':cat.name,'result':category_result({r.position:codes.get(r.code,'') for r in cat.requirements.all()})})
+    return JsonResponse(data,json_dumps_params={'indent':2})
+
+@login_required
+def assessment_archive(request,site_code):
+    site=site_access(request,site_code)
+    obj=site.assessments.first()
+    responses={r.requirement_id:r for r in obj.responses.all()} if obj else {}
+    codes,unverified=accepted_codes(site,obj)
+    rows=[]
+    for req in Requirement.objects.select_related('category','source_version').prefetch_related('clauses'):
+        response=responses.get(req.code)
+        rows.append({'id':req.code,'category':req.category.name,'level_code':req.level_code,
+                     'official_details':req.detail_text,'reasoning':req.reasoning,'expected_evidence':req.expected_evidence,
+                     'remote_method':req.remote_method,'source_address':req.source_address,
+                     'source_sha256':req.source_version.sha256,
+                     'clauses':[{'address':c.source_address,'exact_text':c.exact_text} for c in req.clauses.all()],
+                     'response':response.code if response else '',
+                     'conclusion':response.conclusion if response else '',
+                     'accepted_for_readiness':codes.get(req.code)=='Y'})
+    return JsonResponse({'site':site.name,'assessment_version':obj.version if obj else None,
+                         'status':obj.status if obj else None,'policy':'draft-v1 (unapproved)',
+                         'unverified_yes':unverified,'requirements':rows},json_dumps_params={'indent':2})
+
+@login_required
+def kaizen_archive(request,site_code,pk):
+    site=site_access(request,site_code);obj=get_object_or_404(Kaizen,site=site,pk=pk)
+    financial_access=Membership.objects.filter(user=request.user,site=site,role__in=['manager','admin']).exists()
+    participant_access=Membership.objects.filter(user=request.user,site=site,role__in=['coach','manager','admin']).exists()
+    return JsonResponse({'title':obj.title,'profile':obj.profile,'status':obj.status,'data':obj.data,'source_field_mapping':'core/forms.py and docs/SOURCE_MAP.md','linked_requirements':list(obj.linked_requirements.values_list('code',flat=True)),'actions':list(obj.actions.values()),'observations':list(obj.observations.values()),'document_updates':list(obj.document_updates.values()),'participants':list(obj.participants.values()) if participant_access else 'Restricted','benefits':list(obj.benefits.values()) if financial_access else 'Restricted'},json_dumps_params={'indent':2})
+
+@login_required
+def kaizen_excel(request,site_code,pk):
+    site=site_access(request,site_code);obj=get_object_or_404(Kaizen,site=site,pk=pk)
+    errors=export_errors(obj)
+    if errors: return JsonResponse({'export_errors':errors},status=422)
+    financial_access=Membership.objects.filter(user=request.user,site=site,role__in=['manager','admin']).exists()
+    participant_access=Membership.objects.filter(user=request.user,site=site,role__in=['coach','manager','admin']).exists()
+    output=archive_xlsx(obj,financial_access,participant_access)
+    response=HttpResponse(output.getvalue(),content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition']=f'attachment; filename="kaizen-{obj.pk}-archive.xlsx"'
+    return response

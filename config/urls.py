@@ -1,0 +1,31 @@
+from django.contrib.auth import views as auth_views
+from django.urls import path
+from core import views
+
+urlpatterns = [
+    path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('', views.home, name='home'),
+    path('sites/<slug:site_code>/', views.site_progress, name='site'),
+    path('sites/<slug:site_code>/assessment/', views.assessment, name='assessment'),
+    path('sites/<slug:site_code>/assessment/respond/<str:req_code>/', views.respond, name='respond'),
+    path('sites/<slug:site_code>/assessment/approve/', views.approve, name='approve'),
+    path('sites/<slug:site_code>/assessment/new/', views.new_draft, name='new_draft'),
+    path('sites/<slug:site_code>/assessment/archive/', views.assessment_archive, name='assessment_archive'),
+    path('sites/<slug:site_code>/sessions/', views.sessions, name='sessions'),
+    path('sites/<slug:site_code>/opportunities/', views.opportunities, name='opportunities'),
+    path('sites/<slug:site_code>/kaizen/', views.kaizens, name='kaizens'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/', views.kaizen_detail, name='kaizen_detail'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/add/<str:kind>/', views.kaizen_add, name='kaizen_add'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/template-details/', views.kaizen_template_details, name='kaizen_template_details'),
+    path('sites/<slug:site_code>/benefit/<int:pk>/validate/', views.validate_benefit, name='validate_benefit'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/archive/', views.kaizen_archive, name='kaizen_archive'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/excel/', views.kaizen_excel, name='kaizen_excel'),
+    path('sites/<slug:site_code>/evidence/', views.evidence, name='evidence'),
+    path('sites/<slug:site_code>/evidence/preparation/', views.preparation, name='preparation'),
+    path('sites/<slug:site_code>/evidence/<int:pk>/other-audit/', views.other_audit, name='other_audit'),
+    path('sites/<slug:site_code>/evidence/<int:pk>/link/', views.link_evidence, name='link_evidence'),
+    path('sites/<slug:site_code>/evidence/<int:pk>/download/', views.download, name='download'),
+    path('sites/<slug:site_code>/coverage/<int:pk>/review/', views.review_coverage, name='review_coverage'),
+    path('sites/<slug:site_code>/report/', views.report, name='report'),
+]

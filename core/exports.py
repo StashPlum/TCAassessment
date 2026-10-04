@@ -1,0 +1,52 @@
+"""Complete operational archive export; no claims of source workbook formula parity."""
+from io import BytesIO
+from openpyxl import Workbook
+
+EXTERNAL_TEXT_LIMITS={
+    'title': ('TEAM!G10',75),
+    'measure': ('PLAN!G24:M24',200),
+}
+
+def export_errors(event):
+    problems=[]
+    for key,(source,limit) in EXTERNAL_TEXT_LIMITS.items():
+        value=event.title if key=='title' else event.data.get(key,'')
+        if len(str(value))>limit: problems.append(f'{key} has {len(str(value))} characters; source {source} permits {limit}.')
+    for key,value in event.data.items():
+        if len(str(value))>32767: problems.append(f'{key} exceeds the Excel cell limit of 32767 characters.')
+    return problems
+
+def archive_xlsx(event, include_financial, include_participants):
+    wb=Workbook()
+    fields=wb.active;fields.title='PDCA Fields';fields.append(['Field','Value','Source / note'])
+    fields.append(['title',event.title,'TEAM!G10'])
+    fields.append(['profile',event.profile,'COACH REVIEW!C12'])
+    fields.append(['status',event.status,'TCA Progress workflow'])
+    mapping={'overall_problem':'PLAN!B11','specific_problem':'PLAN!B63','root_cause':'PLAN!B85',
+             'measure':'PLAN!B24','baseline':'PLAN!B27','target':'PLAN!B30','solution':'DO!B15',
+             'actual':'CHECK!B26','sustain':'ACT!D1','document_types':'ACT!H9:K40',
+             'coach_review':'COACH REVIEW!B10:F77'}
+    for key,value in event.data.items(): fields.append([key,str(value),mapping.get(key,'Supplemental operational field')])
+    actions=wb.create_sheet('Actions');actions.append(['Phase','Description','Owner','Start','End','Key action'])
+    for a in event.actions.all(): actions.append([a.phase,a.description,a.owner,a.start_date,a.end_date,a.key_action])
+    participants=wb.create_sheet('Participants');participants.append(['Initial','Last name','Email','Role profile','Kaizen role','Estimated hours'])
+    if include_participants:
+        for p in event.participants.all(): participants.append([p.first_initial,p.last_name,p.email,p.role_profile,p.kaizen_role,float(p.estimated_hours) if p.estimated_hours is not None else None])
+    documents=wb.create_sheet('Document updates');documents.append(['Type','Number','Name','Date updated'])
+    for d in event.document_updates.all(): documents.append([d.document_type,d.document_number,d.name,d.updated_at])
+    observations=wb.create_sheet('Observations');observations.append(['Phase','Measure','Value','Unit','Population','Period start','Period end','Data source'])
+    for o in event.observations.all(): observations.append([o.phase,o.measure,float(o.value),o.unit,o.population,o.period_start,o.period_end,o.data_source])
+    benefits=wb.create_sheet('Benefits');benefits.append(['Type','Amount','Unit','Period start','Period end','Validated'])
+    if include_financial:
+        for b in event.benefits.all(): benefits.append([b.kind,float(b.amount),b.unit,b.period_start,b.period_end,b.validated])
+    linked=wb.create_sheet('Linked TCA');linked.append(['Requirement ID','Official detail','Source'])
+    for r in event.linked_requirements.all(): linked.append([r.code,r.detail_text,r.source_address])
+    notes=wb.create_sheet('Compatibility');notes.append(['Check','Result'])
+    notes.append(['Original template formulas','Not recalculated or imported'])
+    notes.append(['AUTO_UPLOAD','Legacy selector mapping only; no corporate API verified'])
+    notes.append(['Source limits','Checked for known mapped fields; see docs/SOURCE_MAP.md'])
+    for sheet in wb:
+        sheet.freeze_panes='A2';sheet.auto_filter.ref=sheet.dimensions
+        sheet.column_dimensions['A'].width=25;sheet.column_dimensions['B'].width=55;sheet.column_dimensions['C'].width=45
+    output=BytesIO();wb.save(output);output.seek(0)
+    return output

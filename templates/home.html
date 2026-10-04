@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block content %}<h1>My Work</h1><p>Choose a site assigned to you.</p>{% for item in sites %}<div class="card"><h2><a href="{% url 'site' item.code %}">{{ item.name }}</a></h2><p>Target: {{ item.get_target_level_display }}</p></div>{% empty %}<p>No site access is assigned.</p>{% endfor %}{% endblock %}
