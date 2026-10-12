@@ -1,7 +1,7 @@
 {% load static %}<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% if page_label %}{{ page_label }} · {% endif %}TCA Progress</title>
-<link rel="stylesheet" href="{% static 'core/workspace.css' %}"><script defer src="{% static 'core/htmx.min.js' %}"></script><script defer src="{% static 'core/workspace.js' %}"></script>
+<link rel="stylesheet" href="{% static 'core/workspace.css' %}?v=r1-2"><script defer src="{% static 'core/htmx.min.js' %}"></script><script defer src="{% static 'core/workspace.js' %}"></script>
 </head><body><a class="skip-link" href="#main">Skip to content</a>
 <header class="app-header"><a class="app-name" href="{% url 'home' %}">TCA <span>Progress</span></a><span class="organization">{% if workspace_site %}{{ workspace_site.organization }}{% else %}CEVA Logistics{% endif %}<span>Ground &amp; Rail · local workspace</span></span>
 {% if user.is_authenticated %}<form method="post" action="{% url 'logout' %}" data-no-dirty>{% csrf_token %}<button class="header-button">Sign out</button></form>{% endif %}</header>
