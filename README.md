@@ -18,6 +18,8 @@ Suggested demonstration: **Fictional Maturity Examples** shows one Certified, on
 
 The UX upgrade uses four menu groups and an authorized country/site selector. The two fictional fixtures carry explicit NL/Benelux and UK metadata. The header shows the global baseline reference and local assessment version; governed template/profile assignment is the next upgrade milestone. [Governance interpretation](docs/GOVERNANCE_DELTA.md) and [current upgrade status](docs/STATUS.md) record the boundaries and checks.
 
+Refinement R1 adds participant quick drafts/autosave, four PDCA stages, editable actions, sensei review and retained revisions. Open **Improvements → Kaizen events** or **Sensei review**. The fictional R1 after event demonstrates observations, advice/reply, verification and changed content requiring re-review. [Field/rule mapping](docs/KAIZEN_FIELD_RULES.md) keeps conditional source requirements explicit. The next refinement milestone is attachments and measurement import; A3 PDFs and cross-site sharing remain later work.
+
 ## Commands
 
 For commands below, set Python and project imports in PowerShell first:

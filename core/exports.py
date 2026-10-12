@@ -14,6 +14,12 @@ def export_errors(event):
         if len(str(value))>limit: problems.append(f'{key} has {len(str(value))} characters; source {source} permits {limit}.')
     for key,value in event.data.items():
         if len(str(value))>32767: problems.append(f'{key} exceeds the Excel cell limit of 32767 characters.')
+    for relation in ('actions','observations','document_updates','participants','review_notes'):
+        for record in getattr(event,relation).all():
+            for field in record._meta.fields:
+                value=getattr(record,field.name)
+                if isinstance(value,str) and len(value)>32767:
+                    problems.append(f'{relation} record {record.pk} {field.name} exceeds the Excel cell limit; use the complete JSON archive.')
     return problems
 
 def archive_xlsx(event, include_financial, include_participants):
@@ -45,6 +51,10 @@ def archive_xlsx(event, include_financial, include_participants):
     notes.append(['Original template formulas','Not recalculated or imported'])
     notes.append(['AUTO_UPLOAD','Legacy selector mapping only; no corporate API verified'])
     notes.append(['Source limits','Checked for known mapped fields; see docs/SOURCE_MAP.md'])
+    reviews=wb.create_sheet('Review advice');reviews.append(['Stage','Type','Advice','Actor ID','Revision','Resolved','Date'])
+    for note in event.review_notes.all(): reviews.append([note.stage,note.kind,note.text,note.actor_id,note.event_revision,note.resolved,note.created_at.isoformat()])
+    history=wb.create_sheet('Revision history');history.append(['Revision','State','Reason','Actor ID','Date','Full snapshot'])
+    for row in event.history.all(): history.append([row.revision,row.state,row.reason,row.actor_id,row.created_at.isoformat(),'Full permission-filtered snapshot in JSON archive'])
     for sheet in wb:
         sheet.freeze_panes='A2';sheet.auto_filter.ref=sheet.dimensions
         sheet.column_dimensions['A'].width=25;sheet.column_dimensions['B'].width=55;sheet.column_dimensions['C'].width=45

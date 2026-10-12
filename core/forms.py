@@ -11,7 +11,7 @@ class EvidenceForm(forms.ModelForm):
     class Meta:
         model = Evidence
         fields = ['title','evidence_type','owner','version','period_start','period_end','valid_until','classification','source','file']
-        widgets = {k: forms.DateInput(attrs={'type':'date'}) for k in ['period_start','period_end','valid_until']}
+        widgets = {**{k: forms.DateInput(attrs={'type':'date'}) for k in ['period_start','period_end','valid_until']},'source':forms.Textarea(attrs={'rows':3})}
     def clean_file(self):
         file=self.cleaned_data.get('file')
         if file and file.size>10*1024*1024:
@@ -22,13 +22,13 @@ class OpportunityForm(forms.ModelForm):
     class Meta:
         model = Opportunity
         fields = ['requirement','kind','problem','proposed_measure','owner','due_date','immediate_corrective','prerequisite','priority_override']
-        widgets = {'due_date': forms.DateInput(attrs={'type':'date'})}
+        widgets = {'due_date': forms.DateInput(attrs={'type':'date'}),'problem':forms.Textarea(attrs={'rows':3}),'proposed_measure':forms.Textarea(attrs={'rows':2})}
 
 class SessionForm(forms.ModelForm):
     class Meta:
         model = AssessmentSession
         fields = ['date','method','notes','owner','requirements']
-        widgets = {'date': forms.DateInput(attrs={'type':'date'}), 'requirements':forms.SelectMultiple(attrs={'size':8})}
+        widgets = {'date': forms.DateInput(attrs={'type':'date'}), 'requirements':forms.SelectMultiple(attrs={'size':8}), 'notes':forms.Textarea(attrs={'rows':3})}
     def clean(self):
         data=super().clean()
         if 'remote' in (data.get('method') or '').lower():
@@ -40,7 +40,7 @@ class OtherAuditForm(forms.ModelForm):
     class Meta:
         model = OtherAudit
         fields = ['scope','period_start','period_end','tested_control','finding']
-        widgets = {k:forms.DateInput(attrs={'type':'date'}) for k in ['period_start','period_end']}
+        widgets = {**{k:forms.DateInput(attrs={'type':'date'}) for k in ['period_start','period_end']},**{k:forms.Textarea(attrs={'rows':3}) for k in ['scope','tested_control','finding']}}
     def clean(self):
         data=super().clean()
         if data.get('period_start') and data.get('period_end') and data['period_end']<data['period_start']:
@@ -48,11 +48,26 @@ class OtherAuditForm(forms.ModelForm):
         return data
 
 class KaizenForm(forms.ModelForm):
+    owner = forms.CharField(max_length=160, required=False)
+    process_location = forms.CharField(max_length=200, required=False, label='Process / location')
+    due_date = forms.DateField(required=False,widget=forms.DateInput(attrs={'type':'date'}))
     class Meta:
         model = Kaizen
         fields = ['title','profile','opportunity']
+        labels={'title':'Problem / working title','profile':'Methodological profile','opportunity':'Linked finding'}
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        self.fields['profile'].required=False
+        self.fields['profile'].initial='A4'
+    def clean_profile(self): return self.cleaned_data.get('profile') or 'A4'
 
 class KaizenStageForm(forms.Form):
+    owner = forms.CharField(max_length=160,required=False)
+    process_location = forms.CharField(max_length=200,required=False,label='Process / location')
+    due_date = forms.DateField(required=False,widget=forms.DateInput(attrs={'type':'date'}))
+    cause_status = forms.ChoiceField(choices=[('','Not recorded'),('hypothesis','Cause hypothesis'),('supported','Cause supported by investigation')],required=False)
+    sustain_owner = forms.CharField(max_length=160,required=False)
+    sustain_check = forms.CharField(required=False,widget=forms.Textarea(attrs={'rows':2}),label='Sustain check / learning')
     overall_problem = forms.CharField(widget=forms.Textarea(attrs={'rows':3}), required=False, label='Overall problem (PLAN!B11)')
     specific_problem = forms.CharField(widget=forms.Textarea(attrs={'rows':3}), required=False, label='Specific problem (PLAN!B63)')
     root_cause = forms.CharField(widget=forms.Textarea(attrs={'rows':3}), required=False, label='Investigated root cause (PLAN!B85)')
@@ -70,7 +85,7 @@ class KaizenStageForm(forms.Form):
     data_source = forms.CharField(required=False)
     sustain = forms.CharField(widget=forms.Textarea(attrs={'rows':3}), required=False, label='Sustain plan (ACT)')
     document_types = forms.CharField(required=False, help_text='Different updated document or site-tool types, separated by commas')
-    coach_review = forms.CharField(widget=forms.Textarea(attrs={'rows':2}), required=False)
+    coach_review = forms.CharField(widget=forms.Textarea(attrs={'rows':2}), required=False,label='Sensei review')
     next_kaizen_action = forms.CharField(widget=forms.Textarea(attrs={'rows':2}), required=False, label='Follow-up action if target unmet (ACT)')
     revision = forms.IntegerField(widget=forms.HiddenInput)
 
@@ -81,12 +96,40 @@ class KaizenStageForm(forms.Form):
                 required=False,label=f'Star {number} review ({address})',help_text=text)
         for field in self.fields.values():
             if field.label: field.label=field.label.split(' (')[0]
+    def clean(self):
+        data=super().clean()
+        if data.get('result_period_start') and data.get('result_period_end') and data['result_period_end']<data['result_period_start']:
+            self.add_error('result_period_end','End date must be on or after the start date.')
+        return data
+
+class PreparationFilterForm(forms.Form):
+    category=forms.ChoiceField(required=False,label='Category')
+    level=forms.ChoiceField(required=False,choices=[('','All levels'),('C','Certified'),('B','Advanced'),('A','Showcase')])
+    evidence_type=forms.ChoiceField(required=False,choices=[('','All types'),('document','Document'),('observation','Observation'),('interview','Interview'),('audit','Other audit')])
+    owner=forms.CharField(required=False,max_length=160)
+    due=forms.DateField(required=False,label='Due by',widget=forms.DateInput(attrs={'type':'date'}))
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        from .models import Category
+        self.fields['category'].choices=[('','All categories')]+[(str(c.number),str(c)) for c in Category.objects.all()]
+
+class ReviewNoteForm(forms.Form):
+    stage=forms.ChoiceField(choices=[(s,s) for s in ('Plan','Do','Check','Act')])
+    kind=forms.ChoiceField(choices=[('advice','Advice'),('clarify','Request clarification'),('return','Return for changes')])
+    text=forms.CharField(widget=forms.Textarea(attrs={'rows':3}),label='Advice or specific request',max_length=10000)
+    revision=forms.IntegerField(widget=forms.HiddenInput)
+
+class ReviewQueueForm(forms.Form):
+    scope=forms.ChoiceField(required=False,choices=[('submitted','Submitted for review'),('all','All active work')])
+    stage=forms.ChoiceField(required=False,choices=[('','All stages')]+[(s,s) for s in ('Plan','Do','Check','Act')])
+    due=forms.DateField(required=False,label='Due by',widget=forms.DateInput(attrs={'type':'date'}))
+    readiness=forms.ChoiceField(required=False,choices=[('','All readiness'),('ready','Ready for local verification'),('missing','Needs attention')])
 
 class ActionForm(forms.ModelForm):
     class Meta:
         model = KaizenAction
         fields = ['phase','description','owner','start_date','end_date','key_action']
-        widgets = {k: forms.DateInput(attrs={'type':'date'}) for k in ['start_date','end_date']}
+        widgets = {**{k: forms.DateInput(attrs={'type':'date'}) for k in ['start_date','end_date']},'description':forms.Textarea(attrs={'rows':3})}
     def clean(self):
         data=super().clean()
         if data.get('start_date') and data.get('end_date') and data['end_date']<data['start_date']:
@@ -97,7 +140,7 @@ class ObservationForm(forms.ModelForm):
     class Meta:
         model = Observation
         fields = ['phase','measure','value','unit','population','period_start','period_end','data_source']
-        widgets = {k: forms.DateInput(attrs={'type':'date'}) for k in ['period_start','period_end']}
+        widgets = {**{k: forms.DateInput(attrs={'type':'date'}) for k in ['period_start','period_end']},'data_source':forms.Textarea(attrs={'rows':2})}
     def clean(self):
         data=super().clean()
         if data.get('period_start') and data.get('period_end') and data['period_end']<data['period_start']:
@@ -122,7 +165,7 @@ class DocumentUpdateForm(forms.ModelForm):
         widgets = {'updated_at':forms.DateInput(attrs={'type':'date'})}
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
-        self.fields['document_type'].widget=forms.Select(choices=[('', 'Choose source document type')]+document_types())
+        self.fields['document_type']=forms.ChoiceField(choices=[('', 'Choose source document type')]+document_types())
 
 EXTRA_ROWS=(11,14,19,20,21,22,23,24,28,29,30,31,33,35,38,40,41,43,47,48,49,50,51,52,54,57,60,61,62,64,66,75)
 class KaizenTemplateForm(forms.Form):

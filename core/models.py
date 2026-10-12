@@ -173,6 +173,33 @@ class KaizenAction(models.Model):
     end_date = models.DateField(null=True, blank=True)
     key_action = models.BooleanField(default=False)
 
+class KaizenRevision(models.Model):
+    event = models.ForeignKey(Kaizen, on_delete=models.CASCADE, related_name='history')
+    revision = models.PositiveIntegerField()
+    state = models.CharField(max_length=28)
+    snapshot = models.JSONField()
+    reason = models.CharField(max_length=200)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-revision']
+        constraints = [models.UniqueConstraint(fields=['event','revision'], name='unique_kaizen_revision')]
+
+class ReviewNote(models.Model):
+    event = models.ForeignKey(Kaizen, on_delete=models.CASCADE, related_name='review_notes')
+    stage = models.CharField(max_length=5, choices=[(s,s) for s in ('Plan','Do','Check','Act')])
+    kind = models.CharField(max_length=12, choices=[('advice','Advice'),('clarify','Clarification'),('return','Changes requested'),('reply','Team reply')])
+    text = models.TextField()
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    event_revision = models.PositiveIntegerField()
+    reply_to = models.ForeignKey('self', null=True, blank=True, on_delete=models.PROTECT)
+    resolved = models.BooleanField(default=False)
+    resolved_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name='resolved_kaizen_notes')
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['created_at','pk']
+
 class Participant(models.Model):
     event = models.ForeignKey(Kaizen, on_delete=models.CASCADE, related_name='participants')
     first_initial = models.CharField(max_length=3)

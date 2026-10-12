@@ -9,6 +9,7 @@ AREAS = {
     'assessment': ('Assessments','Conduct assessment'), 'respond': ('Assessments','Requirement response'),
     'opportunities': ('Improvements','Actions and blockers'), 'kaizens': ('Improvements','Kaizen events'),
     'kaizen_detail': ('Improvements','PDCA workspace'), 'kaizen_template_details': ('Improvements','Supporting template fields'),
+    'review_queue': ('Improvements','Sensei review'),
     'evidence': ('Resources','Evidence library'), 'other_audit': ('Resources','Audit scope'),
     'resources': ('Resources','Reports and guidance'), 'administration': ('Administration','Access and configuration'),
 }
@@ -36,4 +37,5 @@ def workspace(request):
             'baseline_reference':source.sha256[:8] if source else 'Not imported',
             'nav_area':area,'page_label':title,'current_route':name,'area_url':area_url,
             'site_switch_area':name if name in ('site','assessment','sessions','opportunities','kaizens','evidence','preparation','resources') else 'home',
-            'can_administer':Membership.objects.filter(user=request.user,role='admin').exists()}
+            'can_administer':Membership.objects.filter(user=request.user,role='admin').exists(),
+            'can_sensei':bool(site and Membership.objects.filter(user=request.user,site=site,role__in=['coach','manager','admin']).exists())}

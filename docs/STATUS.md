@@ -1,5 +1,38 @@
 # Project status — updated 12 October 2026
 
+## Current refinement: R1 complete; R2 next
+
+The user's refinement brief selected a separate bounded sequence. R1 was completed in this run; upgrade U2/U3 remain pending. The source brief is archived unchanged under `sources/original/`. No production records, external connection, push or publication was used.
+
+### R1 delivered
+
+- Shared label/control/help/error field groups and responsive filter/action panels, applied to evidence preparation, assessment filters, Kaizen, actions, sessions, evidence/audit forms and supporting template fields. Native selectors retained; menu popovers constrained to the viewport. Evidence preparation has separate Apply/Clear/secondary Export actions, active filters, explicit empty results and per-site filter memory.
+- Quick participant draft creation from problem/title, with visible owner/site-context defaults and editable A4/A3/Business Process profile. The entered problem is reused in Plan. Four PDCA stages, useful next-action text, an editable action list, reused observation defaults and calculated empty before/after summaries. Explicit manual averages are retained and discrepancies flagged.
+- Debounced autosave of changed fields only, visible saved/failed state, inline accessible errors, resume, CSRF and revision protection. Partial date edits validate against the saved date pair. Invalid action/observation forms and stale coaching advice/replies retain entered text.
+- Site-scoped sensei queue with scope/stage/due/readiness filters, saved-data PDCA preview, missing checks and changed-content display. Existing coach role reused for advice, clarification/return, request resolution and verification; team replies do not resolve or approve requests automatically.
+- Immutable event/revision checkpoints and complete review conversation in the archive. Changes to verified/sustained/reassessment content require re-review; original assessment responses/snapshots stay separate. Existing source gates remain; Star 8 type counting normalizes case/whitespace and new document types validate against source choices. Excel rejects oversized action/text fields; full JSON retains them.
+- `KAIZEN_FIELD_RULES.md` and the 75-row `kaizen-field-rules.csv` distinguish source content, mandatory local gates, conditional quality, derived values and optional context. Exact ten-star text and the additional template/5W2H fields remain available. Guide-dependent profile completeness is not claimed as resolved. A3 PDFs/attachments/import/sharing were not added early.
+
+### R1 checks actually run
+
+- Full Django suite: **24 tests passed** (2.972 seconds). The nine refinement tests were rerun after the final stale-message fix and passed. Coverage includes source preservation, original assessment-to-Kaizen rules, quick drafts, autosave/CSRF/conflicts, partial dates, advice/reply/resolve gates, reviewed revision retention, editable actions, private history, observation reuse/manual overrides, oversized export rejection and true distinct-type Star 8 behavior.
+- Migration 0007 applied locally; `makemigrations --check --dry-run` reported no changes. Both JavaScript files passed `node --check`.
+- Compared against `backups/pre-refinement.sqlite3`: **856 pre-existing rows across 23 tables unchanged**. Original workbook hashes still match the recorded values. Browser testing used new fictional baseline/after events; earlier site, evidence, event and assessment records were preserved.
+- Actual browser pass: desktop (1280 px and default desktop size) and **390×844** narrow layouts, long filter labels/values, empty results, header selectors, keyboard menu navigation, modal layering/Keep editing, autosave error/retry/resume, action add/edit, comparable observations, prepared submission, sensei clarification, reply/resolution/local verification, and an approved-content edit returning to review with a changed Countermeasure flag.
+- Narrow page-width checks: 375 CSS px content within a 390 px viewport on evidence preparation and workspace. Date autosave errors retained the entered dates and set `aria-invalid=true`. No dropdown-bearing modal exists in R1; the existing unsaved-work modal was inspected above the header and closed by keyboard.
+- SQLite backup/restore after the new history model: integrity `ok`, catalog 15/150/494; live and restored databases each had **17 revision snapshots and 2 review notes**. Shared PostgreSQL recovery remains unverified.
+- Before/after screenshots saved in `docs/verification/refinement-preparation-{before,after}.jpg` and corresponding narrow files, plus sensei queue desktop/narrow captures. Local server remains at `127.0.0.1:8000` with the README startup command.
+
+### Practical sample measurements
+
+One local browser automation sample for **create an event and store its overall problem**: baseline **5 interactions / 338 ms**, refinement **2 interactions / 229 ms**. Before required title/profile/create, repeated problem entry, and save; after reused the creation problem and known context. Resume after refinement: **1 reload / 140 ms**, with the saved specific problem retained. These timings exclude human reading/typing and are not human productivity estimates. No comparable pre-refinement resume/coaching timing was collected; no percentage gain is claimed. Attachment/import/repository tasks belong to R2/R3 and were not timed.
+
+### Remaining items and next milestone
+
+**R2: event attachments, existing-evidence links, and deliberate Excel/CSV measurement import.** R3 follows with versioned A3 PDFs and the approved cross-site learning repository. Upgrade U2 template control and U3 governance controls remain unfinished in their separate sequence.
+
+Unresolved: missing Kaizen User Guide/profile completeness and source-template approval; corporate authority and sharing policy; attachment scanning/storage limits; corporate SSO/PostgreSQL/CAT integration and the existing governance policies. Local sensei verification is not official TCA classification or certification. No paid AI dependency was introduced.
+
 ## Focused upgrade: U1 complete; U2 next
 
 Only the first unfinished upgrade milestone was executed. Governance was read in full and recorded with page references in `GOVERNANCE_DELTA.md`. The master prompt and originals retain their hashes. The PDF control/footer approval conflict and missing supporting policies remain unresolved.
