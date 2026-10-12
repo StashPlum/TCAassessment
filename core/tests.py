@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
@@ -14,7 +15,7 @@ from datetime import date, timedelta
 from openpyxl import load_workbook
 from io import BytesIO
 from .source import star_criteria, kaizen_record
-from .forms import SessionForm
+from .forms import KaizenStageForm, SessionForm
 
 class SourceTests(TestCase):
     def test_exact_import_and_repeat(self):
@@ -200,3 +201,73 @@ class JourneyTests(TestCase):
         for clause in req.clauses.all(): Coverage.objects.create(evidence=evidence,clause=clause,accepted=True,reviewed_by=self.user,reviewed_at=timezone.now())
         self.client.post(url,{'revision':0,'action':'accept_reassessment'})
         k.refresh_from_db();self.assertEqual(k.status,'reassessment_accepted')
+
+    def test_authorized_navigation_switching_and_admin_boundary(self):
+        self.site.country_code='NL';self.site.grouping='Benelux';self.site.save()
+        self.other.country_code='GB';self.other.save()
+        self.client.force_login(self.user)
+        page=self.client.get(reverse('home'))
+        self.assertContains(page,'Netherlands')
+        self.assertContains(page,'CAT confirmation pending')
+        self.assertNotContains(page,'Other Fictional Site')
+        self.assertNotContains(page,'United Kingdom')
+        self.assertNotContains(page,'href="/administration/"')
+        self.assertEqual(self.client.get(reverse('administration')).status_code,404)
+        self.assertEqual(self.client.post(reverse('switch_site'),{'site_code':self.other.code}).status_code,404)
+        self.assertRedirects(self.client.post(reverse('switch_site'),{'site_code':self.site.code,'area':'assessment'}),reverse('assessment',args=[self.site.code]))
+        self.assertEqual(self.client.session['selected_site'],self.site.code)
+        self.assertRedirects(self.client.post(reverse('switch_site'),{'site_code':self.site.code,'area':'https://example.com'}),reverse('home'))
+        Membership.objects.create(user=self.user,site=self.site,role='admin')
+        self.assertContains(self.client.get(reverse('administration')),'does not confer program approval authority')
+        self.assertEqual(self.client.get(reverse('resources',args=[self.other.code])).status_code,404)
+
+    def test_progressive_pdca_fields_survive_save_and_next(self):
+        self.client.force_login(self.user)
+        event=Kaizen.objects.create(site=self.site,title='Synthetic UX record',profile='A4',created_by=self.user,
+                                   data={'overall_problem':'Keep original problem','coach_11':'Retain supplementary detail'})
+        url=reverse('kaizen_detail',args=[self.site.code,event.pk])
+        page=self.client.get(url)
+        ids=re.findall(r'\bid="([^"]+)"',page.content.decode())
+        self.assertEqual(len(ids),len(set(ids)))
+        for key in KaizenStageForm().fields:
+            self.assertContains(page,f'name="{key}"')
+        data={key:page.context['form'][key].value() if page.context['form'][key].value() is not None else '' for key in page.context['form'].fields}
+        data.update({'solution':'Synthetic countermeasure','action':'save'})
+        self.assertEqual(self.client.post(url,data).status_code,302)
+        event.refresh_from_db()
+        self.assertEqual(event.data['overall_problem'],'Keep original problem')
+        self.assertEqual(event.data['coach_11'],'Retain supplementary detail')
+        invalid=self.client.post(reverse('kaizen_add',args=[self.site.code,event.pk,'observation']),
+            {'phase':'after','measure':'Retained test measure','value':'0','unit':'count','population':'shifts',
+             'period_start':'2026-10-12','period_end':'2026-10-01','data_source':'Synthetic'})
+        self.assertEqual(invalid.status_code,200)
+        self.assertContains(invalid,'Retained test measure')
+        self.assertContains(invalid,'Period end must be on or after period start.')
+        self.assertTrue(invalid.context['observation_form'].errors)
+        self.assertEqual(event.observations.count(),0)
+        req=Requirement.objects.get(pk='1.C.1')
+        assessment=Assessment.objects.create(site=self.site,version=1,created_by=self.user)
+        response=self.client.post(reverse('respond',args=[self.site.code,req.code]),{'revision':0,'code':'N','conclusion':'Synthetic','go':'next'})
+        self.assertRedirects(response,reverse('respond',args=[self.site.code,'1.C.2']))
+        self.assertEqual(Response.objects.get(assessment=assessment,requirement=req).code,'N')
+
+    def test_empty_access_and_assessment_search_states(self):
+        no_sites=get_user_model().objects.create_user('no_sites')
+        self.client.force_login(no_sites)
+        self.assertContains(self.client.get(reverse('home')),'No site access assigned')
+        self.assertNotContains(self.client.get(reverse('home')),self.site.name)
+        self.client.force_login(self.user)
+        self.assertContains(self.client.get(reverse('assessment',args=[self.site.code]),{'q':'NONEXISTENT_TEST_REQUIREMENT'}),'No matching requirements')
+
+    def test_staff_can_read_blocker_without_editing_or_restricted_evidence(self):
+        staff=get_user_model().objects.create_user('read_only_staff')
+        Membership.objects.create(user=staff,site=self.site,role='staff')
+        req=Requirement.objects.get(pk='1.C.1')
+        evidence=Evidence.objects.create(site=self.site,title='Restricted HR title',evidence_type='document',classification='hr',owner='Demo',created_by=self.user)
+        Coverage.objects.create(evidence=evidence,clause=req.clauses.first())
+        self.client.force_login(staff)
+        url=reverse('respond',args=[self.site.code,req.code])
+        self.assertContains(self.client.get(url),'Read-only access')
+        self.assertNotContains(self.client.get(url),'Restricted HR title')
+        self.assertEqual(self.client.post(url,{'code':'N','conclusion':'Blocked','revision':0}).status_code,404)
+        self.assertFalse(Response.objects.filter(requirement=req).exists())

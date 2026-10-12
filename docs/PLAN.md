@@ -9,3 +9,12 @@
 
 Do not mark a milestone complete solely because a scaffold or dashboard renders. `docs/STATUS.md` records the actual state and checks.
 
+## Focused upgrade — one unfinished milestone per run
+
+U1. **UX upgrade — completed 12 October 2026.** Record governance delta; provisional CEVA visual tokens; four grouped menu areas; authorized country/site selection, visible baseline/assessment context; simple Overview and progressive assessment/PDCA screens. Preserve workflows, source bytes and history. Verify menu/switching/unsaved/error states in desktop and narrow rendered screens. Actual results are in STATUS.md.
+
+U2. **Template control.** Immutable template and requirement versions, lineage, operation profiles, governed assignments, proposed changes/comparison/review/effective release. Freeze the effective configuration when an assessment starts; preserve historical wording/scores/evidence and mark changed requirements for reassessment. Verify two synthetic approved assignments and server isolation. Clarify authority using the missing working RACI; no technical-admin publication assumption.
+
+U3. **Governance controls.** Lowest applicable section, Developing versus Unclassified, exact 186/368-day frequency controls, partial/duplicate/boundary cases, blocker escalation, CAT reconciliation, recognition restrictions and management reporting. Keep unresolved scope/counting/grace policies visible.
+
+`docs/GOVERNANCE_DELTA.md` is the compact source interpretation. Status records the completed upgrade milestone and actual verification. Do not execute U2 or U3 in the U1 run.

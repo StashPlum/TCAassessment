@@ -1,47 +1,14 @@
-{% extends 'base.html' %}
-{% block content %}
-<h1>{{ event.title }}</h1>
-<p>{{ event.get_profile_display }} · {{ event.status }} · revision {{ event.revision }}</p>
-<p class="notice">The source guide for conditional profile requirements is missing. Completeness is not certified by this form.</p>
-<div class="grid">
-  <div class="card"><h2>Results quality checks</h2>
-    <p>Coach-reviewed stars marked Yes: {{ star_count }} of 10. This quality ranking is separate from TCA maturity.</p>
-    <p>Star 7 data, comparability, and target or follow-up check: {{ quality.results_over_30_days_and_5_points|yesno:'Met,Not met' }}</p>
-    <p>Two different reported document or site-tool types for Star 8: {{ quality.two_document_types|yesno:'Recorded,Not recorded' }}</p>
-  </div>
-  <div class="card"><h2>Archive</h2><a href="{% url 'kaizen_archive' site.code event.pk %}">Complete event JSON</a> · <a href="{% url 'kaizen_excel' site.code event.pk %}">Excel archive</a> · <a href="{% url 'kaizen_template_details' site.code event.pk %}">Additional source template fields</a>
-    <p>Linked requirements: {% for r in event.linked_requirements.all %}{{ r.code }} {% empty %}None{% endfor %}</p>
-  </div>
-</div>
-<div class="card"><h2>PDCA record</h2><form method="post">{% csrf_token %}{{ form.as_p }}
-  <button name="action" value="save">Save draft</button>
-  <button name="action" value="advance">Advance stage</button>
-  <button name="action" value="verify">Coach verify</button>
-  <button name="action" value="request_reassessment">Request reassessment</button>
-  <button name="action" value="accept_reassessment">Accept reassessment</button>
-</form></div>
-<div class="grid">
-  <div class="card"><h2>Do and Act actions</h2><form method="post" action="{% url 'kaizen_add' site.code event.pk 'action' %}">{% csrf_token %}{{ action_form.as_p }}<button>Add action</button></form>
-    {% for a in event.actions.all %}<p>{{ a.phase }} · {{ a.description }} · {{ a.owner }} · {{ a.end_date|default:'No end date' }}</p>{% endfor %}
-  </div>
-  <div class="card"><h2>Measured observations</h2><form method="post" action="{% url 'kaizen_add' site.code event.pk 'observation' %}">{% csrf_token %}{{ observation_form.as_p }}<button>Add observation</button></form>
-    {% for c in comparisons %}<p>{{ c.measure }} · {{ c.population }} · {{ c.unit }}: before {{ c.before_average|default:'Need data' }} ({{ c.before_count }}), after {{ c.after_average|default:'Need data' }} ({{ c.after_count }}), difference {{ c.difference|default:'Need comparable data' }}</p>{% endfor %}
-  </div>
-  <div class="card"><h2>Benefits</h2><p>Estimates and financial validation remain separate. A project benefit is counted once regardless of linked requirements.</p>
-    {% if financial_access %}<form method="post" action="{% url 'kaizen_add' site.code event.pk 'benefit' %}">{% csrf_token %}{{ benefit_form.as_p }}<button>Add estimated benefit</button></form>
-    {% for b in visible_benefits %}<p>{{ b.get_kind_display }}: {{ b.amount }} {{ b.unit }} · {{ b.validated|yesno:'Validated,Estimate' }}</p>
-    {% if not b.validated %}<form method="post" action="{% url 'validate_benefit' site.code b.pk %}">{% csrf_token %}<button>Validate benefit</button></form>{% endif %}{% endfor %}
-    {% else %}<p>Financial detail is restricted to site managers.</p>{% endif %}
-  </div>
-</div>
-<div class="grid">
-  <div class="card"><h2>Team</h2><p>{{ unique_participants }} unique participants recorded.</p>
-    {% if participant_access %}<form method="post" action="{% url 'kaizen_add' site.code event.pk 'participant' %}">{% csrf_token %}{{ participant_form.as_p }}<button>Add participant</button></form>
-    {% for p in visible_participants %}<p>{{ p.first_initial }}. {{ p.last_name }} · {{ p.kaizen_role }} · {{ p.estimated_hours|default:'Hours unset' }}</p>{% endfor %}
-    {% else %}<p>Participant details are restricted to coaches and managers.</p>{% endif %}
-  </div>
-  <div class="card"><h2>Sustain documents and site tools</h2><form method="post" action="{% url 'kaizen_add' site.code event.pk 'document' %}">{% csrf_token %}{{ document_form.as_p }}<button>Add update</button></form>
-    {% for d in event.document_updates.all %}<p>{{ d.document_type }} · {{ d.name }} · {{ d.updated_at }}</p>{% endfor %}
-  </div>
-</div>
-{% endblock %}
+{% extends 'base.html' %}{% block content %}
+<span class="eyebrow">Improvements · {{ event.get_profile_display }}</span><h1>{{ event.title }}</h1><p><span class="badge">{{ event.status }}</span> · saved revision {{ event.revision }} · {{ event.updated_at|date:'d M Y H:i' }}</p>
+<ol class="workflow-stepper" aria-label="PDCA progress">{% for phase in phase_forms %}<li {% if phase.title == active_phase %}class="current" aria-current="step"{% endif %}>{{ phase.title }}</li>{% endfor %}</ol>
+<form method="post" id="pdca-form">{% csrf_token %}{{ form.revision }}{% if form.non_field_errors %}<div class="form-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+{% for phase in phase_forms %}<details class="disclosure" {% if phase.open %}open{% endif %}><summary><span class="phase-number">{{ forloop.counter }}</span>{{ phase.title }}</summary><p class="muted">{{ phase.help }}</p>{% for field in phase.fields %}{% include 'field.html' %}{% endfor %}</details>{% endfor %}
+<div class="actions"><button name="action" value="save">Save draft</button><button class="secondary" name="action" value="advance">Advance stage</button></div>
+<details class="disclosure"><summary>Verification and reassessment</summary><p>Coach verification requires the saved PDCA, actions and comparable observations. Reassessment acceptance requires current accepted Yes responses in an approved local assessment.</p><div class="actions"><button name="action" value="verify">Coach verify</button><button class="secondary" name="action" value="request_reassessment">Request reassessment</button><button class="secondary" name="action" value="accept_reassessment">Accept reassessment</button></div></details></form>
+<details class="disclosure" {% if action_form.is_bound %}open{% endif %}><summary>Do and Act action records ({{ event.actions.count }})</summary><form method="post" action="{% url 'kaizen_add' site.code event.pk 'action' %}">{% csrf_token %}{{ action_form.as_p }}<button>Add action</button></form>{% for a in event.actions.all %}<p>{{ a.phase }} · {{ a.description }} · {{ a.owner }} · {{ a.end_date|default:'No end date' }}</p>{% endfor %}</details>
+<details class="disclosure" {% if observation_form.is_bound %}open{% endif %}><summary>Measured observations ({{ event.observations.count }})</summary><form method="post" action="{% url 'kaizen_add' site.code event.pk 'observation' %}">{% csrf_token %}{{ observation_form.as_p }}<button>Add observation</button></form>{% for c in comparisons %}<p>{{ c.measure }} · {{ c.population }} · {{ c.unit }}: before {{ c.before_average|default_if_none:'Need data' }} ({{ c.before_count }}), after {{ c.after_average|default_if_none:'Need data' }} ({{ c.after_count }}), difference {{ c.difference|default_if_none:'Need comparable data' }}</p>{% endfor %}</details>
+<details class="disclosure" {% if benefit_form.is_bound %}open{% endif %}><summary>Benefits</summary><p>Estimates and financial validation remain separate. Count a project benefit once regardless of linked requirements.</p>{% if financial_access %}<form method="post" action="{% url 'kaizen_add' site.code event.pk 'benefit' %}">{% csrf_token %}{{ benefit_form.as_p }}<button>Add estimated benefit</button></form>{% for b in visible_benefits %}<p>{{ b.get_kind_display }}: {{ b.amount }} {{ b.unit }} · {{ b.validated|yesno:'Validated,Estimate' }}</p>{% if not b.validated %}<form method="post" action="{% url 'validate_benefit' site.code b.pk %}">{% csrf_token %}<button>Validate benefit</button></form>{% endif %}{% endfor %}{% else %}<p>Financial detail is restricted to site managers.</p>{% endif %}</details>
+<details class="disclosure" {% if participant_form.is_bound %}open{% endif %}><summary>Team ({{ unique_participants }} unique participants)</summary>{% if participant_access %}<form method="post" action="{% url 'kaizen_add' site.code event.pk 'participant' %}">{% csrf_token %}{{ participant_form.as_p }}<button>Add participant</button></form>{% for p in visible_participants %}<p>{{ p.first_initial }}. {{ p.last_name }} · {{ p.kaizen_role }} · {{ p.estimated_hours|default_if_none:'Hours unset' }}</p>{% endfor %}{% else %}<p>Participant details are restricted to coaches and managers.</p>{% endif %}</details>
+<details class="disclosure" {% if document_form.is_bound %}open{% endif %}><summary>Sustain documents and site tools ({{ event.document_updates.count }})</summary><form method="post" action="{% url 'kaizen_add' site.code event.pk 'document' %}">{% csrf_token %}{{ document_form.as_p }}<button>Add update</button></form>{% for d in event.document_updates.all %}<p>{{ d.document_type }} · {{ d.name }} · {{ d.updated_at }}</p>{% endfor %}</details>
+<details class="disclosure"><summary>Results quality and ten-star checks</summary><p>Coach-reviewed stars marked Yes: {{ star_count }} of 10. Separate from TCA maturity.</p><p>Star 7 data, comparability, and target or follow-up: {{ quality.results_over_30_days_and_5_points|yesno:'Met,Not met' }}</p><p>Two different document or site-tool types for Star 8: {{ quality.two_document_types|yesno:'Recorded,Not recorded' }}</p></details>
+<details class="disclosure"><summary>Archive, supporting fields and source guidance</summary><p>The source guide for conditional profile requirements is missing; this form cannot certify completeness.</p><p><a href="{% url 'kaizen_template_details' site.code event.pk %}">Additional source template fields and 5W2H</a></p><p><a href="{% url 'kaizen_archive' site.code event.pk %}">Complete event JSON</a> · <a href="{% url 'kaizen_excel' site.code event.pk %}">Excel archive</a></p><p>Linked requirements: {% for r in event.linked_requirements.all %}{{ r.code }} {% empty %}None{% endfor %}</p><p class="small">Source mapping: Plan — PLAN!B11, B63, B85, B24, B27, B30; Do — DO!B15; Check — CHECK!B26; Act — ACT; coach review — COACH REVIEW. Exact ten-star criteria remain with their review fields.</p></details>{% endblock %}

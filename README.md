@@ -16,6 +16,8 @@ Optional configuration can go in an ignored `.env` file copied from `.env.exampl
 
 Suggested demonstration: **Fictional Maturity Examples** shows one Certified, one Advanced, and one Showcase category under draft v1. **Fictional Harbor Site** shows a gap, Kaizen work, clause-specific evidence, and dated reassessment versions. The full catalog remains searchable on both sites. All operational examples are fictional.
 
+The UX upgrade uses four menu groups and an authorized country/site selector. The two fictional fixtures carry explicit NL/Benelux and UK metadata. The header shows the global baseline reference and local assessment version; governed template/profile assignment is the next upgrade milestone. [Governance interpretation](docs/GOVERNANCE_DELTA.md) and [current upgrade status](docs/STATUS.md) record the boundaries and checks.
+
 ## Commands
 
 For commands below, set Python and project imports in PowerShell first:

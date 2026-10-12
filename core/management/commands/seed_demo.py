@@ -14,6 +14,11 @@ class Command(BaseCommand):
         for role in ('staff','assessor','coach','manager'):
             Membership.objects.get_or_create(user=user,site=site,role=role)
         examples,new=Site.objects.get_or_create(code='fictional-maturity',defaults={'name':'Fictional Maturity Examples','target_level':'A'})
+        # Explicit synthetic location metadata; never infer country for other sites.
+        for fixture,country,grouping in ((site,'NL','Benelux'),(examples,'GB','UK')):
+            if not fixture.country_code:
+                fixture.country_code=country;fixture.grouping=grouping
+                fixture.save(update_fields=['country_code','grouping'])
         for role in ('staff','assessor','coach','manager'):
             Membership.objects.get_or_create(user=user,site=examples,role=role)
         if new:

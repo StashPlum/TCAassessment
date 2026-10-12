@@ -9,3 +9,4 @@ sources/original/
 sources/extracted/
 docs/inventory_raw.txt
 docs/kaizen_labels.txt
+tmp/

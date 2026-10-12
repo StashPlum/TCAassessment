@@ -79,6 +79,8 @@ class KaizenStageForm(forms.Form):
         for number,text,address in star_criteria():
             self.fields[f'star_{number}']=forms.ChoiceField(choices=[('', 'Not reviewed'),('Y','Yes'),('N','No')],
                 required=False,label=f'Star {number} review ({address})',help_text=text)
+        for field in self.fields.values():
+            if field.label: field.label=field.label.split(' (')[0]
 
 class ActionForm(forms.ModelForm):
     class Meta:

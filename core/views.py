@@ -15,11 +15,13 @@ from .measurements import compare_observations, event_benefits
 from .quality import results_criterion, sustain_types_criterion
 from .exports import archive_xlsx, export_errors
 from .readiness import accepted_codes, assessment_snapshot
+from .context import authorized_sites, selected_site
 
 def site_access(request, site_code, roles=None):
     site = get_object_or_404(Site, code=site_code)
     memberships = Membership.objects.filter(user=request.user, site=site)
     if not memberships.exists() or (roles and not memberships.filter(role__in=roles).exists()): raise Http404
+    request.session['selected_site']=site.code
     return site
 
 def active_assessment(site, user):
@@ -34,7 +36,43 @@ def log(site, user, action, obj, detail=None):
 
 @login_required
 def home(request):
-    return render(request, 'home.html', {'sites':Site.objects.filter(membership__user=request.user).distinct()})
+    site=selected_site(request)
+    context={'site':site}
+    if site:
+        latest=site.assessments.first()
+        codes,_=accepted_codes(site,latest)
+        categories=Category.objects.prefetch_related('requirements')
+        context['ready_sections']=sum(category_result({r.position:codes.get(r.code,'') for r in c.requirements.all()})['earned'] is not None for c in categories)
+        target={'C':5,'B':8,'A':10}[site.target_level]
+        context['blockers']=Requirement.objects.filter(position__lte=target).exclude(code__in=[key for key,value in codes.items() if value=='Y'])[:5]
+        context['priority_actions']=Opportunity.objects.filter(site=site,status='open').order_by('-immediate_corrective','-prerequisite','due_date','pk')[:5]
+        context['my_actions']=Opportunity.objects.filter(site=site,status='open',owner__iexact=request.user.username)[:5]
+        context['upcoming_sessions']=AssessmentSession.objects.filter(site=site,date__gte=timezone.localdate()).order_by('date')[:3]
+        context['active_improvements']=Kaizen.objects.filter(site=site).exclude(status='reassessment_accepted').order_by('-updated_at')[:3]
+    return render(request,'home.html',context)
+
+@login_required
+@require_POST
+def switch_site(request):
+    site=site_access(request,request.POST.get('site_code',''))
+    area=request.POST.get('area','home')
+    if area not in ('site','assessment','sessions','opportunities','kaizens','evidence','preparation','resources'): return redirect('home')
+    return redirect(area,site_code=site.code)
+
+@login_required
+def locations(request):
+    return render(request,'locations.html',{'sites':authorized_sites(request.user)})
+
+@login_required
+def resources(request,site_code):
+    site=site_access(request,site_code)
+    return render(request,'resources.html',{'site':site})
+
+@login_required
+def administration(request):
+    sites=authorized_sites(request.user).filter(membership__user=request.user,membership__role='admin').distinct()
+    if not sites.exists(): raise Http404
+    return render(request,'administration.html',{'sites':sites})
 
 @login_required
 def site_progress(request, site_code):
@@ -70,10 +108,16 @@ def assessment(request, site_code):
 
 @login_required
 def respond(request, site_code, req_code):
-    site = site_access(request,site_code,['assessor','manager','admin'])
+    site = site_access(request,site_code)
+    can_respond=Membership.objects.filter(user=request.user,site=site,role__in=['assessor','manager','admin']).exists()
+    if request.method=='POST' and not can_respond: raise Http404
     req = get_object_or_404(Requirement.objects.prefetch_related('clauses'),code=req_code)
     obj = active_assessment(site,request.user)
     existing = Response.objects.filter(assessment=obj,requirement=req).first()
+    next_req=Requirement.objects.filter(Q(category_id__gt=req.category_id)|Q(category_id=req.category_id,position__gt=req.position)).first()
+    coverage=Coverage.objects.filter(evidence__site=site,clause__requirement=req).select_related('evidence','clause')
+    if not can_respond: coverage=coverage.filter(evidence__classification='internal')
+    response_context={'site':site,'req':req,'assessment':obj,'next_req':next_req,'can_respond':can_respond,'coverage':coverage}
     if request.method == 'POST':
         form = ResponseForm(request.POST)
         if form.is_valid():
@@ -84,7 +128,6 @@ def respond(request, site_code, req_code):
                     form.add_error(None,'Another edit was saved. Reload and review the latest response.')
                 else:
                     if form.cleaned_data['code']=='Y':
-                        from django.db.models import Q
                         if not form.cleaned_data['conclusion'].strip(): form.add_error('conclusion','Explain the assessor conclusion for Yes.')
                         valid_coverage=Coverage.objects.filter(evidence__site=site,clause__requirement=req,accepted=True,
                             reviewed_by__isnull=False,reviewed_at__isnull=False).filter(~Q(evidence__evidence_type='audit')|Q(evidence__other_audit__isnull=False)).filter(Q(evidence__valid_until__isnull=True)|Q(evidence__valid_until__gte=timezone.localdate()))
@@ -92,15 +135,16 @@ def respond(request, site_code, req_code):
                         missing=[c.ordinal for c in req.clauses.all() if c.id not in covered]
                         if missing: form.add_error('code',f'Cannot accept Yes. Clauses {missing} lack accepted, currently valid evidence coverage.')
                     if form.errors:
-                        return render(request,'respond.html',{'site':site,'req':req,'form':form,'assessment':obj})
+                        return render(request,'respond.html',{**response_context,'form':form})
                     Response.objects.update_or_create(assessment=obj,requirement=req,defaults={'code':form.cleaned_data['code'],'conclusion':form.cleaned_data['conclusion'],'updated_by':request.user})
                     obj.revision += 1; obj.save(update_fields=['revision'])
                     log(site,request.user,'response_saved',req,{'code':form.cleaned_data['code'],'assessment':obj.pk})
                     messages.success(request,f'{req.code} saved.')
+                    if request.POST.get('go')=='next' and next_req: return redirect('respond',site_code=site.code,req_code=next_req.code)
                     return redirect('assessment',site_code=site.code)
     else:
         form = ResponseForm(initial={'code':existing.code if existing else '', 'conclusion':existing.conclusion if existing else '', 'revision':obj.revision})
-    return render(request,'respond.html',{'site':site,'req':req,'form':form,'assessment':obj})
+    return render(request,'respond.html',{**response_context,'form':form})
 
 @login_required
 @require_POST
@@ -249,6 +293,13 @@ def kaizen_detail(request,site_code,pk):
                         messages.success(request,'Kaizen saved. Linked TCA responses were not changed.')
                         return redirect('kaizen_detail',site_code=site.code,pk=obj.pk)
     else: form=KaizenStageForm(initial={**obj.data,'revision':obj.revision})
+    return render_kaizen(request,site,obj,form)
+
+def render_kaizen(request,site,obj,form,child_forms=None):
+    children={'action_form':ActionForm(auto_id='id_action_%s'),'observation_form':ObservationForm(auto_id='id_observation_%s'),
+              'benefit_form':BenefitForm(auto_id='id_benefit_%s'),'participant_form':ParticipantForm(auto_id='id_participant_%s'),
+              'document_form':DocumentUpdateForm(auto_id='id_document_%s')}
+    children.update(child_forms or {})
     quality={'results_over_30_days_and_5_points':results_criterion(obj.data,list(obj.observations.all())),
              'two_document_types':len(set(obj.document_updates.values_list('document_type',flat=True)))>=2}
     star_count=sum(obj.data.get(f'star_{i}')=='Y' for i in range(1,11))
@@ -256,9 +307,17 @@ def kaizen_detail(request,site_code,pk):
     participant_access=Membership.objects.filter(user=request.user,site=site,role__in=['coach','manager','admin']).exists()
     participants=list(obj.participants.all())
     unique_participants=len({p.email.lower() if p.email else (p.first_initial.lower(),p.last_name.lower()) for p in participants})
+    phases=[('Plan','Define the problem and the intended result.', ['overall_problem','specific_problem','root_cause','measure','baseline','target','unit','population','direction']),
+            ('Do','Record the countermeasure and implementation.', ['solution']),
+            ('Check','Compare equivalent results and retain the data source.', ['actual','result_period_start','result_period_end','data_points','data_source']),
+            ('Act','Record sustain work and any further improvement.', ['sustain','document_types','next_kaizen_action']),
+            ('Review','Coach review and ten-star quality are separate from classification.', ['coach_review']+[f'star_{i}' for i in range(1,11)])]
+    active_phase={'proposed':'Plan','planned':'Do','in_progress':'Do','implemented':'Check','results_under_review':'Review','verified':'Act','sustained':'Act'}.get(obj.status,'Review')
+    phase_forms=[{'title':title,'help':help_text,'fields':[form[key] for key in keys],
+                  'open':title==active_phase or any(form[key].errors for key in keys)} for title,help_text,keys in phases]
     return render(request,'kaizen_detail.html',{'site':site,'event':obj,'form':form,'quality':quality,'star_count':star_count,
-        'action_form':ActionForm(),'observation_form':ObservationForm(),'benefit_form':BenefitForm(),
-        'participant_form':ParticipantForm(),'document_form':DocumentUpdateForm(),'unique_participants':unique_participants,
+        'phase_forms':phase_forms,'active_phase':active_phase,
+        **children,'unique_participants':unique_participants,
         'visible_participants':participants if participant_access else [],'participant_access':participant_access,
         'comparisons':compare_observations(obj.observations.all()),'visible_benefits':obj.benefits.all() if financial_access else [],
         'financial_access':financial_access,'benefit_totals':event_benefits(obj.benefits.all()) if financial_access else {}})
@@ -271,12 +330,14 @@ def kaizen_add(request,site_code,pk,kind):
     event=get_object_or_404(Kaizen,site=site,pk=pk)
     forms={'action':ActionForm,'observation':ObservationForm,'benefit':BenefitForm,'participant':ParticipantForm,'document':DocumentUpdateForm}
     if kind not in forms: raise Http404
-    form=forms[kind](request.POST)
+    form=forms[kind](request.POST,auto_id=f'id_{kind}_%s')
     if form.is_valid():
         obj=form.save(commit=False);obj.event=event;obj.save()
         log(site,request.user,f'kaizen_{kind}_added',obj)
         messages.success(request,f'{kind.title()} saved in the full archive.')
-    else: messages.error(request,'Could not save the item: '+str(form.errors))
+    else:
+        messages.error(request,'Could not save the item. Correct the highlighted fields; your entries are retained.')
+        return render_kaizen(request,site,event,KaizenStageForm(initial={**event.data,'revision':event.revision}),{kind+'_form':form})
     return redirect('kaizen_detail',site_code=site.code,pk=event.pk)
 
 @login_required

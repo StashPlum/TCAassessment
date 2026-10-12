@@ -4,8 +4,13 @@ from django.db import models
 from .storage import PrivateLocalStorage
 
 class Site(models.Model):
+    COUNTRY_CHOICES = [('NL','Netherlands'),('BE','Belgium'),('LU','Luxembourg'),('GB','United Kingdom')]
     name = models.CharField(max_length=180, unique=True)
     code = models.SlugField(unique=True)
+    country_code = models.CharField(max_length=2, choices=COUNTRY_CHOICES, blank=True)
+    organization = models.CharField(max_length=180, default='CEVA Logistics')
+    region = models.CharField(max_length=120, blank=True)
+    grouping = models.CharField(max_length=120, blank=True)
     target_level = models.CharField(max_length=1, choices=[('C','Certified'),('B','Advanced'),('A','Showcase')], default='C')
     def __str__(self): return self.name
 

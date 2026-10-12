@@ -36,3 +36,6 @@ Meaning of response A; formal approval of cumulative levels; whether and how exc
 
 Target Django 5.2 LTS, PostgreSQL 14+, server-rendered pages and HTMX. Local file storage behind a private access interface. Development login only on loopback. No public API, external upload, or corporate identity connection in the local pilot. Use synthetic data for demonstrations.
 
+## Upgrade interpretation
+
+The 12 October upgrade has three bounded milestones described in PLAN.md. Governance interpretation is in GOVERNANCE_DELTA.md. CAT controls official standing and recognition; local section readiness is separate. Site-specific assessments will be governed immutable configurations in U2, retaining canonical IDs and approved historical records. U1 changes interface/location metadata only: organization is separate from site, Benelux is a grouping, countries are NL/BE/LU/GB with blank metadata allowed. No applicability, frequency, standing or publication rule is inferred from the UI changes. Technical administrators have no implicit program approval authority.

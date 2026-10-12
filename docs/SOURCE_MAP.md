@@ -20,3 +20,6 @@ Defined names `BU`, `Contribution`, `Country`, `Site_ID`, and `USD_Conversion` c
 
 Response A meaning; meeting duration guidance; Environment evidence window; dated qualifiers; missing FAQ/User Guide; broken defined names and stale reference lists. These are tracked in `docs/STATUS.md`. Source wording takes precedence over the build brief where they conflict.
 
+## Governance upgrade source
+
+The 13-page GHO-BPE-TCA-001 V.2.0 PDF (17 August 2026) is archived byte for byte under `sources/original/`; SHA-256 `fc320df3595e6c11d3f8275341f727d4c3a1c4d28025406e2d16ceef05e1a4a8`. `GOVERNANCE_DELTA.md` records page references, approval conflict and missing policy controls. It adds governance expectations without replacing the original requirement wording. U1 retains the source hash as the visible global-baseline reference; it does not pretend the existing Assessment.version is a governed template version.

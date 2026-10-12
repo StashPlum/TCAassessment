@@ -1,15 +1,9 @@
 {% extends 'base.html' %}{% block content %}
-<h1>Assessment · version {{ assessment.version }}</h1>
-<p class="notice">Response A is unresolved and never satisfies the draft gate. Each requirement conclusion is separate. Policy: {{ assessment.policy_version }} (unapproved).</p>
-<form method="get" class="card" hx-get="{% url 'assessment' site.code %}" hx-target="#assessment-results" hx-push-url="true">
-  <label>Search requirements <input name="q" value="{{ query }}"></label>
-  <label>Category <select name="category"><option value="">All</option>{% for c in categories %}<option value="{{ c.number }}" {% if category == c.number|stringformat:'s' %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></label>
-  <button>Filter</button>
-</form>
-<div id="assessment-results">{% include 'assessment_results.html' %}</div>
-<div class="card"><h2>Assessment history</h2><p>An approved snapshot is frozen. Create a new draft for changes.</p>
-{% if assessment.status == 'draft' %}<form method="post" action="{% url 'approve' site.code %}">{% csrf_token %}<label>Approval rationale <input name="rationale"></label><button>Approve dated local snapshot</button></form>
-{% else %}<form method="post" action="{% url 'new_draft' site.code %}">{% csrf_token %}<label>New version rationale <input name="rationale"></label><button>Create new version</button></form>{% endif %}</div>
-<div class="card"><h2>Versions</h2>{% for item in history %}<p>Version {{ item.version }} · {{ item.status }} · {{ item.approved_at|default:'Not approved' }} · {{ item.rationale }}</p>{% endfor %}
-<a href="{% url 'assessment_archive' site.code %}">Full catalog and current responses JSON</a></div>
-{% endblock %}
+<div class="page-heading"><div><span class="eyebrow">Assessments · {{ assessment.status }}</span><h1>Conduct assessment</h1><p>Local assessment v{{ assessment.version }} · {{ assessment.policy_version }} (unapproved)</p></div><a class="button secondary" href="{% url 'preparation' site.code %}">Prepare evidence</a></div>
+<form method="get" class="panel filter-form" hx-get="{% url 'assessment' site.code %}" hx-target="#assessment-results" hx-push-url="true">
+<label>Section<select name="category"><option value="">All sections</option>{% for c in categories %}<option value="{{ c.number }}" {% if category == c.number|stringformat:'s' %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></label><label>Search requirements<input name="q" value="{{ query }}" placeholder="ID, wording or evidence"></label><button>Apply filters</button></form>
+<p class="small muted">Choose a requirement to review its exact wording, evidence and response. Response A is unresolved and earns no gate.</p>
+<div id="assessment-results" aria-live="polite">{% include 'assessment_results.html' %}</div>
+<details class="disclosure" id="history"><summary>Assessment history and dated snapshots</summary><p>Approved local snapshots are frozen. Create a new draft to change responses. Official classification requires CAT confirmation.</p>
+{% if assessment.status == 'draft' %}<form method="post" action="{% url 'approve' site.code %}">{% csrf_token %}<p><label for="approval-reason">Approval rationale</label><input id="approval-reason" name="rationale"></p><button>Approve dated local snapshot</button></form>{% else %}<form method="post" action="{% url 'new_draft' site.code %}">{% csrf_token %}<p><label for="draft-reason">New version rationale</label><input id="draft-reason" name="rationale"></p><button>Create new version</button></form>{% endif %}
+<h2>Versions</h2>{% for item in history %}<p>Version {{ item.version }} · {{ item.status }} · {{ item.approved_at|default:'Not approved' }} · {{ item.rationale }}</p>{% endfor %}<p><a href="{% url 'assessment_archive' site.code %}">Full catalog and current responses JSON</a></p></details>{% endblock %}

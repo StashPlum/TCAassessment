@@ -7,9 +7,9 @@
   <div class="card"><h2>Current draft</h2><p>{% if draft %}Version {{ draft.version }}{% else %}No active draft{% endif %}</p></div>
 </div>
 {% if unverified %}<p class="notice">Yes responses with incomplete or expired clause coverage: {{ unverified|join:', ' }}</p>{% endif %}
-<h2>Category readiness</h2>
-<table><thead><tr><th>Category</th><th>Dated level</th><th>Current readiness</th><th>Target blockers</th></tr></thead><tbody>
+<h2>Section readiness</h2><p class="small muted">Confirmed site standing: CAT confirmation pending. The table shows local section results.</p>
+<div class="table-scroll"><table><thead><tr><th>Section</th><th>Dated local level</th><th>Current readiness</th><th>Target blockers</th></tr></thead><tbody>
 {% for category,result,dated_earned,blockers in rows %}<tr><td>{{ category }}</td><td>{{ dated_earned|default:'Not recorded' }}</td><td>{{ result.earned|default:'Not yet Certified' }}</td>
-  <td>{% for r in blockers %}<a href="{% url 'respond' site.code r.code %}">{{ r.code }}</a>{% if not forloop.last %}, {% endif %}{% empty %}None under draft rule{% endfor %}</td></tr>{% endfor %}
-</tbody></table><p><a class="button" href="{% url 'report' site.code %}">Download status JSON</a></p>
+  <td>{% if blockers %}<details><summary>{{ blockers|length }} blockers</summary>{% for r in blockers %}<a href="{% url 'respond' site.code r.code %}">{{ r.code }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</details>{% else %}None under draft rule{% endif %}</td></tr>{% endfor %}
+</tbody></table></div><p><a class="button" href="{% url 'report' site.code %}">Download status JSON</a></p>
 {% endblock %}

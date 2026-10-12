@@ -7,4 +7,4 @@
 - Enforce site permissions on the server for every object and download. Keep local login out of production.
 - Read `docs/PRODUCT.md`, `docs/SOURCE_MAP.md`, `docs/PLAN.md`, and `docs/STATUS.md` for details. Update status with checks actually run.
 - Local actions authorized: source import, implementation, disposable migrations and tests, loopback demonstration. No push, publication, corporate connection, or production data.
-
+- Upgrade runs complete only the first unfinished U milestone in docs/PLAN.md. Use docs/GOVERNANCE_DELTA.md for the governance interpretation. CAT controls official standing; technical administration does not imply program approval. Treat future site templates as governed immutable assignments, not editable copies of the baseline.
