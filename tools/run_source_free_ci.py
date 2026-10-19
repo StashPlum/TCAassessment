@@ -23,4 +23,4 @@ def synthetic_catalog(self,*args,**kwargs):
 with patch('core.forms.star_criteria',return_value=[(i,f'Synthetic quality criterion {i}',f'Synthetic!C{i}') for i in range(1,11)]), \
      patch('core.forms.document_types',return_value=[('Work Instruction','Work Instruction'),('Performance Board','Performance Board')]), \
      patch('core.management.commands.import_catalog.Command.handle',synthetic_catalog):
-    call_command('test','core.test_toolbox','core.test_progress_files','core.test_reports','core.test_stage1','core.test_stage2','core.test_stage3','core.test_stage4',verbosity=1)
+    call_command('test','core.test_toolbox','core.test_progress_files','core.test_reports','core.test_stage1','core.test_stage2','core.test_stage3','core.test_stage4','core.test_stage5',verbosity=1)

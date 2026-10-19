@@ -8,6 +8,7 @@ from core import report_views as rv
 from core import config_views as qv
 from core import journey_views as jv
 from core import kaizen_views as kv
+from core import library_views as lv
 
 urlpatterns = [
     path('sites/<slug:site_code>/kaizen/review/export/<str:fmt>/', kv.review_export, name='review_export'),
@@ -15,13 +16,15 @@ urlpatterns = [
     path('sites/<slug:site_code>/kaizen/<int:pk>/tasks/<int:action_pk>/progress/', kv.task_progress, name='task_progress'),
     path('sites/<slug:site_code>/kaizen/<int:pk>/export/<str:fmt>/', kv.event_export, name='event_export'),
     path('sites/<slug:site_code>/toolbox/', kv.toolbox_library, name='toolbox_library'),
+    path('sites/<slug:site_code>/learning/<int:pk>/best-practice/', lv.best_practice_validate, name='best_practice_validate'),
+    path('sites/<slug:site_code>/evidence/<int:pk>/link-requirement/', lv.evidence_link_requirement, name='evidence_link_requirement'),
     path('sites/<slug:site_code>/kaizen/<int:pk>/attachments/<int:attachment_pk>/preview/', av.attachment_preview, name='attachment_preview'),
     path('sites/<slug:site_code>/kaizen/<int:pk>/a3/', rv.a3_preview, name='a3_preview'),
     path('sites/<slug:site_code>/kaizen/<int:pk>/a3/finalize/', rv.a3_finalize, name='a3_finalize'),
     path('sites/<slug:site_code>/kaizen/<int:pk>/a3/<int:report_pk>/', rv.a3_download, name='a3_download'),
     path('sites/<slug:site_code>/kaizen/<int:pk>/complete-archive/', rv.event_archive_zip, name='event_archive_zip'),
     path('sites/<slug:site_code>/kaizen/<int:pk>/learning/publish/', rv.learning_publish, name='learning_publish'),
-    path('sites/<slug:site_code>/learning/', rv.learning, name='learning'),
+    path('sites/<slug:site_code>/learning/', lv.learning, name='learning'),
     path('sites/<slug:site_code>/learning/<int:pk>/adapt/', rv.learning_adapt, name='learning_adapt'),
     path('sites/<slug:site_code>/kaizen/<int:pk>/attachments/add/', av.attachment_add, name='attachment_add'),
     path('sites/<slug:site_code>/kaizen/<int:pk>/attachments/<int:attachment_pk>/download/', av.attachment_download, name='attachment_download'),
@@ -39,7 +42,7 @@ urlpatterns = [
     path('location/', views.switch_site, name='switch_site'),
     path('locations/', views.locations, name='locations'),
     path('administration/', views.administration, name='administration'),
-    path('sites/<slug:site_code>/resources/', views.resources, name='resources'),
+    path('sites/<slug:site_code>/resources/', lv.resources, name='resources'),
     path('sites/<slug:site_code>/', views.site_progress, name='site'),
     path('sites/<slug:site_code>/assessment/', views.assessment, name='assessment'),
     path('sites/<slug:site_code>/assessment/configuration/', qv.configuration, name='assessment_configuration'),
@@ -64,7 +67,7 @@ urlpatterns = [
     path('sites/<slug:site_code>/benefit/<int:pk>/validate/', views.validate_benefit, name='validate_benefit'),
     path('sites/<slug:site_code>/kaizen/<int:pk>/archive/', views.kaizen_archive, name='kaizen_archive'),
     path('sites/<slug:site_code>/kaizen/<int:pk>/excel/', views.kaizen_excel, name='kaizen_excel'),
-    path('sites/<slug:site_code>/evidence/', views.evidence, name='evidence'),
+    path('sites/<slug:site_code>/evidence/', lv.evidence_library, name='evidence'),
     path('sites/<slug:site_code>/evidence/preparation/', views.preparation, name='preparation'),
     path('sites/<slug:site_code>/evidence/preparation/export/<str:fmt>/', jv.preparation_export, name='preparation_export'),
     path('sites/<slug:site_code>/evidence/preparation/<str:req_code>/', jv.preparation_need, name='preparation_need'),

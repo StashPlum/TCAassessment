@@ -426,3 +426,11 @@ class LearningEntry(models.Model):
     approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     approval_reason = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+class BestPracticeValidation(models.Model):
+    """Separate sensei validation; a closed or shared event never becomes best practice by itself."""
+    entry = models.OneToOneField(LearningEntry, on_delete=models.PROTECT, related_name='best_practice')
+    validated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    validated_at = models.DateTimeField(auto_now_add=True)
+    how_achieved = models.TextField()  # how the result was reached and sustained, in the validator's words
+    validation_basis = models.TextField()  # what the validator checked (sites, period, sustainment evidence)

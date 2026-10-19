@@ -32,5 +32,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Stage-one synthetic seed failed.' }
 if ($LASTEXITCODE -ne 0) { throw 'Stage-two synthetic seed failed.' }
 & $pythonExe manage.py seed_stage4_demo
 if ($LASTEXITCODE -ne 0) { throw 'Stage-four synthetic seed failed.' }
+& $pythonExe manage.py seed_stage5_demo
+if ($LASTEXITCODE -ne 0) { throw 'Stage-five synthetic seed failed.' }
 Write-Host 'Open http://127.0.0.1:8000/login/ with demo / LocalDemo2026! (fictional local data).'
 & $pythonExe manage.py runserver 127.0.0.1:8000 --noreload

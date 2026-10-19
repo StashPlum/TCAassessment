@@ -42,7 +42,8 @@ def workspace(request):
     source=SourceVersion.objects.filter(filename='TCA assessment work categorisation.xlsx').first()
     parent={'Overview':'home','Assessments':'assessment','Improvements':'opportunities','Resources':'resources','Administration':'administration'}[area]
     area_url=reverse(parent,kwargs={'site_code':site.code}) if site and parent in ('assessment','opportunities','resources') else reverse('administration' if area=='Administration' else 'home')
-    return {'workspace_site':site,'authorized_sites':sites,**role_context(request.user,site),
+    from .kaizen import initials
+    return {'user_initials':initials(request.user.get_full_name() or request.user.username),'workspace_site':site,'authorized_sites':sites,**role_context(request.user,site),
             'authorized_countries':[(code,dict(Site.COUNTRY_CHOICES).get(code,'Country not assigned')) for code in sorted({s.country_code for s in sites})],
             'workspace_assessment':site.assessments.first() if site else None,
             'baseline_reference':source.sha256[:8] if source else 'Not imported',
