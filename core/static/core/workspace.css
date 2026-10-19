@@ -119,3 +119,24 @@ form.filter-panel label{font-size:.82rem}
 form.filter-panel .filter-grid{gap:var(--space-3)}
 form.filter-panel .filter-actions{gap:var(--space-3);padding-top:var(--space-3);margin:var(--space-3) 0 0}
 #record-opportunity{scroll-margin-top:var(--space-4)}
+
+/* E3: planning, preparation exports and synchronized conduct views. */
+.workflow-links,.export-bar,.view-tabs{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;margin:var(--space-4) 0}
+.workflow-links a{font-weight:600;font-size:.9rem}
+.export-bar{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:var(--space-3) var(--space-4);font-size:.85rem}
+.export-bar strong{color:var(--navy)}.export-bar .button{min-height:36px;padding:.35rem .65rem;font-size:.82rem}
+.assessment-picker{display:flex;align-items:end;gap:var(--space-3);background:#fff;border:1px solid var(--line);padding:var(--space-3) var(--space-4);margin:var(--space-4) 0}
+.assessment-picker label{min-width:220px;flex:1}.assessment-picker select{width:100%}.assessment-picker button{white-space:nowrap}
+.view-tabs{border-bottom:1px solid var(--line);gap:var(--space-6)}
+.view-tabs a{display:inline-flex;align-items:center;min-height:44px;text-decoration:none;font-weight:600;border-bottom:3px solid transparent}
+.view-tabs a[aria-current]{border-color:var(--blue);color:var(--navy)}
+.filter-extra{display:grid;grid-template-columns:repeat(2,minmax(0,280px));gap:var(--space-3);padding-top:var(--space-2)}
+.filter-extra .field{max-width:none;margin:0}
+.selection-form .table-scroll table{min-width:820px}
+.selection-form input[type=checkbox],#history-selection input[type=checkbox]{width:20px;height:20px}
+.plan-status{display:inline-block;padding:2px 7px;background:var(--neutral-bg);color:var(--neutral-ink);font-size:.82rem;font-weight:700}
+.plan-confirmed{background:var(--yes-bg);color:var(--yes-ink)}
+.plan-alternative{background:var(--advisory-bg);color:var(--advisory-ink)}
+.plan-blocked{background:var(--no-bg);color:var(--no-ink)}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--canvas);padding:var(--space-3);font-size:.78rem}
+@media(max-width:760px){.assessment-picker{display:grid;grid-template-columns:1fr}.assessment-picker label{min-width:0}.view-tabs{gap:var(--space-3)}.filter-extra{grid-template-columns:1fr}.export-bar{align-items:start}.export-bar span{width:100%}}

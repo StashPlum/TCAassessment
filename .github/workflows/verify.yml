@@ -24,3 +24,4 @@ jobs:
       - run: node --check core/static/core/worksheet.js
       - run: node --check core/static/core/workspace.js
       - run: node --check core/static/core/kaizen-autosave.js
+      - run: node --check core/static/core/assessment-autosave.js

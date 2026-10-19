@@ -27,15 +27,70 @@ class OpportunityForm(forms.ModelForm):
         widgets = {'due_date': forms.DateInput(attrs={'type':'date'}),'problem':forms.Textarea(attrs={'rows':3}),'proposed_measure':forms.Textarea(attrs={'rows':2})}
 
 class SessionForm(forms.ModelForm):
+    blocks_text=forms.CharField(label='Time blocks',required=False,widget=forms.Textarea(attrs={'rows':3}),
+        help_text='One per line: 09:00-09:45 | 2 people | Safety and operations')
     class Meta:
         model = AssessmentSession
-        fields = ['date','method','notes','owner','requirements']
-        widgets = {'date': forms.DateInput(attrs={'type':'date'}), 'requirements':forms.SelectMultiple(attrs={'size':8}), 'notes':forms.Textarea(attrs={'rows':3})}
+        fields = ['date','purpose','scope_text','method','participants','blocks_text','notes','owner','requirements']
+        widgets = {'date': forms.DateInput(attrs={'type':'date'}), 'requirements':forms.SelectMultiple(attrs={'size':8}),
+                   'notes':forms.Textarea(attrs={'rows':3}),'purpose':forms.Textarea(attrs={'rows':2}),
+                   'scope_text':forms.Textarea(attrs={'rows':2}),'participants':forms.Textarea(attrs={'rows':2})}
+    def clean_blocks_text(self):
+        rows=[]
+        for number,line in enumerate(self.cleaned_data['blocks_text'].splitlines(),1):
+            if not line.strip(): continue
+            parts=[part.strip() for part in line.split('|')]
+            if len(parts)!=3 or '-' not in parts[0]:
+                raise forms.ValidationError(f'Line {number}: use HH:MM-HH:MM | people | role.')
+            start,end=[value.strip() for value in parts[0].split('-',1)]
+            from datetime import time
+            try:
+                start=time.fromisoformat(start);end=time.fromisoformat(end)
+                people=int(parts[1])
+            except ValueError:
+                raise forms.ValidationError(f'Line {number}: enter valid times and a whole number of people.')
+            if end<=start or people<1 or people>100 or not parts[2]:
+                raise forms.ValidationError(f'Line {number}: end after start, 1–100 people and a role are required.')
+            rows.append({'start':start.strftime('%H:%M'),'end':end.strftime('%H:%M'),'people':people,'role':parts[2]})
+        return rows
     def clean(self):
         data=super().clean()
         if 'remote' in (data.get('method') or '').lower():
             blocked=[r.code for r in data.get('requirements',[]) if 'remote assessment not applicable' in r.remote_method.lower()]
             if blocked: raise forms.ValidationError('Source does not permit remote assessment for '+', '.join(blocked))
+        return data
+
+class SessionChangeForm(SessionForm):
+    change_reason=forms.CharField(label='Reason for change',widget=forms.Textarea(attrs={'rows':2}))
+    impact=forms.CharField(label='Operational impact',widget=forms.Textarea(attrs={'rows':2}))
+    followup_owner=forms.CharField(label='Follow-up owner',max_length=160)
+    revision=forms.IntegerField(widget=forms.HiddenInput)
+
+class SessionReviewForm(forms.Form):
+    availability=forms.ChoiceField(choices=[('confirmed','Confirm availability'),('alternative','Suggest an alternative'),('blocked','Record blocker')])
+    alternate_date=forms.DateField(required=False,widget=forms.DateInput(attrs={'type':'date'}))
+    backup_participants=forms.CharField(required=False,widget=forms.Textarea(attrs={'rows':2}),label='Alternative or backup people')
+    manager_note=forms.CharField(widget=forms.Textarea(attrs={'rows':2}),label='Availability note / blocker')
+    revision=forms.IntegerField(widget=forms.HiddenInput)
+    def clean(self):
+        data=super().clean()
+        if data.get('availability')=='alternative' and not (data.get('alternate_date') or data.get('backup_participants')):
+            self.add_error('alternate_date','Propose a new date or backup participants.')
+        return data
+
+class PreparationNeedForm(forms.Form):
+    evidence_items=forms.CharField(label='Site documentation needs',widget=forms.Textarea(attrs={'rows':5}),
+        help_text='One item per line. Official clauses remain unchanged.')
+    owner=forms.CharField(max_length=160,required=False,label='Document owner')
+    period_start=forms.DateField(required=False,widget=forms.DateInput(attrs={'type':'date'}))
+    period_end=forms.DateField(required=False,widget=forms.DateInput(attrs={'type':'date'}))
+    source_note=forms.CharField(label='Source / provenance',widget=forms.Textarea(attrs={'rows':2}))
+    change_reason=forms.CharField(label='Reason for change',widget=forms.Textarea(attrs={'rows':2}))
+    expected_version=forms.IntegerField(widget=forms.HiddenInput,min_value=0)
+    def clean(self):
+        data=super().clean()
+        if data.get('period_start') and data.get('period_end') and data['period_end']<data['period_start']:
+            self.add_error('period_end','End must be on or after start.')
         return data
 
 class OtherAuditForm(forms.ModelForm):

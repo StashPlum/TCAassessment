@@ -34,6 +34,8 @@ def assessment_snapshot(site, assessment):
                   .filter(Q(evidence__valid_until__isnull=True)|Q(evidence__valid_until__gte=timezone.localdate()))
                   .filter(clause__requirement_id__in=[code for code,value in codes.items() if value in pass_codes(assessment.policy_version)])
                   .select_related('evidence','clause','reviewed_by').order_by('clause_id','id'))
+    all_references=list(Coverage.objects.filter(evidence__site=site)
+        .select_related('evidence','clause').order_by('clause_id','id'))
     categories=[]
     for cat in Category.objects.all():
         categories.append({'category':cat.number,'name':cat.name,
@@ -48,4 +50,11 @@ def assessment_snapshot(site, assessment):
                          'evidence_version':c.evidence.version,'decision':c.decision,
                          'reviewed_by':c.reviewed_by_id,'reviewed_at':c.reviewed_at.isoformat()}
                         for c in coverage],
-            'unverified_yes':unverified,'categories':categories,'configuration':assessment.configuration_snapshot}
+            'evidence_references':[{'clause_id':link.clause_id,'source_address':link.clause.source_address,
+                'evidence_id':link.evidence_id,'evidence_title':link.evidence.title,
+                'evidence_version':link.evidence.version,'accepted':link.accepted,'decision':link.decision,
+                'period_start':link.evidence.period_start.isoformat() if link.evidence.period_start else None,
+                'period_end':link.evidence.period_end.isoformat() if link.evidence.period_end else None}
+                for link in all_references],
+            'unverified_yes':unverified,'categories':categories,'configuration':assessment.configuration_snapshot,
+            'preparation':assessment.preparation_snapshot}

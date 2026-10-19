@@ -7,6 +7,8 @@ AREAS = {
     'home': ('Overview','My work'), 'site': ('Overview','Site progress'),
     'locations': ('Overview','Authorized locations'),
     'preparation': ('Assessments','Prepare evidence'), 'sessions': ('Assessments','Plan assessment'),
+    'preparation_need': ('Assessments','Documentation need'), 'session_detail': ('Assessments','Assessment plan'),
+    'assessment_history': ('Assessments','Assessment history'),
     'assessment': ('Assessments','Conduct assessment'), 'respond': ('Assessments','Requirement response'),
     'opportunities': ('Improvements','TCA matrix'), 'kaizens': ('Improvements','Kaizen events'),
     'kaizen_detail': ('Improvements','PDCA workspace'), 'kaizen_template_details': ('Improvements','Supporting template fields'),

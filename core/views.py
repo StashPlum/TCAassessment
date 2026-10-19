@@ -108,24 +108,44 @@ def site_progress(request, site_code):
 @login_required
 def assessment(request, site_code):
     site = site_access(request, site_code)
-    obj = active_assessment(site, request.user)
-    query = request.GET.get('q','').strip()
+    selected_id=request.GET.get('assessment','')
+    if selected_id:
+        if not selected_id.isdigit():raise Http404
+        obj=get_object_or_404(Assessment,site=site,pk=int(selected_id))
+    else:obj = active_assessment(site, request.user)
+    query = request.GET.get('q','').strip()[:200]
     category = request.GET.get('category','')
+    if category and (not category.isdigit() or not Category.objects.filter(number=int(category)).exists()):category=''
     answer = request.GET.get('answer','')
     if answer not in ('Y','A','N','unanswered'): answer=''
-    reqs = Requirement.objects.all()
+    evidence_type=request.GET.get('evidence_type','')
+    if evidence_type not in ('document','observation','interview','audit'):evidence_type=''
+    view=request.GET.get('view','all')
+    if view not in ('all','section','single'):view='all'
+    from .progress import scope_for
+    scope=scope_for(obj)
+    reqs = Requirement.objects.filter(code__in=scope.get('requirements',[]))
+    if view=='section' and not category:
+        first=reqs.order_by('category_id').first()
+        category=str(first.category_id) if first else ''
     if category.isdigit(): reqs = reqs.filter(category_id=int(category))
     if query: reqs = reqs.filter(Q(code__icontains=query)|Q(detail_text__icontains=query)|Q(expected_evidence__icontains=query))
+    if evidence_type:
+        reqs=reqs.filter(code__in=Coverage.objects.filter(evidence__site=site,evidence__evidence_type=evidence_type).values_list('clause__requirement_id',flat=True))
     if answer:
         answered_ids=obj.responses.filter(code__in=('Y','A','N')).values_list('requirement_id',flat=True)
         reqs=reqs.exclude(code__in=answered_ids) if answer=='unanswered' else reqs.filter(code__in=obj.responses.filter(code=answer).values_list('requirement_id',flat=True))
-    page = Paginator(reqs,20).get_page(request.GET.get('page'))
+    page = Paginator(reqs,1 if view=='single' else 20).get_page(request.GET.get('page'))
     codes = {r.requirement_id:r.code for r in obj.responses.filter(requirement__in=page.object_list)}
+    pending=set(obj.responses.filter(advisory_retest_status='pending').values_list('requirement_id',flat=True))
     for req in page.object_list:
         req.response_code = codes.get(req.code,'')
         req.local_question=question_for_assessment(obj,req)
+        req.needs_retest=req.code in pending
     context={'site':site,'assessment':obj,'page':page,'query':query,'category':category,'answer':answer,
-             'filters_active':bool(query or category or answer),'categories':Category.objects.all(),
+             'evidence_type':evidence_type,'view':view,'scope':scope,
+             'filters_active':bool(query or category or answer or evidence_type),
+             'categories':Category.objects.all(),'assessments':site.assessments.all(),
              'history':site.assessments.all()}
     return render(request,'assessment_results.html' if request.headers.get('HX-Request')=='true' else 'assessment.html',context)
 
@@ -135,19 +155,40 @@ def respond(request, site_code, req_code):
     can_respond=Membership.objects.filter(user=request.user,site=site,role__in=['assessor','manager','admin']).exists()
     if request.method=='POST' and not can_respond: raise Http404
     req = get_object_or_404(Requirement.objects.prefetch_related('clauses'),code=req_code)
-    try:
-        obj = active_assessment(site,request.user)
-    except Http404:
-        if can_respond: raise
-        obj = None  # Read-only global question remains visible before the first assessment.
+    selected_id=request.POST.get('assessment_id') if request.method=='POST' else request.GET.get('assessment')
+    if selected_id:
+        if not str(selected_id).isdigit():raise Http404
+        obj=get_object_or_404(Assessment,site=site,pk=int(selected_id))
+    else:
+        try:obj = active_assessment(site,request.user)
+        except Http404:
+            if can_respond:raise
+            obj = None  # Read-only global question remains visible before the first assessment.
+    from .progress import scope_for
+    if obj and req.code not in scope_for(obj).get('requirements',[]):raise Http404
     existing = Response.objects.filter(assessment=obj,requirement=req).first() if obj else None
     prior=site.assessments.filter(status='approved',version__lt=obj.version).order_by('-version').first() if obj else None
     previous_advisory=Response.objects.filter(assessment=prior,requirement=req,code='A').first() if prior else None
-    next_req=Requirement.objects.filter(Q(category_id__gt=req.category_id)|Q(category_id=req.category_id,position__gt=req.position)).first()
+    next_req=Requirement.objects.filter(code__in=scope_for(obj).get('requirements',[])).filter(
+        Q(category_id__gt=req.category_id)|Q(category_id=req.category_id,position__gt=req.position)).first()
+    previous_evidence=[]
+    if previous_advisory and prior.snapshot:
+        from .access import allowed_classifications
+        visible_ids=set(Evidence.objects.filter(site=site,classification__in=allowed_classifications(request.user,site)).values_list('pk',flat=True))
+        clause_ids=set(req.clauses.values_list('id',flat=True))
+        previous_evidence=list(dict.fromkeys(row['evidence_title'] for row in prior.snapshot.get('coverage',[])
+            if row['clause_id'] in clause_ids and row.get('evidence_id') in visible_ids))
+    from .assessment_config import preparation_for_assessment
+    from urllib.parse import urlencode
+    back_values=request.GET
+    back_query=urlencode({key:back_values.get(key,'') for key in ('view','category','q','answer','evidence_type','page')
+        if back_values.get(key,'')})
+    if obj:back_query=urlencode({'assessment':obj.pk})+('&'+back_query if back_query else '')
     coverage=Coverage.objects.filter(evidence__site=site,clause__requirement=req).select_related('evidence','clause')
     if not can_respond: coverage=coverage.filter(evidence__classification='internal')
     response_context={'site':site,'req':req,'assessment':obj,'response':existing,'next_req':next_req,'can_respond':can_respond,'coverage':coverage,
-                      'question':question_for_assessment(obj,req),'previous_advisory':previous_advisory,
+                      'question':question_for_assessment(obj,req),'preparation_need':preparation_for_assessment(obj,req),
+                      'previous_advisory':previous_advisory,'previous_evidence':previous_evidence,'back_query':back_query,
                       'needs_retest':bool(existing and existing.advisory_retest_status=='pending'),
                       'related_actions':Opportunity.objects.filter(site=site,requirement=req).order_by('-id')[:10],
                       'related_kaizens':Kaizen.objects.filter(site=site,linked_requirements=req).distinct().order_by('-updated_at')[:10]}
@@ -159,6 +200,8 @@ def respond(request, site_code, req_code):
                 if obj.status != 'draft': return HttpResponseForbidden('Approved records are immutable.')
                 if obj.revision != form.cleaned_data['revision']:
                     form.add_error(None,'Another edit was saved. Reload and review the latest response.')
+                    if request.POST.get('autosave')=='1':
+                        return JsonResponse({'saved':False,'errors':form.errors},status=409)
                 else:
                     code=form.cleaned_data['code']
                     if response_context['needs_retest'] and not form.cleaned_data['retest_confirm']:
@@ -173,6 +216,7 @@ def respond(request, site_code, req_code):
                         missing=[c.ordinal for c in req.clauses.all() if c.id not in covered]
                         if missing: form.add_error('code',f'Cannot accept a pass. Clauses {missing} lack accepted, currently valid evidence coverage.')
                     if form.errors:
+                        if request.POST.get('autosave')=='1':return JsonResponse({'saved':False,'errors':form.errors},status=409 if form.non_field_errors() else 422)
                         return render(request,'respond.html',{**response_context,'form':form})
                     retest_status=('due_next' if code=='A' and obj.policy_version=='advisory-v2' else
                                    'retested' if response_context['needs_retest'] and code in ('Y','N') else 'not_due')
@@ -182,9 +226,16 @@ def respond(request, site_code, req_code):
                         'advisory_retest_status':retest_status,'updated_by':request.user})
                     obj.revision += 1; obj.save(update_fields=['revision'])
                     log(site,request.user,'response_saved',req,{'code':form.cleaned_data['code'],'assessment':obj.pk})
+                    if request.POST.get('autosave')=='1':return JsonResponse({'saved':True,'revision':obj.revision,'message':f'{req.code} saved.'})
                     messages.success(request,f'{req.code} saved.')
-                    if request.POST.get('go')=='next' and next_req: return redirect('respond',site_code=site.code,req_code=next_req.code)
-                    return redirect('assessment',site_code=site.code)
+                    if request.POST.get('go')=='next' and next_req:
+                        target=redirect('respond',site_code=site.code,req_code=next_req.code)
+                        if selected_id:target['Location']+=f'?assessment={obj.pk}'
+                        return target
+                    target=redirect('assessment',site_code=site.code)
+                    if selected_id or request.GET:target['Location']+='?'+back_query
+                    return target
+        elif request.POST.get('autosave')=='1':return JsonResponse({'saved':False,'errors':form.errors},status=422)
     else:
         form = ResponseForm(initial={'code':existing.code if existing else '', 'conclusion':existing.conclusion if existing else '',
                                      'advisory_follow_up':existing.advisory_follow_up if existing else '', 'revision':obj.revision if obj else 0})
@@ -211,16 +262,21 @@ def approve(request,site_code):
 def new_draft(request,site_code):
     from .progress import scope_for
     site=site_access(request,site_code,['assessor','manager','admin'])
+    plan_id=request.POST.get('session_id','')
+    plan=get_object_or_404(AssessmentSession,site=site,pk=int(plan_id)) if plan_id.isdigit() else None
+    if plan_id and not plan:raise Http404
+    if plan and plan.availability!='confirmed':return HttpResponse('Resolve manager availability before starting this planned assessment.',status=422)
     with transaction.atomic():
         if not site.assessments.filter(status='draft').exists():
             previous=site.assessments.first()
-            obj=Assessment.objects.create(site=site,version=previous.version+1 if previous else 1,created_by=request.user,rationale=request.POST.get('rationale',''),scope_snapshot=scope_for(previous),configuration_snapshot=frozen_configuration(site))
+            obj=Assessment.objects.create(site=site,version=previous.version+1 if previous else 1,created_by=request.user,
+                planned_session=plan,rationale=request.POST.get('rationale',''),scope_snapshot=scope_for(previous),configuration_snapshot=frozen_configuration(site))
             if previous:
                 Response.objects.bulk_create([Response(assessment=obj,requirement=r.requirement,code=r.code,conclusion=r.conclusion,
                     advisory_follow_up=r.advisory_follow_up,advisory_retest_status='pending' if r.code=='A' else r.advisory_retest_status,
                     updated_by=request.user) for r in previous.responses.all()])
             log(site,request.user,'new_draft',obj,{'from':previous.pk if previous else None})
-        else: messages.info(request,'An editable draft already exists.')
+        else: messages.info(request,'An editable draft already exists with its own frozen snapshot; open it before scheduling a new version.')
     return redirect('assessment',site_code=site.code)
 
 @login_required
@@ -275,11 +331,17 @@ def sessions(request,site_code):
     if request.method=='POST':
         site_access(request,site_code,['assessor','manager','admin'])
         if form.is_valid():
-            obj=form.save(commit=False);obj.site=site;obj.save();form.save_m2m()
+            obj=form.save(commit=False);obj.site=site;obj.time_blocks=form.cleaned_data['blocks_text'];obj.save();form.save_m2m()
+            from .journey_views import _session_state
+            from .models import SessionRevision
+            SessionRevision.objects.create(session=obj,revision=0,actor=request.user,reason='Initial assessment plan',
+                after=_session_state(obj))
             log(site,request.user,'session_created',obj)
-            messages.success(request,'Session saved. Each linked requirement still needs its own conclusion.')
-            return redirect('sessions',site_code=site.code)
-    return render(request,'sessions.html',{'site':site,'form':form,'items':AssessmentSession.objects.filter(site=site).order_by('-date')})
+            messages.success(request,'Proposed plan saved. Ask the site manager to confirm availability or suggest an alternative.')
+            return redirect('session_detail',site_code=site.code,pk=obj.pk)
+    return render(request,'sessions.html',{'site':site,'form':form,
+        'can_plan':Membership.objects.filter(site=site,user=request.user,role__in=['assessor','manager','admin']).exists(),
+        'items':AssessmentSession.objects.filter(site=site).order_by('-date')})
 
 @login_required
 def kaizens(request,site_code):
@@ -647,7 +709,9 @@ def evidence(request,site_code):
             return redirect('evidence',site_code=site.code)
     items=Evidence.objects.filter(site=site).order_by('-created_at')
     if not Membership.objects.filter(user=request.user,site=site,role__in=['manager','admin','assessor']).exists(): items=items.filter(classification='internal')
-    return render(request,'evidence.html',{'site':site,'items':items,'form':form})
+    requested=request.GET.get('requirement','')
+    if requested and not Requirement.objects.filter(code=requested).exists():requested=''
+    return render(request,'evidence.html',{'site':site,'items':items,'form':form,'requested_requirement':requested})
 
 @login_required
 def other_audit(request,site_code,pk):
@@ -679,47 +743,32 @@ def link_evidence(request,site_code,pk):
 @login_required
 def preparation(request,site_code):
     site=site_access(request,site_code)
+    if request.method=='POST':
+        selected=request.session.get('preparation_selected',{})
+        if request.POST.get('selection_action')=='clear':selected[site.code]=[]
+        elif request.POST.get('selection_action')=='add':
+            submitted=set(request.POST.getlist('selected'))
+            allowed=set(Requirement.objects.filter(code__in=submitted).values_list('code',flat=True))
+            selected[site.code]=sorted(set(selected.get(site.code,[]))|allowed)
+        request.session['preparation_selected']=selected
+        messages.success(request,f"{len(selected.get(site.code,[]))} requirements in the export selection.")
+        target=redirect('preparation',site_code=site.code)
+        if request.POST.get('page','').isdigit():target['Location']+=f"?page={int(request.POST['page'])}"
+        return target
     saved=request.session.get('preparation_filters',{})
     if request.GET.get('clear'):
         saved.pop(site.code,None);request.session['preparation_filters']=saved
         return redirect('preparation',site_code=site.code)
-    parameters=request.GET if request.GET else saved.get(site.code,{})
+    filter_keys=('category','level','evidence_type','owner','due')
+    parameters=request.GET if any(key in request.GET for key in filter_keys) else saved.get(site.code,{})
     filter_form=PreparationFilterForm(parameters)
     valid=filter_form.is_valid()
     filters=filter_form.cleaned_data if valid else {}
     if valid:
         saved[site.code]={key:str(value) for key,value in filters.items() if value is not None}
         request.session['preparation_filters']=saved
-    current=site.assessments.first()
-    codes,_=accepted_codes(site,current)
-    reqs=Requirement.objects.all()
-    category=filters.get('category','')
-    level=filters.get('level','')
-    kind=filters.get('evidence_type','')
-    owner=filters.get('owner','')
-    due=filters.get('due')
-    if not valid: reqs=reqs.none()
-    if category.isdigit(): reqs=reqs.filter(category_id=int(category))
-    if level in ('C','B','A'): reqs=reqs.filter(level_code=level)
-    from collections import defaultdict
-    accepted_by_req=defaultdict(set)
-    coverage=Coverage.objects.filter(evidence__site=site,accepted=True).select_related('clause','evidence')
-    if kind: coverage=coverage.filter(evidence__evidence_type=kind)
-    for link in coverage: accepted_by_req[link.clause.requirement_id].add(link.evidence_id)
-    opportunities_by_req=defaultdict(list)
-    opportunity_query=Opportunity.objects.filter(site=site)
-    if owner: opportunity_query=opportunity_query.filter(owner__icontains=owner)
-    if due:
-        opportunity_query=opportunity_query.filter(due_date__lte=due)
-    for item in opportunity_query: opportunities_by_req[item.requirement_id].append(item)
-    items=[]
-    for req in reqs.select_related('category'):
-        options=opportunities_by_req.get(req.code,[])
-        if (owner or due) and not options: continue
-        first=options[0] if options else None
-        items.append({'requirement':req,'response':codes.get(req.code,''),'accepted':len(accepted_by_req[req.code]),
-                      'action_type':first.get_kind_display() if first else 'Pending verification',
-                      'owner':first.owner if first else '', 'due_date':first.due_date if first else None})
+    from .preparation_service import preparation_items
+    items=preparation_items(site,filters) if valid else []
     if request.GET.get('format')=='csv' and valid:
         import csv
         response=HttpResponse(content_type='text/csv')
@@ -731,7 +780,12 @@ def preparation(request,site_code):
         return response
     active_filters=[(filter_form[key].label,dict(filter_form.fields[key].choices).get(value,value) if hasattr(filter_form.fields[key],'choices') else value)
                     for key,value in filters.items() if value]
-    return render(request,'preparation.html',{'site':site,'items':items,'filter_form':filter_form,'active_filters':active_filters})
+    page=Paginator(items,25).get_page(request.GET.get('page'))
+    selected=request.session.get('preparation_selected',{}).get(site.code,[])
+    for item in page.object_list:item['is_selected']=item['requirement'].code in selected
+    return render(request,'preparation.html',{'site':site,'items':items,'visible_items':page.object_list,'page':page,
+        'selected_count':len(selected),'filter_form':filter_form,'active_filters':active_filters,
+        'filter_query':request.GET.urlencode()})
 
 @login_required
 @require_POST

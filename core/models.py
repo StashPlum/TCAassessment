@@ -73,6 +73,8 @@ class Assessment(models.Model):
     snapshot = models.JSONField(default=dict)  # frozen accepted coverage and category results at approval
     scope_snapshot = models.JSONField(default=dict)  # explicit frozen denominator; legacy snapshots untouched
     configuration_snapshot = models.JSONField(default=dict)  # frozen local question/evidence wording for this assessment
+    preparation_snapshot = models.JSONField(default=dict)  # frozen site documentation needs for this assessment
+    planned_session = models.ForeignKey('AssessmentSession', null=True, blank=True, on_delete=models.SET_NULL, related_name='assessments')
     full_section_review = models.BooleanField(default=False)  # targeted decisions never reset section frequency
     def save(self,*args,**kwargs):
         if self._state.adding and not self.scope_snapshot:
@@ -81,6 +83,9 @@ class Assessment(models.Model):
         if self._state.adding and not self.configuration_snapshot:
             from .assessment_config import frozen_configuration
             self.configuration_snapshot=frozen_configuration(self.site)
+        if self._state.adding and not self.preparation_snapshot:
+            from .assessment_config import frozen_preparation
+            self.preparation_snapshot=frozen_preparation(self.site)
         return super().save(*args,**kwargs)
     class Meta:
         constraints = [models.UniqueConstraint(fields=['site','version'], name='unique_site_assessment_version')]
@@ -127,6 +132,27 @@ class SiteQuestionVersion(models.Model):
         if not self._state.adding: raise ValueError('Site question versions are immutable; create a new version.')
         return super().save(*args,**kwargs)
 
+class PreparationNeedVersion(models.Model):
+    """Append-only site documentation request; never edits the official obligation."""
+    site = models.ForeignKey(Site, on_delete=models.CASCADE, related_name='preparation_versions')
+    requirement = models.ForeignKey(Requirement, on_delete=models.PROTECT)
+    version = models.PositiveIntegerField()
+    evidence_items = models.JSONField(default=list)
+    owner = models.CharField(max_length=160, blank=True)
+    period_start = models.DateField(null=True, blank=True)
+    period_end = models.DateField(null=True, blank=True)
+    source_note = models.TextField()
+    change_reason = models.TextField()
+    diff = models.JSONField(default=dict)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['site','requirement','version'], name='unique_site_preparation_version')]
+        ordering = ['-version']
+    def save(self,*args,**kwargs):
+        if not self._state.adding: raise ValueError('Preparation versions are immutable; create a new version.')
+        return super().save(*args,**kwargs)
+
 class Evidence(models.Model):
     site = models.ForeignKey(Site, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
@@ -160,7 +186,32 @@ class AssessmentSession(models.Model):
     notes = models.TextField(blank=True)
     requirements = models.ManyToManyField(Requirement, blank=True)
     owner = models.CharField(max_length=160, blank=True)
+    purpose = models.TextField(blank=True)
+    scope_text = models.TextField(blank=True)
+    participants = models.TextField(blank=True)
+    time_blocks = models.JSONField(default=list)
+    availability = models.CharField(max_length=16, choices=[('proposed','Awaiting review'),('confirmed','Confirmed'),('alternative','Alternative proposed'),('blocked','Blocker')], default='proposed')
+    manager_note = models.TextField(blank=True)
+    alternate_date = models.DateField(null=True, blank=True)
+    backup_participants = models.TextField(blank=True)
+    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name='reviewed_assessment_sessions')
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    revision = models.PositiveIntegerField(default=0)
     def __str__(self): return f'{self.date} {self.method}'
+
+class SessionRevision(models.Model):
+    session = models.ForeignKey(AssessmentSession, on_delete=models.CASCADE, related_name='history')
+    revision = models.PositiveIntegerField()
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    reason = models.TextField()
+    impact = models.TextField(blank=True)
+    followup_owner = models.CharField(max_length=160, blank=True)
+    before = models.JSONField(default=dict)
+    after = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['session','revision'], name='unique_session_revision')]
+        ordering = ['-revision']
 
 class OtherAudit(models.Model):
     evidence = models.OneToOneField(Evidence, on_delete=models.CASCADE, related_name='other_audit')

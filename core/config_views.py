@@ -9,7 +9,7 @@ from django.http import Http404,JsonResponse
 from django.shortcuts import get_object_or_404,redirect,render
 from django.views.decorators.http import require_http_methods
 from .assessment_config import current_question
-from .models import Requirement,Site,SiteQuestionVersion
+from .models import Assessment, Requirement, Response, Site, SiteQuestionVersion
 from .views import site_access,log
 
 
@@ -32,7 +32,19 @@ def configuration(request,site_code):
     latest={v.requirement_id:v for v in SiteQuestionVersion.objects.filter(site=site,kind='local_guidance').order_by('version')}
     for req in page.object_list: req.local_version=latest.get(req.code)
     can_edit=site.membership_set.filter(user=request.user,role='assessor').exists()
-    return render(request,'assessment_configuration.html',{'site':site,'page':page,'query':query,'can_edit':can_edit})
+    approved=Assessment.objects.filter(site=site,status='approved').first()
+    prior_advisories=[]
+    if approved:
+        from .access import allowed_classifications
+        from .models import Evidence
+        visible_ids=set(Evidence.objects.filter(site=site,classification__in=allowed_classifications(request.user,site)).values_list('pk',flat=True))
+        for response in Response.objects.filter(assessment=approved,code='A').select_related('requirement'):
+            clause_ids=list(response.requirement.clauses.values_list('id',flat=True))
+            evidence=[row['evidence_title'] for row in approved.snapshot.get('coverage',[])
+                if row['clause_id'] in clause_ids and row.get('evidence_id') in visible_ids]
+            prior_advisories.append({'response':response,'evidence':list(dict.fromkeys(evidence))})
+    return render(request,'assessment_configuration.html',{'site':site,'page':page,'query':query,
+        'can_edit':can_edit,'latest_assessment':site.assessments.first(),'prior_advisories':prior_advisories})
 
 
 @login_required

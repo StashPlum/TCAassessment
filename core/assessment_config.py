@@ -1,6 +1,6 @@
 """Frozen, append-only site guidance over the immutable global catalog."""
 from django.utils import timezone
-from .models import Requirement, SiteQuestionVersion
+from .models import PreparationNeedVersion, Requirement, SiteQuestionVersion
 
 
 def _source_record(req):
@@ -42,3 +42,33 @@ def question_for_assessment(assessment,req):
         if item: return item
     # Legacy assessments have no local configuration: their global source wording is retained.
     return _source_record(req)
+
+
+def current_preparation(site, req):
+    """Latest local documentation request, or source-backed guidance if none exists."""
+    version=PreparationNeedVersion.objects.filter(site=site,requirement=req).first()
+    if version:
+        return {'version_id':version.pk,'version':version.version,'evidence_items':version.evidence_items,
+                'owner':version.owner,'period_start':version.period_start.isoformat() if version.period_start else '',
+                'period_end':version.period_end.isoformat() if version.period_end else '',
+                'source_note':version.source_note,'change_reason':version.change_reason}
+    question=current_question(site,req)
+    return {'version_id':None,'version':0,'evidence_items':question['evidence_items'],
+            'owner':'','period_start':'','period_end':'',
+            'source_note':f"{question['kind']} · {question['source_address']} · {question['source_hash']}",
+            'change_reason':''}
+
+
+def frozen_preparation(site):
+    items={req.code:current_preparation(site,req) for req in Requirement.objects.select_related('source_version').all()}
+    return {'schema':'site-preparation-v1','site_id':site.pk,'frozen_at':timezone.now().isoformat(),'requirements':items}
+
+
+def preparation_for_assessment(assessment,req):
+    if assessment and assessment.preparation_snapshot:
+        item=assessment.preparation_snapshot.get('requirements',{}).get(req.code)
+        if item: return item
+    question=question_for_assessment(assessment,req)
+    return {'version_id':None,'version':0,'evidence_items':question['evidence_items'],
+            'owner':'','period_start':'','period_end':'','source_note':question['source_address'],
+            'change_reason':'Legacy assessment: no separate preparation snapshot'}

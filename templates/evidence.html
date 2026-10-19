@@ -2,7 +2,7 @@
 <h1>Evidence & Reports</h1>
 <p>Evidence coverage stays pending until an assessor accepts named clauses. Restricted files need separate permission.</p>
 <div class="card"><h2>Add evidence</h2><form method="post" enctype="multipart/form-data">{% csrf_token %}{% include 'form_fields.html' %}
-  <p><label>Requirement ID for pending link <input name="requirement_code" placeholder="1.C.1"></label></p>
+  <p><label>Requirement ID for pending link <input name="requirement_code" value="{{ requested_requirement }}" placeholder="1.C.1"></label></p>
   <p><label>Clause number <input name="clause_ordinal" type="number" min="1"></label></p>
   <button>Save evidence</button></form></div>
 <div class="table-scroll"><table><thead><tr><th>Evidence</th><th>Owner and period</th><th>Clause coverage</th></tr></thead><tbody>

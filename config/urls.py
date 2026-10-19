@@ -6,6 +6,7 @@ from core import claim_views as cv
 from core import attachment_views as av
 from core import report_views as rv
 from core import config_views as qv
+from core import journey_views as jv
 
 urlpatterns = [
     path('sites/<slug:site_code>/kaizen/<int:pk>/attachments/<int:attachment_pk>/preview/', av.attachment_preview, name='attachment_preview'),
@@ -41,7 +42,10 @@ urlpatterns = [
     path('sites/<slug:site_code>/assessment/approve/', views.approve, name='approve'),
     path('sites/<slug:site_code>/assessment/new/', views.new_draft, name='new_draft'),
     path('sites/<slug:site_code>/assessment/archive/', views.assessment_archive, name='assessment_archive'),
+    path('sites/<slug:site_code>/assessment/history/', jv.assessment_history, name='assessment_history'),
+    path('sites/<slug:site_code>/assessment/history/export/<str:fmt>/', jv.assessment_history_export, name='assessment_history_export'),
     path('sites/<slug:site_code>/sessions/', views.sessions, name='sessions'),
+    path('sites/<slug:site_code>/sessions/<int:pk>/', jv.session_detail, name='session_detail'),
     path('sites/<slug:site_code>/opportunities/', views.opportunities, name='opportunities'),
     path('sites/<slug:site_code>/kaizen/', views.kaizens, name='kaizens'),
     path('sites/<slug:site_code>/kaizen/review/', views.review_queue, name='review_queue'),
@@ -56,6 +60,8 @@ urlpatterns = [
     path('sites/<slug:site_code>/kaizen/<int:pk>/excel/', views.kaizen_excel, name='kaizen_excel'),
     path('sites/<slug:site_code>/evidence/', views.evidence, name='evidence'),
     path('sites/<slug:site_code>/evidence/preparation/', views.preparation, name='preparation'),
+    path('sites/<slug:site_code>/evidence/preparation/export/<str:fmt>/', jv.preparation_export, name='preparation_export'),
+    path('sites/<slug:site_code>/evidence/preparation/<str:req_code>/', jv.preparation_need, name='preparation_need'),
     path('sites/<slug:site_code>/evidence/<int:pk>/other-audit/', views.other_audit, name='other_audit'),
     path('sites/<slug:site_code>/evidence/<int:pk>/link/', views.link_evidence, name='link_evidence'),
     path('sites/<slug:site_code>/evidence/<int:pk>/download/', views.download, name='download'),
