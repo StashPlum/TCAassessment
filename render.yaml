@@ -1,0 +1,34 @@
+# Render Blueprint for the TCA Progress feedback demo (free plan, fictional data).
+# Secrets (TCA_DEMO_PASSWORD, TCA_TESTERS and the optional private source files) are entered in the
+# Render dashboard and are never committed.
+services:
+  - type: web
+    name: tca-progress-demo
+    runtime: python
+    plan: free
+    region: frankfurt
+    branch: TCA_Demo
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: python manage.py migrate --noinput && python manage.py prepare_demo && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    healthCheckPath: /healthz/
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: TCA_DEMO
+        value: "1"
+      - key: TCA_DEBUG
+        value: "0"
+      - key: TCA_SECRET_KEY
+        generateValue: true
+      - key: TCA_DEMO_PASSWORD
+        sync: false
+      - key: TCA_TESTERS
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tca-progress-demo-db
+          property: connectionString
+databases:
+  - name: tca-progress-demo-db
+    plan: free
+    region: frankfurt

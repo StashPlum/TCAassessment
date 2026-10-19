@@ -1,0 +1,76 @@
+Field,Label,Classification,When required,Source,Stored destination,Report/archive destination
+owner,owner,Optional / guide-dependent,Optional draft; conditional profile rules pending guide,COACH REVIEW!B31 / local user default,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+process_location,Process / location,Optional / guide-dependent,Optional draft; conditional profile rules pending guide,COACH REVIEW!B50 / selected site default,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+due_date,due_date,Optional / guide-dependent,Optional draft; conditional profile rules pending guide,Local supporting measurement/planning context,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+cause_status,cause_status,Optional / guide-dependent,Optional draft; conditional profile rules pending guide,Local supporting measurement/planning context,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+sustain_owner,sustain_owner,Optional / guide-dependent,Optional draft; conditional profile rules pending guide,Local supporting measurement/planning context,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+sustain_check,Sustain check / learning,Optional / guide-dependent,Optional draft; conditional profile rules pending guide,Local supporting measurement/planning context,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+overall_problem,Overall problem,Mandatory local gate,Existing local verification gate,PLAN!B11,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+specific_problem,Specific problem,Mandatory local gate,Existing local verification gate,PLAN!B63,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+root_cause,Investigated root cause,Optional / guide-dependent,Optional draft; conditional profile rules pending guide,PLAN!B85,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+measure,Local measure,Optional / guide-dependent,Optional draft; conditional profile rules pending guide,PLAN!B24,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+baseline,Before average,Mandatory local gate,Existing local verification gate,PLAN!B27,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+target,Target,Optional / guide-dependent,Optional draft; conditional profile rules pending guide,PLAN!B30,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+unit,Measure unit,Mandatory local gate,Existing local verification gate,Local supporting measurement/planning context,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+population,Measured population,Mandatory local gate,Existing local verification gate,Local supporting measurement/planning context,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+direction,direction,Optional / guide-dependent,Optional draft; conditional profile rules pending guide,Local supporting measurement/planning context,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+solution,Countermeasure,Mandatory local gate,Existing local verification gate,DO!B15,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+actual,After average,Mandatory local gate,Existing local verification gate,CHECK!B26,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+result_period_start,result_period_start,Optional / guide-dependent,Optional draft; conditional profile rules pending guide,Local supporting measurement/planning context,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+result_period_end,result_period_end,Optional / guide-dependent,Optional draft; conditional profile rules pending guide,Local supporting measurement/planning context,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+data_points,data_points,Optional / guide-dependent,Optional draft; conditional profile rules pending guide,Local supporting measurement/planning context,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+data_source,data_source,Mandatory local gate,Existing local verification gate,Local supporting measurement/planning context,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+sustain,Sustain plan,Mandatory local gate,Existing local verification gate,ACT,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+document_types,document_types,Optional / guide-dependent,Optional draft; conditional profile rules pending guide,ACT!H9:K40,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+coach_review,Sensei review,Mandatory local gate,Existing local verification gate,COACH REVIEW,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+next_kaizen_action,Follow-up action if target unmet,Optional / guide-dependent,Optional draft; conditional profile rules pending guide,Local supporting measurement/planning context,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+revision,revision,Required technical control,Every mutation,Application concurrency control,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+star_1,Star 1 review,Conditional quality review,"Sensei ranking, not draft creation",COACH REVIEW!C79,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+star_2,Star 2 review,Conditional quality review,"Sensei ranking, not draft creation",COACH REVIEW!C80,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+star_3,Star 3 review,Conditional quality review,"Sensei ranking, not draft creation",COACH REVIEW!C81,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+star_4,Star 4 review,Conditional quality review,"Sensei ranking, not draft creation",COACH REVIEW!C82,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+star_5,Star 5 review,Conditional quality review,"Sensei ranking, not draft creation",COACH REVIEW!C83,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+star_6,Star 6 review,Conditional quality review,"Sensei ranking, not draft creation",COACH REVIEW!C84,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+star_7,Star 7 review,Conditional quality review,"Sensei ranking, not draft creation",COACH REVIEW!C85,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+star_8,Star 8 review,Conditional quality review,"Sensei ranking, not draft creation",COACH REVIEW!C86,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+star_9,Star 9 review,Conditional quality review,"Sensei ranking, not draft creation",COACH REVIEW!C87,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+star_10,Star 10 review,Conditional quality review,"Sensei ranking, not draft creation",COACH REVIEW!C88,Kaizen.data / revision,Working summary where relevant; full JSON/Excel
+coach_11,KAIZEN LANGUAGE (COACH REVIEW!B11),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B11,Kaizen.data,Full JSON/Excel
+coach_14,PARENT KAIZEN ID (optional) (COACH REVIEW!B14),Optional source field,Supporting details / source submission review,COACH REVIEW!B14,Kaizen.data,Full JSON/Excel
+coach_19,COUNTRY (COACH REVIEW!B19),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B19,Kaizen.data,Full JSON/Excel
+coach_20,JDE LOCATION ID (COACH REVIEW!B20),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B20,Kaizen.data,Full JSON/Excel
+coach_21,JDE CONTRACT NO (COACH REVIEW!B21),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B21,Kaizen.data,Full JSON/Excel
+coach_22,JDE BUSINESS UNIT NUMBER (COACH REVIEW!B22),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B22,Kaizen.data,Full JSON/Excel
+coach_23,CUSTOMER NAME (optional) (COACH REVIEW!B23),Optional source field,Supporting details / source submission review,COACH REVIEW!B23,Kaizen.data,Full JSON/Excel
+coach_24,CONTRACT MANAGER (COACH REVIEW!B24),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B24,Kaizen.data,Full JSON/Excel
+coach_28,START DATE (COACH REVIEW!B28),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B28,Kaizen.data,Full JSON/Excel
+coach_29,COMPLETION DATE (COACH REVIEW!B29),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B29,Kaizen.data,Full JSON/Excel
+coach_30,TEAM NAME (COACH REVIEW!B30),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B30,Kaizen.data,Full JSON/Excel
+coach_31,KAIZEN LEADER - NAME (COACH REVIEW!B31),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B31,Kaizen.data,Full JSON/Excel
+coach_33,KAIZEN COACH - NAME (COACH REVIEW!B33),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B33,Kaizen.data,Full JSON/Excel
+coach_35,SITE MANAGER (COACH REVIEW!B35),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B35,Kaizen.data,Full JSON/Excel
+coach_38,SYMPTOM 1 (COACH REVIEW!B38),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B38,Kaizen.data,Full JSON/Excel
+coach_40,SYMPTOM AREA 1 (COACH REVIEW!B40),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B40,Kaizen.data,Full JSON/Excel
+coach_41,SYMPTOM 2 (COACH REVIEW!B41),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B41,Kaizen.data,Full JSON/Excel
+coach_43,SYMPTOM AREA 2 (COACH REVIEW!B43),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B43,Kaizen.data,Full JSON/Excel
+coach_47,LINKED GLOBAL KPI (COACH REVIEW!B47),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B47,Kaizen.data,Full JSON/Excel
+coach_48,PROBLEM TYPE (COACH REVIEW!B48),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B48,Kaizen.data,Full JSON/Excel
+coach_49,PROBLEM AREA (COACH REVIEW!B49),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B49,Kaizen.data,Full JSON/Excel
+coach_50,PROBLEM PROCESS (COACH REVIEW!B50),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B50,Kaizen.data,Full JSON/Excel
+coach_51,CUSTOMER PRODUCT (COACH REVIEW!B51),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B51,Kaizen.data,Full JSON/Excel
+coach_52,WMS / SYSTEM USED ON SITE (COACH REVIEW!B52),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B52,Kaizen.data,Full JSON/Excel
+coach_54,GENERIC PROBLEM (COACH REVIEW!B54),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B54,Kaizen.data,Full JSON/Excel
+coach_57,GENERIC ROOT-CAUSE (COACH REVIEW!B57),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B57,Kaizen.data,Full JSON/Excel
+coach_60,SOLUTION AREA (COACH REVIEW!B60),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B60,Kaizen.data,Full JSON/Excel
+coach_61,SOLUTION PROCESS (COACH REVIEW!B61),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B61,Kaizen.data,Full JSON/Excel
+coach_62,GENERIC SOLUTION (COACH REVIEW!B62),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B62,Kaizen.data,Full JSON/Excel
+coach_64,CONTRIBUTION TO CUSTOMER EXPERIENCE (COACH REVIEW!B64),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B64,Kaizen.data,Full JSON/Excel
+coach_66,PROBLEM SOLVED (Y/N) (COACH REVIEW!B66),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B66,Kaizen.data,Full JSON/Excel
+coach_75,GREEN IMPACT (COACH REVIEW!B75),Source field; conditional/mandatory guide pending,Supporting details / source submission review,COACH REVIEW!B75,Kaizen.data,Full JSON/Excel
+fivew2h_why,5W2H Why,Source field; conditional/mandatory guide pending,Supporting details / source submission review,5W2H,Kaizen.data,Full JSON/Excel
+fivew2h_where,5W2H Where,Source field; conditional/mandatory guide pending,Supporting details / source submission review,5W2H,Kaizen.data,Full JSON/Excel
+fivew2h_who,5W2H Who,Source field; conditional/mandatory guide pending,Supporting details / source submission review,5W2H,Kaizen.data,Full JSON/Excel
+fivew2h_what,5W2H What,Source field; conditional/mandatory guide pending,Supporting details / source submission review,5W2H,Kaizen.data,Full JSON/Excel
+fivew2h_when,5W2H When,Source field; conditional/mandatory guide pending,Supporting details / source submission review,5W2H,Kaizen.data,Full JSON/Excel
+fivew2h_how,5W2H How,Source field; conditional/mandatory guide pending,Supporting details / source submission review,5W2H,Kaizen.data,Full JSON/Excel
+fivew2h_how_many,5W2H How many,Source field; conditional/mandatory guide pending,Supporting details / source submission review,5W2H,Kaizen.data,Full JSON/Excel
