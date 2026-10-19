@@ -12,3 +12,6 @@ docs/kaizen_labels.txt
 tmp/
 output/
 staticfiles/
+
+# Extracted workbook text from the design handoff (source-free repo)
+design_handoff_tca_progress/prototype/data/tca-catalog.json
