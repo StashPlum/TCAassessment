@@ -39,3 +39,11 @@ Target Django 5.2 LTS, PostgreSQL 14+, server-rendered pages and HTMX. Local fil
 ## Upgrade interpretation
 
 The 12 October upgrade has three bounded milestones described in PLAN.md. Governance interpretation is in GOVERNANCE_DELTA.md. CAT controls official standing and recognition; local section readiness is separate. Site-specific assessments will be governed immutable configurations in U2, retaining canonical IDs and approved historical records. U1 changes interface/location metadata only: organization is separate from site, Benelux is a grouping, countries are NL/BE/LU/GB with blank metadata allowed. No applicability, frequency, standing or publication rule is inferred from the UI changes. Technical administrators have no implicit program approval authority.
+
+## Local toolbox extension
+
+Input size (small, medium, extensive, legacy), methodological A4/A3/Business Process, analysis method, local closure, global review and A3 output are separate. Small exposes a concise single-page PDCA path while retaining all stored fields and source-backed global gates. Profile switches, worksheets, attachments, imports and reports retain revisions. Stale writes fail. Worksheets use method schema versions and preserve archived rows; a future schema requires an explicit migration before editing.
+
+Verified requirements coverage counts unique current accepted Y responses with accepted clause evidence within the frozen baseline scope. Pending claims and Kaizen closure do not contribute. An accepted claim creates a new dated snapshot; previous approved versions remain immutable. Empty, unknown or changed scopes are marked as such. The figures are local operational indicators, not CAT certification.
+
+Private A3 PDFs snapshot the event revision and renderer version. The full archive contains retained detail, worksheets and authorized original files. Locally approved cross-site learning contains a deliberately small approach summary and explicit recipient sites; adaptation begins a new unapproved event with no inherited evidence, metrics, benefits or TCA answers. Corporate sharing authority remains pending.

@@ -10,6 +10,12 @@ AREAS = {
     'opportunities': ('Improvements','Actions and blockers'), 'kaizens': ('Improvements','Kaizen events'),
     'kaizen_detail': ('Improvements','PDCA workspace'), 'kaizen_template_details': ('Improvements','Supporting template fields'),
     'review_queue': ('Improvements','Sensei review'),
+    'input_profile': ('Improvements','Input profile'), 'toolbox': ('Improvements','Lean toolbox'),
+    'worksheet': ('Improvements','Structured worksheet'), 'attachment_add': ('Improvements','Stage evidence'),
+    'import_preview': ('Improvements','Measurement preview'), 'import_confirm': ('Improvements','Confirmed mapping'),
+    'a3_preview': ('Improvements','A3 report'), 'learning': ('Improvements','Learning repository'),
+    'learning_publish': ('Improvements','Sharing scope'), 'claims': ('Assessments','Requirement verification'),
+    'claim_review': ('Assessments','Targeted requirement decision'),
     'evidence': ('Resources','Evidence library'), 'other_audit': ('Resources','Audit scope'),
     'resources': ('Resources','Reports and guidance'), 'administration': ('Administration','Access and configuration'),
 }

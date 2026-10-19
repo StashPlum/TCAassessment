@@ -23,3 +23,7 @@ Response A meaning; meeting duration guidance; Environment evidence window; date
 ## Governance upgrade source
 
 The 13-page GHO-BPE-TCA-001 V.2.0 PDF (17 August 2026) is archived byte for byte under `sources/original/`; SHA-256 `fc320df3595e6c11d3f8275341f727d4c3a1c4d28025406e2d16ceef05e1a4a8`. `GOVERNANCE_DELTA.md` records page references, approval conflict and missing policy controls. It adds governance expectations without replacing the original requirement wording. U1 retains the source hash as the visible global-baseline reference; it does not pretend the existing Assessment.version is a governed template version.
+
+## Toolbox interpretation
+
+`docs/toolbox-field-rules.csv` extends the original 75 source-backed Kaizen field/rule rows with seven explicit application distinctions. It does not alter official requirement wording. `docs/toolbox-catalog.json` inventories 45 methods, each with original concise guidance, schema, phase, data need and external source attribution. The spreadsheet is read only for intact reference ranges; broken `#REF!` names are never guessed. A3 PDFs and operational archives are new outputs, not formula-compatible rewrites of the Global Kaizen workbook.

@@ -31,10 +31,13 @@ def review_checks(event, include_coach=True):
     return missing
 
 def snapshot(event):
-    value={'title':event.title,'profile':event.profile,'status':event.status,'data':deepcopy(event.data),
+    value={'title':event.title,'profile':event.profile,'input_profile':event.input_profile,'local_status':event.local_status,'status':event.status,'data':deepcopy(event.data),
            'linked_requirements':list(event.linked_requirements.values_list('code',flat=True))}
-    for key in ('actions','observations','document_updates','participants','benefits','review_notes'):
+    for key in ('actions','observations','document_updates','participants','benefits','review_notes','attachments','worksheets'):
         value[key]=list(getattr(event,key).values())
+    value['worksheet_history']=[dict(row) for w in event.worksheets.all() for row in w.history.values()]
+    value['imports']=list(event.imports.values())
+    value['reports']=list(event.a3_reports.values('id','event_revision','renderer_version','version','sha256','created_at'))
     return json.loads(json.dumps(value,cls=DjangoJSONEncoder))
 
 def checkpoint(event,user,reason,content=None):
@@ -44,6 +47,7 @@ def checkpoint(event,user,reason,content=None):
 
 def reopen_after_change(event):
     if event.status in PROTECTED_STATES: event.status='results_under_review'
+    event.local_status='open'
 
 def reuse_observations(event):
     """Fill empty summary fields from one measurement group; never replace entered values."""
@@ -80,7 +84,7 @@ def changed_since_review(event):
     if not previous: return None,[]
     changes=[LABELS.get(key,key.replace('_',' ').capitalize()) for key in sorted(set(previous.snapshot['data'])|set(event.data))
              if previous.snapshot['data'].get(key)!=event.data.get(key)]
-    for key in ('actions','observations','document_updates'):
+    for key in ('actions','observations','document_updates','worksheets','attachments'):
         current=json.loads(json.dumps(list(getattr(event,key).values()),cls=DjangoJSONEncoder))
         if current!=previous.snapshot.get(key,[]): changes.append(key.replace('_',' ').capitalize())
     return previous,changes
@@ -89,4 +93,12 @@ def public_snapshot(content,financial,participants):
     value=deepcopy(content)
     if not financial: value['benefits']='Restricted'
     if not participants: value['participants']='Restricted'
+    allowed={'internal'}|({'financial','hr'} if financial else set())
+    value['attachments']=[a for a in value.get('attachments',[]) if a.get('classification','internal') in allowed]
+    from .models import Evidence
+    linked={a.get('evidence_id') for a in value['attachments'] if a.get('evidence_id')}
+    visible=set(Evidence.objects.filter(pk__in=linked,classification__in=allowed).values_list('pk',flat=True))
+    value['attachments']=[a for a in value['attachments'] if not a.get('evidence_id') or a['evidence_id'] in visible]
+    attachment_ids={a['id'] for a in value['attachments']}
+    value['imports']=[i for i in value.get('imports',[]) if i.get('attachment_id') in attachment_ids]
     return value

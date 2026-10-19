@@ -48,20 +48,32 @@ class OtherAuditForm(forms.ModelForm):
         return data
 
 class KaizenForm(forms.ModelForm):
+    cross_process = forms.BooleanField(required=False,label='Several processes / departments')
+    unknown_cause = forms.BooleanField(required=False,label='Cause still unknown')
+    recurring = forms.BooleanField(required=False,label='Recurring problem')
     owner = forms.CharField(max_length=160, required=False)
     process_location = forms.CharField(max_length=200, required=False, label='Process / location')
     due_date = forms.DateField(required=False,widget=forms.DateInput(attrs={'type':'date'}))
     class Meta:
         model = Kaizen
-        fields = ['title','profile','opportunity']
+        fields = ['title','input_profile','profile','opportunity']
         labels={'title':'Problem / working title','profile':'Methodological profile','opportunity':'Linked finding'}
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
         self.fields['profile'].required=False
         self.fields['profile'].initial='A4'
+        self.fields['input_profile'].choices=[c for c in self.fields['input_profile'].choices if c[0]!='legacy']
+        self.fields['input_profile'].initial='small'
+        self.fields['input_profile'].required=False
     def clean_profile(self): return self.cleaned_data.get('profile') or 'A4'
+    def clean_input_profile(self):
+        from .profiles import suggest_profile
+        return self.cleaned_data.get('input_profile') or suggest_profile(bool(self.data.get('cross_process')),bool(self.data.get('unknown_cause')),bool(self.data.get('recurring')))[0]
 
 class KaizenStageForm(forms.Form):
+    outcome_criterion = forms.CharField(required=False,widget=forms.Textarea(attrs={'rows':2}),label='Desired outcome / observable check criterion')
+    observed_result = forms.CharField(required=False,widget=forms.Textarea(attrs={'rows':2}),label='Actual result and evidence conclusion')
+    result_date = forms.DateField(required=False,widget=forms.DateInput(attrs={'type':'date'}))
     owner = forms.CharField(max_length=160,required=False)
     process_location = forms.CharField(max_length=200,required=False,label='Process / location')
     due_date = forms.DateField(required=False,widget=forms.DateInput(attrs={'type':'date'}))
@@ -174,5 +186,14 @@ class KaizenTemplateForm(forms.Form):
         super().__init__(*args,**kwargs)
         for row,label in coach_labels(EXTRA_ROWS):
             self.fields[f'coach_{row}']=forms.CharField(required=False,label=f'{label} (COACH REVIEW!B{row})',max_length=32767)
+        from .source import source_taxonomies
+        taxonomies=source_taxonomies()
+        mapping={47:'KPI',54:'Gen_Problem',57:'Gen_RC',62:'GENERIC_SOLUTION'}
+        self.source_lists=[]
+        for row,name in mapping.items():
+            if name in taxonomies:
+                self.fields[f'coach_{row}'].widget.attrs['list']='taxonomy-'+name
+                self.fields[f'coach_{row}'].help_text='Original template list suggestions; legacy values retained. Reference freshness and official submission rules require owner confirmation.'
+                self.source_lists.append((name,taxonomies[name]))
         for key,label in [('why','Why'),('where','Where'),('who','Who'),('what','What'),('when','When'),('how','How'),('how_many','How many')]:
             self.fields[f'fivew2h_{key}']=forms.CharField(required=False,widget=forms.Textarea(attrs={'rows':2}),label=f'5W2H {label}')

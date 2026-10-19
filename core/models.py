@@ -71,6 +71,13 @@ class Assessment(models.Model):
     approved_at = models.DateTimeField(null=True, blank=True)
     revision = models.PositiveIntegerField(default=0)
     snapshot = models.JSONField(default=dict)  # frozen accepted coverage and category results at approval
+    scope_snapshot = models.JSONField(default=dict)  # explicit frozen denominator; legacy snapshots untouched
+    full_section_review = models.BooleanField(default=False)  # targeted decisions never reset section frequency
+    def save(self,*args,**kwargs):
+        if self._state.adding and not self.scope_snapshot:
+            from .progress import baseline_scope
+            self.scope_snapshot=baseline_scope()
+        return super().save(*args,**kwargs)
     class Meta:
         constraints = [models.UniqueConstraint(fields=['site','version'], name='unique_site_assessment_version')]
         ordering = ['-version']
@@ -108,6 +115,7 @@ class Evidence(models.Model):
     file = models.FileField(upload_to='evidence/%Y/%m/', storage=PrivateLocalStorage(), null=True, blank=True, validators=[FileExtensionValidator(['pdf','png','jpg','jpeg','xlsx','docx','txt'])])
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self): return f'{self.title} · {self.version or "version unset"}'
 
 class Coverage(models.Model):
     evidence = models.ForeignKey(Evidence, on_delete=models.CASCADE, related_name='coverage')
@@ -156,6 +164,8 @@ class Kaizen(models.Model):
     opportunity = models.ForeignKey(Opportunity, null=True, blank=True, on_delete=models.SET_NULL)
     title = models.CharField(max_length=200)
     profile = models.CharField(max_length=2, choices=[('A4','A4'),('A3','A3'),('BP','Business Process')])
+    input_profile = models.CharField(max_length=10, default='legacy', choices=[('small','Small: quick PDCA'),('medium','Medium'),('extensive','Extensive'),('legacy','Legacy: size not classified')])
+    local_status = models.CharField(max_length=12, default='open', choices=[('open','Open'),('closed','Locally closed')])
     status = models.CharField(max_length=28, default='proposed')
     revision = models.PositiveIntegerField(default=0)
     data = models.JSONField(default=dict)
@@ -163,6 +173,7 @@ class Kaizen(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    def __str__(self): return self.title
 
 class KaizenAction(models.Model):
     event = models.ForeignKey(Kaizen, on_delete=models.CASCADE, related_name='actions')
@@ -245,3 +256,90 @@ class AuditEvent(models.Model):
     object_type = models.CharField(max_length=80)
     object_id = models.CharField(max_length=80)
     detail = models.JSONField(default=dict)
+
+class Worksheet(models.Model):
+    event = models.ForeignKey(Kaizen, on_delete=models.CASCADE, related_name='worksheets')
+    method = models.SlugField(max_length=40)
+    schema_version = models.PositiveSmallIntegerField(default=1)
+    stage = models.CharField(max_length=5)
+    title = models.CharField(max_length=200)
+    payload = models.JSONField(default=dict)
+    revision = models.PositiveIntegerField(default=0)
+    include_in_a3 = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+class WorksheetRevision(models.Model):
+    worksheet = models.ForeignKey(Worksheet, on_delete=models.CASCADE, related_name='history')
+    revision = models.PositiveIntegerField()
+    schema_version = models.PositiveSmallIntegerField()
+    payload = models.JSONField()
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-revision']
+        constraints = [models.UniqueConstraint(fields=['worksheet','revision'], name='unique_worksheet_revision')]
+
+class EventAttachment(models.Model):
+    event = models.ForeignKey(Kaizen, on_delete=models.CASCADE, related_name='attachments')
+    stage = models.CharField(max_length=5)
+    requirement = models.ForeignKey(Requirement, null=True, blank=True, on_delete=models.PROTECT)
+    evidence = models.ForeignKey(Evidence, null=True, blank=True, on_delete=models.PROTECT)
+    title = models.CharField(max_length=200)
+    original_name = models.CharField(max_length=255, blank=True)
+    file = models.FileField(upload_to='kaizen/%Y/%m/', storage=PrivateLocalStorage(), blank=True)
+    sha256 = models.CharField(max_length=64, blank=True)
+    version = models.CharField(max_length=80)
+    provenance = models.TextField()
+    classification = models.CharField(max_length=20, default='internal', choices=Evidence._meta.get_field('classification').choices)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self): return f'{self.title} · {self.original_name or "linked evidence"} · v{self.version}'
+
+class ImportPreview(models.Model):
+    event = models.ForeignKey(Kaizen, on_delete=models.CASCADE, related_name='imports')
+    attachment = models.ForeignKey(EventAttachment, on_delete=models.PROTECT)
+    table = models.JSONField()
+    mapping = models.JSONField(default=dict)
+    confirmed = models.BooleanField(default=False)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class VerificationClaim(models.Model):
+    site = models.ForeignKey(Site, on_delete=models.CASCADE)
+    requirement = models.ForeignKey(Requirement, on_delete=models.PROTECT)
+    event = models.ForeignKey(Kaizen, null=True, blank=True, on_delete=models.PROTECT)
+    evidence = models.ManyToManyField(Evidence)
+    status = models.CharField(max_length=10, default='pending')
+    statement = models.TextField()
+    decision = models.TextField(blank=True)
+    revision = models.PositiveIntegerField(default=0)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='claims')
+    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.PROTECT, related_name='claim_decisions')
+    reviewed_at = models.DateTimeField(null=True)
+    assessment = models.ForeignKey(Assessment, null=True, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class A3Report(models.Model):
+    event = models.ForeignKey(Kaizen, on_delete=models.CASCADE, related_name='a3_reports')
+    event_revision = models.PositiveIntegerField()
+    renderer_version = models.PositiveSmallIntegerField(default=1)
+    version = models.PositiveIntegerField()
+    snapshot = models.JSONField()
+    file = models.FileField(upload_to='reports/%Y/%m/', storage=PrivateLocalStorage())
+    sha256 = models.CharField(max_length=64)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['event','version'], name='unique_a3_report_version')]
+
+class LearningEntry(models.Model):
+    event = models.ForeignKey(Kaizen, on_delete=models.PROTECT)
+    report = models.ForeignKey(A3Report, on_delete=models.PROTECT)
+    title = models.CharField(max_length=200)
+    context = models.TextField()
+    transfer_limits = models.TextField()
+    approach = models.JSONField()
+    allowed_sites = models.ManyToManyField(Site)
+    approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    approval_reason = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)

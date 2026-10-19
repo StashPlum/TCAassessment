@@ -24,3 +24,19 @@ def coach_labels(rows):
     sheet=next(s for s in kaizen_record()['sheets'] if s['name']=='COACH REVIEW')
     cells={c['address']:c['value'] for c in sheet['cells']}
     return [(i,cells[f'B{i}']) for i in rows]
+
+def source_taxonomies():
+    """Inspectable source list suggestions; unresolved/broken names are not evaluated."""
+    import re
+    record=kaizen_record();names=record['defined_names']
+    rows={c['address']:c['value'] for c in next(s for s in record['sheets'] if s['name']=='DROP_DOWNS')['cells']}
+    result={}
+    for name,definition in names.items():
+        match=re.match(r'OFFSET\(DROP_DOWNS!\$([A-Z]+)\$(\d+),0,0,COUNTA',str(definition))
+        if not match or '#REF!' in definition: continue
+        column,start=match.groups();items=[]
+        for address,value in rows.items():
+            cell=re.fullmatch(r'([A-Z]+)(\d+)',address)
+            if cell and cell[1]==column and int(cell[2])>=int(start) and isinstance(value,str) and value.strip() and value not in items:items.append(value)
+        result[name]={'definition':definition,'values':items,'source':'DROP_DOWNS!'+column+start}
+    return result

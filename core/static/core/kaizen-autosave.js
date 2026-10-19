@@ -23,6 +23,7 @@
       document.querySelectorAll('[data-revision-display]').forEach(node=>node.textContent='revision '+result.revision);
       document.querySelectorAll('[data-saved-display]').forEach(node=>node.textContent='saved '+new Date(result.saved_at).toLocaleString());
       document.querySelectorAll('[data-event-status]').forEach(node=>node.textContent=result.status);
+      document.querySelectorAll('[data-local-status]').forEach(node=>node.textContent=result.local_status==='closed'?'Locally closed':'Open');
       sentFields.forEach((version,key)=>{if(changedFields.get(key)===version) changedFields.delete(key);});
       if(sequence===started) form.dispatchEvent(new CustomEvent('draftsaved',{detail:{message:'Draft saved at '+new Date(result.saved_at).toLocaleTimeString()}}));
       else {state.textContent='New edits pending…';timer=setTimeout(save,900);}

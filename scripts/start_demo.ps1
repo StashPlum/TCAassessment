@@ -13,8 +13,8 @@ if (Test-Path -LiteralPath '.env') {
 }
 $bundledPython = 'C:\Users\stash\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
 $pythonExe = if (Test-Path -LiteralPath $bundledPython) { $bundledPython } else { (Get-Command python -ErrorAction Stop).Source }
-if (-not $SkipInstall -and -not (Test-Path -LiteralPath '.vendor\django\__init__.py')) {
-    & $pythonExe -m pip install --target .vendor -r requirements.txt
+if (-not $SkipInstall) {
+    & $pythonExe -m pip install --target .vendor --upgrade -r requirements.txt
     if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed.' }
 }
 $env:PYTHONPATH = (Resolve-Path '.vendor').Path

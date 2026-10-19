@@ -1,8 +1,30 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 from core import views
+from core import toolbox_views as tv
+from core import claim_views as cv
+from core import attachment_views as av
+from core import report_views as rv
 
 urlpatterns = [
+    path('sites/<slug:site_code>/kaizen/<int:pk>/attachments/<int:attachment_pk>/preview/', av.attachment_preview, name='attachment_preview'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/a3/', rv.a3_preview, name='a3_preview'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/a3/finalize/', rv.a3_finalize, name='a3_finalize'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/a3/<int:report_pk>/', rv.a3_download, name='a3_download'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/complete-archive/', rv.event_archive_zip, name='event_archive_zip'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/learning/publish/', rv.learning_publish, name='learning_publish'),
+    path('sites/<slug:site_code>/learning/', rv.learning, name='learning'),
+    path('sites/<slug:site_code>/learning/<int:pk>/adapt/', rv.learning_adapt, name='learning_adapt'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/attachments/add/', av.attachment_add, name='attachment_add'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/attachments/<int:attachment_pk>/download/', av.attachment_download, name='attachment_download'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/import/', av.import_preview, name='import_preview'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/import/<int:preview_pk>/', av.import_confirm, name='import_confirm'),
+    path('sites/<slug:site_code>/verification/', cv.claims, name='claims'),
+    path('sites/<slug:site_code>/verification/<int:pk>/', cv.claim_review, name='claim_review'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/toolbox/', tv.toolbox, name='toolbox'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/worksheets/<int:worksheet_pk>/', tv.worksheet, name='worksheet'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/worksheets/<int:worksheet_pk>/export/<str:fmt>/', tv.worksheet_export, name='worksheet_export'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/input-profile/', tv.input_profile, name='input_profile'),
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('', views.home, name='home'),

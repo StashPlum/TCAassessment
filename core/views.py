@@ -17,6 +17,7 @@ from .exports import archive_xlsx, export_errors
 from .readiness import accepted_codes, assessment_snapshot
 from .context import authorized_sites, selected_site
 from .kaizen import REVIEW_KEYS, changed_since_review, checkpoint, document_type_count, measurement_warnings, public_snapshot, reopen_after_change, reuse_observations, review_checks, snapshot
+from .profiles import local_checks, suggest_profile
 
 def site_access(request, site_code, roles=None):
     site = get_object_or_404(Site, code=site_code)
@@ -40,6 +41,8 @@ def home(request):
     site=selected_site(request)
     context={'site':site}
     if site:
+        from .progress import coverage_progress
+        context['progress']=coverage_progress(site)
         latest=site.assessments.first()
         codes,_=accepted_codes(site,latest)
         categories=Category.objects.prefetch_related('requirements')
@@ -89,7 +92,8 @@ def site_progress(request, site_code):
         result = category_result({r.position:codes.get(r.code,'') for r in requirements})
         blockers = [r for r in requirements if r.position <= {'C':5,'B':8,'A':10}[site.target_level] and codes.get(r.code) != 'Y']
         rows.append((category,result,dated.get(category.number),blockers))
-    return render(request, 'site.html', {'site':site,'latest':latest,'draft':draft,'approved':approved,'rows':rows,'unverified':unverified})
+    from .progress import coverage_progress
+    return render(request, 'site.html', {'site':site,'latest':latest,'draft':draft,'approved':approved,'rows':rows,'unverified':unverified,'progress':coverage_progress(site)})
 
 @login_required
 def assessment(request, site_code):
@@ -163,11 +167,12 @@ def approve(request,site_code):
 @login_required
 @require_POST
 def new_draft(request,site_code):
+    from .progress import scope_for
     site=site_access(request,site_code,['assessor','manager','admin'])
     with transaction.atomic():
         if not site.assessments.filter(status='draft').exists():
             previous=site.assessments.first()
-            obj=Assessment.objects.create(site=site,version=previous.version+1 if previous else 1,created_by=request.user,rationale=request.POST.get('rationale',''))
+            obj=Assessment.objects.create(site=site,version=previous.version+1 if previous else 1,created_by=request.user,rationale=request.POST.get('rationale',''),scope_snapshot=scope_for(previous))
             if previous:
                 Response.objects.bulk_create([Response(assessment=obj,requirement=r.requirement,code=r.code,conclusion=r.conclusion,updated_by=request.user) for r in previous.responses.all()])
             log(site,request.user,'new_draft',obj,{'from':previous.pk if previous else None})
@@ -226,6 +231,7 @@ def kaizens(request,site_code):
             obj.data={'overall_problem':obj.title,'owner':form.cleaned_data['owner'] or request.user.username,
                       'process_location':form.cleaned_data['process_location'] or site.name,
                       'due_date':form.cleaned_data['due_date'].isoformat() if form.cleaned_data['due_date'] else ''}
+            _,obj.data['profile_suggestion_reason']=suggest_profile(form.cleaned_data['cross_process'],form.cleaned_data['unknown_cause'],form.cleaned_data['recurring'])
             obj.save()
             if obj.opportunity and obj.opportunity.requirement: obj.linked_requirements.add(obj.opportunity.requirement)
             checkpoint(obj,request.user,'Draft created')
@@ -256,7 +262,11 @@ def kaizen_detail(request,site_code,pk):
                     obj.data={**obj.data,**edits}
                     if changed: reopen_after_change(obj)
                     action=request.POST.get('action','save')
-                    if action=='submit_review':
+                    if action=='close_local':
+                        missing=local_checks(obj)
+                        if missing: form.add_error(None,'Before local closure: '+', '.join(missing))
+                        else: obj.local_status='closed'
+                    elif action=='submit_review':
                         missing=review_checks(obj,include_coach=False)
                         if missing: form.add_error(None,'Before submitting: '+', '.join(missing))
                         else: obj.status='results_under_review'
@@ -312,12 +322,16 @@ def kaizen_detail(request,site_code,pk):
                         checkpoint(obj,request.user,'Before edit or transition',before)
                         obj.revision+=1;obj.save();log(site,request.user,'kaizen_saved',obj,{'status':obj.status})
                         checkpoint(obj,request.user,'Saved '+action)
+                        if action=='close_local' or (action in ('verify','advance','accept_reassessment') and obj.status in ('verified','sustained','reassessment_accepted')):
+                            from .a3 import ensure_report
+                            ensure_report(obj,request.user)
                         messages.success(request,'Kaizen saved. Linked TCA responses were not changed.')
                         return redirect(request.path+'?stage='+request.POST.get('workspace_stage','Plan') if request.POST.get('workspace_stage') in ('Plan','Do','Check','Act') else request.path)
     else: form=KaizenStageForm(initial={**obj.data,'revision':obj.revision})
     return render_kaizen(request,site,obj,form)
 
 def render_kaizen(request,site,obj,form,child_forms=None):
+    from .access import visible_attachments
     active_phase=request.GET.get('stage') or request.POST.get('workspace_stage') or {'proposed':'Plan','planned':'Do','in_progress':'Do','implemented':'Check'}.get(obj.status,'Act')
     if active_phase not in ('Plan','Do','Check','Act'): active_phase='Plan'
     children={'action_form':ActionForm(auto_id='id_action_%s',initial={'owner':obj.data.get('owner'),'phase':'ACT' if active_phase=='Act' else 'DO'}),'observation_form':ObservationForm(auto_id='id_observation_%s',initial={'measure':obj.data.get('measure'),'unit':obj.data.get('unit'),'population':obj.data.get('population'),'data_source':obj.data.get('data_source')}),
@@ -331,17 +345,23 @@ def render_kaizen(request,site,obj,form,child_forms=None):
     participant_access=Membership.objects.filter(user=request.user,site=site,role__in=['coach','manager','admin']).exists()
     participants=list(obj.participants.all())
     unique_participants=len({p.email.lower() if p.email else (p.first_initial.lower(),p.last_name.lower()) for p in participants})
-    phases=[('Plan','Define the problem and the intended result.', ['overall_problem','specific_problem','root_cause','cause_status','measure','baseline','target','unit','population','direction']),
+    phases=[('Plan','Define the problem and the intended result.', ['overall_problem','outcome_criterion','specific_problem','root_cause','cause_status','measure','baseline','target','unit','population','direction']),
             ('Do','Record the countermeasure and implementation.', ['solution']),
-            ('Check','Compare equivalent results and retain the data source.', ['actual','result_period_start','result_period_end','data_points','data_source']),
+            ('Check','Compare equivalent results and retain the data source.', ['observed_result','result_date','actual','result_period_start','result_period_end','data_points','data_source']),
             ('Act','Record sustain work and any further improvement.', ['sustain','sustain_owner','sustain_check','document_types','next_kaizen_action'])]
     previous,changes=changed_since_review(obj)
     review_access=Membership.objects.filter(user=request.user,site=site,role__in=['coach','manager','admin']).exists()
     phase_forms=[{'title':title,'help':help_text,'fields':[form[key] for key in keys],
                   'open':title==active_phase or any(form[key].errors for key in keys)} for title,help_text,keys in phases]
+    if obj.input_profile=='small':
+        basic={'overall_problem','outcome_criterion','solution','observed_result','result_date','sustain','sustain_owner','sustain_check'}
+        for phase in phase_forms:
+            phase['extra_fields']=[f for f in phase['fields'] if f.name not in basic]
+            phase['fields']=[f for f in phase['fields'] if f.name in basic]
+            phase['open']=True
     edit_actions=[{'record':action,'form':children.get('edit_action_form') if children.get('edit_action_id')==action.pk else ActionForm(instance=action,auto_id=f'id_action_{action.pk}_%s')} for action in obj.actions.all()]
     return render(request,'kaizen_detail.html',{'site':site,'event':obj,'form':form,'quality':quality,'star_count':star_count,
-        'phase_forms':phase_forms,'active_phase':active_phase,
+        'phase_forms':phase_forms,'active_phase':active_phase,'local_checks':local_checks(obj),'attachments':visible_attachments(obj,request.user),
         'edit_actions':edit_actions,'working_summary':[(title,obj.data.get(key,'')) for title,key in [('Problem','overall_problem'),('Specific problem','specific_problem'),('Cause investigation','root_cause'),('Countermeasure','solution'),('Result','actual'),('Sustain / learning','sustain_check')]],
         'context_fields':[form[k] for k in ('owner','process_location','due_date')],
         'review_fields':[form[k] for k in REVIEW_KEYS] if review_access else [],'review_access':review_access,
@@ -379,7 +399,7 @@ def kaizen_autosave(request,site_code,pk):
             event.revision+=1;event.save()
             checkpoint(event,request.user,'Autosaved participant work')
             log(site,request.user,'kaizen_autosaved',event,{'revision':event.revision})
-        return JsonResponse({'revision':event.revision,'saved_at':event.updated_at.isoformat(),'status':event.status})
+        return JsonResponse({'revision':event.revision,'saved_at':event.updated_at.isoformat(),'status':event.status,'local_status':event.local_status})
 
 @login_required
 def review_queue(request,site_code):
@@ -525,7 +545,10 @@ def kaizen_template_details(request,site_code,pk):
                     messages.success(request,'Source template details saved without truncation.')
                     return redirect('kaizen_template_details',site_code=site.code,pk=event.pk)
     else: form=KaizenTemplateForm(initial={**event.data,'revision':event.revision})
-    return render(request,'kaizen_template_details.html',{'site':site,'event':event,'form':form})
+    groups=[('Event / location and team',[11,14,19,20,21,22,23,24,28,29,30,31,33,35]),('Plan: symptoms, process and source taxonomies',[38,40,41,43,47,48,49,50,51,52,54,57]),('Do: solution and contribution',[60,61,62,64]),('Check: result and green impact',[66,75])]
+    return render(request,'kaizen_template_details.html',{'site':site,'event':event,'form':form,
+        'field_groups':[(name,[form[f'coach_{r}'] for r in rows]) for name,rows in groups]+[('5W2H',[f for f in form.visible_fields() if f.name.startswith('fivew2h_')])],
+        'source_lists':form.source_lists})
 
 @login_required
 @require_POST
@@ -674,9 +697,11 @@ def download(request,site_code,pk):
 
 @login_required
 def report(request,site_code):
+    from .progress import coverage_progress,progress_export
     site=site_access(request,site_code);latest=site.assessments.first()
     approved=site.assessments.filter(status='approved').first()
     data={'site':site.name,'policy':'draft-v1 (unapproved)','assessment':None,'dated_snapshot':approved.snapshot if approved else None,'categories':[]}
+    data['verified_progress']=progress_export(coverage_progress(site))
     if latest:
         data['assessment']={'version':latest.version,'status':latest.status,'approved_at':latest.approved_at.isoformat() if latest.approved_at else None}
         codes,unverified=accepted_codes(site,latest)
@@ -724,7 +749,7 @@ def kaizen_excel(request,site_code,pk):
     if errors: return JsonResponse({'export_errors':errors},status=422)
     financial_access=Membership.objects.filter(user=request.user,site=site,role__in=['manager','admin']).exists()
     participant_access=Membership.objects.filter(user=request.user,site=site,role__in=['coach','manager','admin']).exists()
-    output=archive_xlsx(obj,financial_access,participant_access)
+    output=archive_xlsx(obj,financial_access,participant_access,request.user)
     response=HttpResponse(output.getvalue(),content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition']=f'attachment; filename="kaizen-{obj.pk}-archive.xlsx"'
     return response

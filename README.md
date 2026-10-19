@@ -1,6 +1,6 @@
 # TCA Progress local pilot
 
-This repository contains a local Django pilot and the immutable private workbook copies in `sources/original/`. Do not publish the source files or operational database. The current cumulative scoring policy is unapproved draft v1. Local dated assessments are not official certification.
+This repository contains a local Django pilot. The immutable original workbooks and governance PDF belong in the ignored `sources/original/` directory; they are not distributed through Git. The current cumulative scoring policy is unapproved draft v1. Local dated assessments are not official certification.
 
 ## Start the fictional demonstration on this Windows host
 
@@ -14,11 +14,18 @@ The first run on another machine can omit `-SkipInstall` to install the pinned p
 
 Optional configuration can go in an ignored `.env` file copied from `.env.example`. The startup script loads its `KEY=value` entries into the current process.
 
-Suggested demonstration: **Fictional Maturity Examples** shows one Certified, one Advanced, and one Showcase category under draft v1. **Fictional Harbor Site** shows a gap, Kaizen work, clause-specific evidence, and dated reassessment versions. The full catalog remains searchable on both sites. All operational examples are fictional.
+Suggested demonstration: **Fictional Toolbox Pilot** shows all three Kaizen input sizes, 45 structured Lean methods, a 34% (51/150) verified coverage example, six accepted evidence claims, versioned A3 reports and a controlled learning item. **Fictional Learning Recipient** shows a new draft adapted from that learning item without inherited measurements or approvals. The full official catalog remains searchable. All operational examples are fictional. On a fresh installation, run the command below once in a second PowerShell window after the initial seed, then reload the browser:
+
+```powershell
+$env:PYTHONPATH = (Resolve-Path '.vendor').Path
+& $pythonExe manage.py seed_toolbox_demo
+```
+
+Set `$pythonExe` as shown under **Commands** below. The toolbox seed adds fictional records only and leaves existing records intact.
 
 The UX upgrade uses four menu groups and an authorized country/site selector. The two fictional fixtures carry explicit NL/Benelux and UK metadata. The header shows the global baseline reference and local assessment version; governed template/profile assignment is the next upgrade milestone. [Governance interpretation](docs/GOVERNANCE_DELTA.md) and [current upgrade status](docs/STATUS.md) record the boundaries and checks.
 
-Refinement R1 adds participant quick drafts/autosave, four PDCA stages, editable actions, sensei review and retained revisions. Open **Improvements → Kaizen events** or **Sensei review**. The fictional R1 after event demonstrates observations, advice/reply, verification and changed content requiring re-review. [Field/rule mapping](docs/KAIZEN_FIELD_RULES.md) keeps conditional source requirements explicit. The next refinement milestone is attachments and measurement import; A3 PDFs and cross-site sharing remain later work.
+The Kaizen workspace has participant drafts/autosave, four PDCA stages, sensei review, retained revisions, size suggestions, local closure and a searchable Lean toolbox. Open **Improvements → Kaizen events**, **Sensei review**, or a worksheet from an event. Original attachments are private and separate from a deliberate CSV/XLSX import preview. A3 PDFs, full archives and scoped learning are available locally. [Field/rule mapping](docs/KAIZEN_FIELD_RULES.md) keeps conditional source requirements explicit. [Final toolbox review](docs/TOOLBOX_REVIEW.md) records verified boundaries and deployment decisions.
 
 ## Commands
 
@@ -33,6 +40,7 @@ $env:PYTHONPATH = (Resolve-Path '.vendor').Path
 & $pythonExe manage.py migrate --noinput
 & $pythonExe manage.py import_catalog
 & $pythonExe manage.py test core
+& $pythonExe tools/run_source_free_ci.py
 & $pythonExe tools/backup_restore.py backup backups/demo.sqlite3
 & $pythonExe tools/backup_restore.py verify backups/demo.sqlite3
 & $pythonExe tools/benchmark.py

@@ -1,5 +1,13 @@
 # Kaizen field and rule matrix — refinement R1
 
+## Toolbox additions — 14 October 2026
+
+`toolbox-field-rules.csv` is the additive **82-row** profile/route/source/storage/report register. `toolbox-catalog.json` records all 45 method schemas, explanations, steps, limitations and checked source URLs. `tools/build_toolbox_register.py` regenerates both. Existing 75 rows and exact source requirements below remain unchanged. Small/medium/extensive choose input presentation, not methodological A4/A3/BP or an official exemption.
+
+Local closure additionally requires problem, process/location, owner, observable outcome criterion, change, actual result, result date, Check-stage proof and sustain/follow-up. It sets `local_status` only and creates a report; existing global review, comparable numeric observations/actions/coach narrative and conditional stars still gate the old `status`. Official submission readiness remains unconfirmed without the User Guide. Quality and TCA are independent.
+
+Profile switches preserve all fields/children/worksheets/files/history. Content changes reopen local closure and protected global review. Structured methods are optional; a validated cause needs authorized evidence plus an explanation, not merely a plausible chain. Worksheet row IDs, schema versions and history persist; restoration creates a revision. Source taxonomies for KPI/Gen_Problem/Gen_RC/GENERIC_SOLUTION are suggestions resolved from intact named definitions; broken/stale lists are not silently evaluated or used to reject legacy values.
+
 The Global Kaizen workbook remains immutable (SHA-256 `9bfcfd6258ec108489b2594b19f053a1f2d7f59eac73730217be94948bae3bce`). The source-backed matrix distinguishes **source content**, **existing local workflow gates**, **conditional quality checks**, **derived values**, and **optional draft context**. It does not certify complete A4/A3/Business Process submission rules: the referenced User Guide remains missing and workbook formula parity is unverified. Existing source-required fields are retained, including the full additional-template/5W2H screen. Nothing in this refinement weakens the canonical TCA catalog or modifies an assessment response.
 
 The detailed field register is `kaizen-field-rules.csv`. Source references below are addresses in the immutable template; screens/archives reuse the same saved record. An A3 methodological profile remains separate from an A3 PDF report format (refinement R3).

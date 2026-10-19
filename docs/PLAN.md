@@ -28,3 +28,9 @@ R1. **Shared layout and participant/sensei journey — completed 12 October 2026
 R2. **Event attachments and measurement import.** Private multiple attachments and existing-evidence links per stage; deliberate Excel/CSV preview/mapping/validation/confirmation, originals preserved, safe type/size checks and authorized previews/downloads.
 
 R3. **A3 and learning repository.** Repeatable versioned A3 landscape PDFs with visual verification, complete snapshots/archive, approved cross-site sharing/search and adaptation without copied evidence, savings or compliance.
+
+## Complete toolbox request — K1–K4
+
+The 14 October user request supersedes earlier execution/push limits for this sequence. See TOOLBOX_SPEC.md for acceptance criteria. Continue after successful checks through K1 domain/profiles/migration, K2 toolbox registry/catalog/editors, K3 verified progress/claims/private files/import/journey, K4 reports/archive/reuse/end review/featurebranch push. Record each actual result in STATUS.md; unfinished corporate U2/U3 policies are not silently approved by this sequence.
+
+K1–K4 implementation and local verification completed 19 October 2026; publication status is recorded separately in STATUS.md. The next governance milestone remains U2. Earlier R2/R3 feature scope is implemented by K3/K4, while any corporate authority decisions in those milestones remain open.
