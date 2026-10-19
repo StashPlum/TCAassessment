@@ -11,9 +11,9 @@ from django.views.decorators.http import require_POST
 from .models import *
 from .views import site_access,log
 from .context import authorized_sites
-from .a3 import report_snapshot,summary_sections,ensure_report
+from .a3 import report_snapshot,summary_sections,ensure_report,ensure_reports
 from .kaizen import checkpoint,public_snapshot,snapshot,PROTECTED_STATES
-from .access import visible_attachments,allowed_classifications,report_visible
+from .access import visible_attachments,allowed_classifications,report_visible,require_event_editor
 from .toolbox_registry import REGISTRY
 from .toolbox_visuals import render_svg
 from .toolbox_views import worksheet_checkpoint
@@ -37,10 +37,10 @@ def a3_download(request,site_code,pk,report_pk):
 def a3_finalize(request,site_code,pk):
     site=site_access(request,site_code,['staff','coach','manager','admin'])
     with transaction.atomic():
-        event=get_object_or_404(Kaizen.objects.select_for_update(),site=site,pk=pk)
+        event=get_object_or_404(Kaizen.objects.select_for_update(),site=site,pk=pk);require_event_editor(request.user,event)
         if str(event.revision)!=request.POST.get('revision'):return JsonResponse({'error':'Event changed. Reload before finalizing a report.'},status=409)
         if event.local_status!='closed' and event.status not in PROTECTED_STATES:return JsonResponse({'error':'Close the local PDCA or complete the existing global review first.'},status=422)
-        report=ensure_report(event,request.user);log(site,request.user,'a3_report_finalized',report,{'event_revision':event.revision})
+        report=ensure_reports(event,request.user)[0];log(site,request.user,'a3_report_finalized',report,{'event_revision':event.revision})
     return redirect('a3_preview',site_code=site.code,pk=pk)
 
 @login_required

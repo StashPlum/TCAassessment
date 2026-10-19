@@ -2,7 +2,9 @@
 
 Source: `sources/original/software aanpassingen.docx` (byte-for-byte local copy of the supplied Word file; SHA-256 `0CA93898C063F6BCE998051121B5D97593F517613A06E391FAD0A34DD7B8D59B`). The original is intentionally Git-ignored. Page references are to the five-page Word document; **image** means its embedded `word/media/image1.png`, the Site DIY Plan Summary matrix. Stage ownership and W IDs are checked against all 39 rows of `TCA_Verbeterplan_5_Etappes.md`. The plan has 39/39 Word points; no missing point was found. The incomplete sensei sentence on page 1 has no inferred authority. Criteria here are testable project interpretations, not new official CEVA obligations.
 
-Status vocabulary: **Done E1/E2/E3** = implemented and checked in that stage; **Part** = current foundation implemented, remaining criterion assigned to a later stage; **Pending** = later stage. E3 evidence: additive migrations 0011–0012, `core/test_stage3.py`, source-free CI, browser inspection and reopened XLSX/rendered PDF examples; see `STATUS.md` for commands and limits. Earlier evidence remains recorded there.
+E4 evidence: additive migration 0013, `core/test_stage4.py` (10 tests), source-free CI, rendered A3/A4 PDFs and browser captures `docs/verification/stage4-*`.
+
+Status vocabulary: **Done E1/E2/E3/E4** = implemented and checked in that stage; **Part** = current foundation implemented, remaining criterion assigned to a later stage; **Pending** = later stage. E3 evidence: additive migrations 0011–0012, `core/test_stage3.py`, source-free CI, browser inspection and reopened XLSX/rendered PDF examples; see `STATUS.md` for commands and limits. Earlier evidence remains recorded there.
 
 | ID | Word source | Change point and acceptance criterion | Stage | Status |
 |---|---|---|---|---|
@@ -15,7 +17,7 @@ Status vocabulary: **Done E1/E2/E3** = implemented and checked in that stage; **
 | W07 | p.2, Prepare evidence | Real selected-record XLSX and readable CEVA PDF include ID, obligation, evidence, owner and period. | 3 | Done E3: unpaginated selected/filter export; XLSX reopened and PDF rendered |
 | W08 | p.2, Prepare evidence | Auditor versions site documentation needs with provenance without changing the official requirement. | 1, 3 | Done E1+E3: append-only preparation version, diff/source/reason and source unchanged |
 | W09 | p.2, Plan assessment | Manager confirms availability or proposes alternate/backup; conflicts, owner and late-change impact remain visible. | 3 | Done E3: manager confirmation/alternate/blocked states and revision history |
-| W10 | p.2, Plan assessment | Low-friction scheduling with useful in-app prompts and traceable rescheduling. | 3, 4 | Part E3: scheduling, in-app prompts and late-change trail; broader journey simplification E4 |
+| W10 | p.2, Plan assessment | Low-friction scheduling with useful in-app prompts and traceable rescheduling. | 3, 4 | Part E3+E4: scheduling, in-app prompts and late-change trail; E4 adds task prompts on home; planning calendar view E5 |
 | W11 | p.2, Plan assessment | Auditor selects site and versions wording/evidence needs before starting; assessment freezes effective version. | 1, 3 | Done E1+E3: preparation workspace and frozen question/documentation snapshots |
 | W12 | p.2, Plan assessment | Actor, reason, diff and prior wording/assessment versions can be read after a change. | 1, 3 | Done E1+E3: append-only guidance/preparation and selectable assessment history |
 | W13 | p.2, Plan assessment | New A is amber Advisory-pass only with evidence, note and follow-up; previous A highlighted and explicitly retested; old approvals unchanged. | 1, 3, 5 | Part E1+E3: prior evidence/follow-up/retest UI and immutable dated exports; final integrated counts E5 |
@@ -26,19 +28,19 @@ Status vocabulary: **Done E1/E2/E3** = implemented and checked in that stage; **
 | W18 | p.3, History | Single or selected assessment PDF/XLSX contains frozen questions, answers, comments, evidence and follow-up. | 3 | Done E3: full historical-scope PDF/XLSX, privacy redaction and snapshot-only approvals |
 | W19 | p.3, History | Year, site, version and auditor filters operate on authorized history. | 3 | Done E3: authorized filters and selected export tested |
 | W20 | p.3, image | Clickable 15×10 standard matrix (or approved alternate scope), C/B/A bands, Y green/A amber/N red/blank neutral; cell links to full detail. | 2 | Done E2: 150-cell synthetic matrix and alternate frozen-scope test; detail parity verified |
-| W21 | pp.3–4, Kaizen | Small/Medium/Extensive choices keep source gates and use short optional guidance. | 4 | Pending E4 refinement |
-| W22 | p.4, toolbox | Each Lean method has purpose, steps, inputs and a short logistics example from its working editor. | 4 | Pending E4 refinement |
-| W23 | p.4, toolbox | Tool diagrams and exported labels remain legible for long and dynamic data. | 4 | Pending E4 refinement |
-| W24 | p.4, Kaizen | Authorized team members collaborate on the same versioned event with visible ownership. | 4 | Pending E4 |
-| W25 | p.4, Kaizen | Assign tasks to team members; each sees own work and edits without stale overwrite. | 4 | Pending E4 |
-| W26 | p.4, Plan | Gantt uses the existing action dates/owners/progress and matches an accessible table. | 4 | Pending E4 |
+| W21 | pp.3–4, Kaizen | Small/Medium/Extensive choices keep source gates and use short optional guidance. | 4 | Done E4: title-only start, three compact input-view choices with one help line, optional "Help me choose" (scope/recurrence/cause), separate methodological type; no Small=A4 mapping |
+| W22 | p.4, toolbox | Each Lean method has purpose, steps, inputs and a short logistics example from its working editor. | 4 | Done E4: shared method help panel (purpose, steps, pitfall, logistics example, fields, source) in the site toolbox, event toolbox and worksheet editor; all 45 methods tested |
+| W23 | p.4, toolbox | Tool diagrams and exported labels remain legible for long and dynamic data. | 4 | Done E4: long scatter/boxplot/spaghetti labels wrap or move to numbered keys inside the drawing; A3/A4 PDF lists every row when a diagram is too large; tested with long labels |
+| W24 | p.4, Kaizen | Authorized team members collaborate on the same versioned event with visible ownership. | 4 | Done E4: user-linked team per event (lead/member/expert/sensei); only site members can join; team-managed events are editable by the team and readable by the site |
+| W25 | p.4, Kaizen | Assign tasks to team members; each sees own work and edits without stale overwrite. | 4 | Done E4: tasks are action records with team assignee and progress; "My tasks" on home; assignee/team progress updates with revision check (stale write refused) |
+| W26 | p.4, Plan | Gantt uses the existing action dates/owners/progress and matches an accessible table. | 4 | Done E4: Gantt built from the same action rows (owner, dates, progress, red today line) with table toggle; edit in table shows in Gantt; date order validated |
 | W27 | p.4, workflow | Routine journeys minimize duplicate administration while retaining mandatory source information. | 1–5 | Part E1–E3: role entry, matrix-to-detail, compact Conduct and assessment preparation; full journey E5 |
-| W28 | p.4, A3/A4 | Functional A3/A4 event difference follows approved source rules, independent of input size/report paper. | 4 | Pending E4; CEVA mapping open |
-| W29 | p.4, Kaizen | Event, analyses, files, measures, tasks, revisions and review survive save/archive. | 4 | Pending E4 completion |
-| W30 | p.4, reports | Authorized user downloads approved A3/A4 PDF and true XLSX from event/review for manual Teams storage. | 4 | Pending E4 |
-| W31 | p.4, sensei | Compact queue and filters display status/result and link to complete review. | 4 | Pending E4 refinement |
-| W32 | p.4, sensei | Most recent relevant submitted Kaizens appear first by default. | 4 | Pending E4 |
-| W33 | p.4, sensei | Export one or selected queue events to PDF/XLSX with honest review state. | 4 | Pending E4 |
+| W28 | p.4, A3/A4 | Functional A3/A4 event difference follows approved source rules, independent of input size/report paper. | 4 | Done E4 within source: cause analysis optional only for A4 (PLAN!B69) and gated for A3/BPK; BPK upload type A3 (DL_UPLOAD); other CEVA interpretations recorded open in core/methodology.py |
+| W29 | p.4, Kaizen | Event, analyses, files, measures, tasks, revisions and review survive save/archive. | 4 | Done E4: team, assignee, progress, review feedback and both stored report papers are in the event snapshot, revisions, JSON/ZIP archive and report XLSX |
+| W30 | p.4, reports | Authorized user downloads approved A3/A4 PDF and true XLSX from event/review for manual Teams storage. | 4 | Done E4: PDF A3 or A4 landscape and report XLSX (Events, A3 summary, Actions, Gates, Team, Results, Review) from event, A3 preview and sensei review; finalised versions stored, otherwise marked working copy |
+| W31 | p.4, sensei | Compact queue and filters display status/result and link to complete review. | 4 | Done E4: compact queue table with status chips and counts, small filters, gate count, change summary and link to the review page |
+| W32 | p.4, sensei | Most recent relevant submitted Kaizens appear first by default. | 4 | Done E4: queue sorts by latest submission time (new submitted_at), then latest change; tested |
+| W33 | p.4, sensei | Export one or selected queue events to PDF/XLSX with honest review state. | 4 | Done E4: export of selected events to PDF (A3/A4) or XLSX with honest review state and working-copy marking; other-site IDs refused |
 | W34 | p.4, Learning | Exact TCA requirement ID is the main content filter. | 5 | Pending E5 |
 | W35 | p.4, Learning | Authorized cross-site lesson shows problem, method, outcome, sustainment and linked Kaizen. | 5 | Pending E5 |
 | W36 | p.5, Learning | Best practice is separately validated and shows approver and route to result. | 5 | Pending E5 |

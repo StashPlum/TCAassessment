@@ -8,6 +8,7 @@ from django.views.decorators.http import require_POST
 from .models import Kaizen, Worksheet, WorksheetRevision, Evidence
 from .views import site_access, log
 from .kaizen import checkpoint, reopen_after_change
+from .access import require_event_editor
 
 EDIT_ROLES=['staff','coach','manager','admin']
 
@@ -42,7 +43,7 @@ def toolbox(request,site_code,pk):
     from .toolbox_registry import REGISTRY,initial_payload
     site=site_access(request,site_code);event=get_object_or_404(Kaizen,pk=pk,site=site)
     if request.method=='POST':
-        site_access(request,site_code,EDIT_ROLES)
+        site_access(request,site_code,EDIT_ROLES);require_event_editor(request.user,event)
         key=request.POST.get('method');stage=request.POST.get('stage','Plan')
         if key not in REGISTRY or stage not in ('Plan','Do','Check','Act'): return JsonResponse({'error':'Choose a registered method and PDCA stage.'},status=422)
         with transaction.atomic():
@@ -74,7 +75,7 @@ def worksheet(request,site_code,pk,worksheet_pk):
     w=get_object_or_404(Worksheet,event=event,pk=worksheet_pk)
     if w.method not in REGISTRY: raise Http404
     if request.method=='POST':
-        site_access(request,site_code,EDIT_ROLES)
+        site_access(request,site_code,EDIT_ROLES);require_event_editor(request.user,event)
         try:
             if len(request.body)>2*1024*1024: raise ValueError('Worksheet request exceeds 2 MB; split large datasets into worksheets.')
             posted=json.loads(request.body) if request.content_type=='application/json' else request.POST.dict()
@@ -133,13 +134,18 @@ def input_profile(request,site_code,pk):
     from .profiles import PROFILES
     site=site_access(request,site_code,EDIT_ROLES)
     selected=request.POST.get('input_profile')
+    method=request.POST.get('profile','')
     if selected not in PROFILES: return JsonResponse({'error':'Choose a valid input profile.'},status=422)
+    if method and method not in ('A4','A3','BP'): return JsonResponse({'error':'Choose A4, A3 or Business Process.'},status=422)
     with transaction.atomic():
-        event=get_object_or_404(Kaizen.objects.select_for_update(),pk=pk,site=site)
+        event=get_object_or_404(Kaizen.objects.select_for_update(),pk=pk,site=site);require_event_editor(request.user,event)
         if str(event.revision)!=request.POST.get('revision'): return JsonResponse({'error':'Another edit was saved. Reload before switching.'},status=409)
         checkpoint(event,request.user,'Before input profile switch')
-        event.input_profile=selected;event.revision+=1;event.save()
-        checkpoint(event,request.user,'Input profile switched; full detail retained')
-        log(site,request.user,'input_profile_switched',event,{'input_profile':selected})
-    messages.success(request,'Input view changed. All saved detail and methodological classification retained.')
+        changed_type=bool(method and method!=event.profile)
+        event.input_profile=selected
+        if changed_type: event.profile=method;reopen_after_change(event)
+        event.revision+=1;event.save()
+        checkpoint(event,request.user,'Input view / methodological type switched; full detail retained')
+        log(site,request.user,'input_profile_switched',event,{'input_profile':selected,'profile':event.profile})
+    messages.success(request,'Input view and type saved. Every field, action, worksheet and file is retained.' if changed_type else 'Input view changed. All saved detail and methodological classification retained.')
     return redirect('kaizen_detail',site_code=site.code,pk=pk)

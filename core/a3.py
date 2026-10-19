@@ -1,52 +1,141 @@
-"""Saved-data A3 summary + full structured archive; no source-template parity claim."""
+"""Saved-data A3/A4 report + full structured archive; no source-template parity claim.
+
+Paper size (A3 or A4 landscape) is a report choice only. The first page is a concise six-block
+sheet; every shortened block continues in full in the "Complete content" pages, so no saved source
+content is dropped to make the sheet fit.
+"""
 from io import BytesIO
 from html import escape
+from pathlib import Path
 import hashlib
 from django.core.files.base import ContentFile
-from django.db import transaction
-from reportlab.lib.pagesizes import A3,landscape
+from reportlab.lib.pagesizes import A3,A4,landscape
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet,ParagraphStyle
+from reportlab.graphics.shapes import Drawing,Rect,String
 from reportlab.platypus import SimpleDocTemplate,Paragraph,Spacer,Table,TableStyle,PageBreak,KeepTogether,Image
 from svglib.svglib import svg2rlg
 from .models import A3Report
-from .kaizen import snapshot,public_snapshot
+from .kaizen import snapshot,public_snapshot,gate_list,review_state,REVIEW_STATE_LABELS,team_display
 from .measurements import compare_observations
+from .methodology import rules_for
 from .toolbox_visuals import render_svg
 from .toolbox_registry import REGISTRY
 from .toolbox_math import calculate
-RENDERER_VERSION=2
+RENDERER_VERSION=3
+PAPERS={'A3':landscape(A3),'A4':landscape(A4)}
+NAVY=colors.HexColor('#0B1A48');MUTED=colors.HexColor('#4B5265');LINE=colors.HexColor('#D8DBE3');RED=colors.HexColor('#E4002B')
+LOGO=Path(__file__).resolve().parent/'static/core/ceva-logo.png'
+PHASE_LABELS={'PLN':'Plan','DO':'Do','CHK':'Check','ACT':'Act'}
 
 def report_snapshot(event):
-    # A3 is a broadly readable summary: no participant/benefit/restricted file data.
+    # Broadly readable summary: no participant contact/hours, benefits or restricted files.
     content=public_snapshot(snapshot(event),False,False)
     content['site']=event.site.name;content['event_id']=event.pk;content['event_revision']=event.revision
     content['comparisons']=compare_observations(event.observations.all())
+    content['gates']=gate_list(event)
+    content['review_state']=REVIEW_STATE_LABELS[review_state(event)]
+    content['method_rules']=rules_for(event.profile)['summary']
+    # Team names and Kaizen roles only; contact details and hours stay in the restricted archive.
+    content['team']=[{'name':team_display(p),'role':p.kaizen_role} for p in event.participants.select_related('user')]
+    names={p.pk:team_display(p) for p in event.participants.select_related('user')}
+    for action in content['actions']: action['assignee_name']=names.get(action.get('assignee_id'),'')
+    content['feedback']=[{'stage':n.stage,'kind':n.kind,'text':n.text,'resolved':n.resolved} for n in event.review_notes.exclude(kind='reply')]
     return content
 
-def summary_sections(content):
-    data=content['data']
-    return [('Plan · problem and intended outcome', '\n'.join(str(data.get(k,'')) for k in ['overall_problem','process_location','outcome_criterion','specific_problem','root_cause'])),
-            ('Do · change and actions',str(data.get('solution',''))+'\n'+'\n'.join(f'{a["description"]} · owner {a["owner"]} · {a.get("end_date") or "date unset"}' for a in content['actions'] if a['phase']=='DO')),
-            ('Check · actual result',str(data.get('observed_result',''))+'\n'+str(data.get('result_date',''))+'\n'+'\n'.join(f'{c["measure"]} · {c["population"]}: before {c["before_average"]} ({c["before_count"]}), after {c["after_average"]} ({c["after_count"]}), change {c["difference"]} {c["unit"]}' for c in content.get('comparisons',[]))),
-            ('Act · sustain and follow-up','\n'.join(str(data.get(k,'')) for k in ['sustain','sustain_owner','sustain_check','next_kaizen_action'])+'\n'+'\n'.join(f'{a["description"]} · {a["owner"]}' for a in content['actions'] if a['phase']=='ACT'))]
+def _lines(data,keys):
+    return '\n'.join(str(data.get(k,'')).strip() for k in keys if str(data.get(k,'')).strip())
 
-def build_pdf(content,photo_bytes=None):
-    output=BytesIO();width,height=landscape(A3);styles=getSampleStyleSheet()
-    styles.add(ParagraphStyle(name='A3Title',fontName='Helvetica-Bold',fontSize=22,leading=27,textColor=colors.HexColor('#051039'),spaceAfter=10))
-    styles.add(ParagraphStyle(name='A3Body',fontSize=11,leading=15,spaceAfter=7))
-    styles.add(ParagraphStyle(name='A3Small',fontSize=9,leading=12,textColor=colors.HexColor('#475569')))
-    doc=SimpleDocTemplate(output,pagesize=(width,height),rightMargin=32,leftMargin=32,topMargin=32,bottomMargin=40,title=f'TCA Progress A3 · {content["title"]}')
+def _action_line(a):
+    period=f'{a.get("start_date") or "start unset"} – {a.get("end_date") or "end unset"}'
+    owner=a.get('assignee_name') or a.get('owner','')
+    return f'{PHASE_LABELS.get(a["phase"],a["phase"])} · {a["description"]} · {owner} · {period} · {a.get("progress",0)}%'
+
+def _n(value):
+    if value in (None,''): return 'missing'
+    try: return f'{float(value):g}'
+    except (TypeError,ValueError): return str(value)
+
+def report_blocks(content):
+    """The six numbered A3 blocks in full; the sheet shortens them, continuation pages do not."""
+    data=content['data'];actions=content.get('actions',[])
+    results=[f'{c["measure"]} · {c["population"]} · {c["unit"]}: before {_n(c["before_average"])} ({c["before_count"]} points), after {_n(c["after_average"])} ({c["after_count"]} points), change {_n(c["difference"])}' for c in content.get('comparisons',[])]
+    return [('1','Problem',_lines(data,['overall_problem','process_location','outcome_criterion','specific_problem'])),
+            ('2','Cause',_lines(data,['root_cause','cause_status'])),
+            ('3','Countermeasure',_lines(data,['solution'])),
+            ('4','Actions','\n'.join(_action_line(a) for a in actions)),
+            ('5','Result','\n'.join([_lines(data,['observed_result','result_date'])]+results).strip()),
+            ('6','Sustainment','\n'.join([_lines(data,['sustain','sustain_owner','sustain_check','next_kaizen_action'])]+
+                [f'{d["document_type"]} · {d["name"]} · {d["updated_at"]}' for d in content.get('document_updates',[])]).strip())]
+
+def summary_sections(content):
+    """Preview sections for the web page, PDCA-ordered and complete."""
+    return [(f'{number} · {title}',value) for number,title,value in report_blocks(content)]
+
+def _result_drawing(comparison,width):
+    before=comparison.get('before_average');after=comparison.get('after_average')
+    if before is None or after is None: return None
+    top=max(abs(float(before)),abs(float(after)),1);bar=width-150
+    drawing=Drawing(width,46)
+    for y,label,value,fill in [(26,'Before',float(before),colors.HexColor('#9AA1B2')),(4,'After',float(after),colors.HexColor('#2F7D45'))]:
+        drawing.add(String(0,y+4,label,fontName='Helvetica',fontSize=8,fillColor=MUTED))
+        drawing.add(Rect(42,y,bar,14,fillColor=colors.HexColor('#F3F4F7'),strokeColor=None))
+        drawing.add(Rect(42,y,bar*abs(value)/top,14,fillColor=fill,strokeColor=None))
+        drawing.add(String(48+bar,y+4,f'{value:g} {comparison["unit"]}',fontName='Helvetica-Bold',fontSize=8,fillColor=NAVY))
+    return drawing
+
+def _styles(paper):
+    small=paper=='A4';styles=getSampleStyleSheet();base=8.5 if small else 10.5
+    styles.add(ParagraphStyle(name='A3Title',fontName='Helvetica-Bold',fontSize=16 if small else 22,leading=20 if small else 27,textColor=NAVY,spaceAfter=4))
+    styles.add(ParagraphStyle(name='A3Body',fontSize=base,leading=base*1.35,spaceAfter=4))
+    styles.add(ParagraphStyle(name='A3Small',fontSize=base-1.5,leading=(base-1.5)*1.35,textColor=MUTED))
+    styles.add(ParagraphStyle(name='A3Block',fontName='Helvetica-Bold',fontSize=base+2,leading=(base+2)*1.3,textColor=NAVY,spaceAfter=3))
+    styles.add(ParagraphStyle(name='A3Banner',fontName='Helvetica-Bold',fontSize=base,leading=base*1.35,textColor=colors.HexColor('#8E1D17')))
+    return styles
+
+def _event_story(content,photo_bytes,paper,final,styles):
+    width,height=PAPERS[paper];small=paper=='A4';margin=24 if small else 32
     def para(value,style='A3Body'): return Paragraph(escape(str(value)).replace('\n','<br/>'),styles[style])
-    story=[para(content['title'],'A3Title'),para(f'{content["site"]} · event {content["event_id"]} · revision {content["event_revision"]} · input {content["input_profile"]} · methodological type {content["profile"]} · local {content["local_status"]} / global {content["status"]}','A3Small'),Spacer(1,15)]
-    cells=[]
-    for heading,value in summary_sections(content):
-        # Concise summary is explicitly shortened; the saved archive is never mutated.
-        concise=value if len(value)<=750 else value[:750]+'\n[Summary shortened; complete wording in the event archive.]'
-        cells.append([para(heading,'Heading2'),para(concise or 'Not recorded')])
-    table=Table([[cells[0],cells[1]],[cells[2],cells[3]]],colWidths=[(width-80)/2]*2,hAlign='LEFT')
-    table.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('BOX',(0,0),(-1,-1),.8,colors.HexColor('#bccada')),('INNERGRID',(0,0),(-1,-1),.5,colors.HexColor('#bccada')),('LEFTPADDING',(0,0),(-1,-1),12),('RIGHTPADDING',(0,0),(-1,-1),12),('TOPPADDING',(0,0),(-1,-1),10),('BOTTOMPADDING',(0,0),(-1,-1),10)]))
-    story.extend([table,Spacer(1,10),para('A3 report format does not change event type or TCA classification. Local summary; CAT confirmation and official submission policy remain separate. Full data, original files and revision history remain in the private event archive.','A3Small')])
+    header=[para(content['title'],'A3Title'),
+            para(f'{content["site"]} · KZ-{content["event_id"]} · revision {content["event_revision"]} · methodological type {rules_for(content["profile"])["label"]} · '
+                 f'input view {content["input_profile"]} · review state {content.get("review_state","")} · paper {paper} landscape','A3Small')]
+    if LOGO.exists():
+        logo=Image(str(LOGO),width=72,height=25,mask='auto')
+        top=Table([[logo,header]],colWidths=[90,width-2*margin-90]);top.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('LEFTPADDING',(0,0),(-1,-1),0)]))
+        story=[top]
+    else: story=header
+    if not final: story.append(para('WORKING COPY · not a finalised report version. Review state and gates are shown as saved at this revision.','A3Banner'))
+    story.append(Spacer(1,6))
+    limit=420 if small else 900;column=(width-2*margin-12)/2
+    blocks=report_blocks(content);cells=[];shortened=False
+    for number,title,value in blocks:
+        concise=value or 'Not recorded'
+        if len(concise)>limit:
+            concise=concise[:limit].rsplit(' ',1)[0]+'\n[Summary shortened; complete wording continues under "Complete content".]';shortened=True
+        flow=[para(f'{number}  {title}','A3Block'),para(concise)]
+        if number=='5':
+            for comparison in content.get('comparisons',[])[:2]:
+                drawing=_result_drawing(comparison,column-30)
+                if drawing: flow.append(drawing)
+        cells.append(flow)
+    sheet=Table([[cells[0],cells[3]],[cells[1],cells[4]],[cells[2],cells[5]]],colWidths=[column,column],hAlign='LEFT')
+    sheet.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('BOX',(0,0),(-1,-1),.8,LINE),('INNERGRID',(0,0),(-1,-1),.5,LINE),
+        ('LINEBEFORE',(0,0),(0,-1),3,NAVY),('LEFTPADDING',(0,0),(-1,-1),10),('RIGHTPADDING',(0,0),(-1,-1),10),('TOPPADDING',(0,0),(-1,-1),8),('BOTTOMPADDING',(0,0),(-1,-1),8)]))
+    story.append(sheet)
+    gates=content.get('gates',[]);done=sum(1 for g in gates if g['ok'])
+    methods=', '.join(sorted({w['title'] for w in content.get('worksheets',[])})) or 'None selected'
+    story.extend([Spacer(1,6),para(f'Gates met {done} of {len(gates)} · methods: {methods}. {content.get("method_rules","")}','A3Small'),
+                  para('Report paper does not change event type or TCA classification. Local summary; CAT confirmation and official submission policy remain separate.','A3Small')])
+    # Complete content: every block, action, gate, team role and review item in full.
+    story.extend([PageBreak(),para('Complete content','A3Title'),para('Full wording of every block. Nothing on the summary sheet is omitted here.','A3Small')])
+    for number,title,value in blocks: story.extend([para(f'{number}  {title}','A3Block'),para(value or 'Not recorded'),Spacer(1,4)])
+    rows=[['Phase','Action','Owner','Start','End','Progress']]+[[PHASE_LABELS.get(a['phase'],a['phase']),para(a['description'],'A3Small'),a.get('assignee_name') or a.get('owner',''),
+          str(a.get('start_date') or ''),str(a.get('end_date') or ''),f'{a.get("progress",0)}%'] for a in content.get('actions',[])]
+    story.extend([para('Actions and tasks','A3Block'),_table(rows,width-2*margin,[.08,.44,.18,.1,.1,.1])])
+    story.extend([Spacer(1,6),para('Review gates','A3Block'),_table([['Phase','Gate','Met']]+[[g['phase'],para(g['label'],'A3Small'),'Yes' if g['ok'] else 'No'] for g in gates],width-2*margin,[.12,.76,.12])])
+    if content.get('team'): story.extend([Spacer(1,6),para('Team','A3Block'),_table([['Name','Kaizen role']]+[[m['name'],m['role']] for m in content['team']],width-2*margin,[.5,.5])])
+    if content.get('feedback'):
+        story.extend([Spacer(1,6),para('Sensei feedback','A3Block'),_table([['Phase','Type','Feedback','Resolved']]+[[f['stage'],f['kind'],para(f['text'],'A3Small'),'Yes' if f['resolved'] else 'No'] for f in content['feedback']],width-2*margin,[.1,.12,.66,.12])])
     worksheets=[w for w in content.get('worksheets',[]) if w.get('include_in_a3') and w['method'] in REGISTRY]
     for w in worksheets:
         story.extend([PageBreak(),para(w['title'],'A3Title'),para(f'{w["stage"]} · schema v{w["schema_version"]} · worksheet r{w["revision"]}','A3Small')])
@@ -55,18 +144,17 @@ def build_pdf(content,photo_bytes=None):
         story.append(para(analysis['formula'],'A3Small'))
         drawing=svg2rlg(BytesIO(render_svg(w['method'],w['payload']).encode('utf-8')))
         if drawing:
-            factor=min((width-90)/drawing.width,(height-270)/drawing.height,1)
-            # Very large diagrams are kept readable through a summary + complete SVG.
+            factor=min((width-2*margin-10)/drawing.width,(height-250)/drawing.height,1)
+            # Very large diagrams stay readable: list every active row instead of shrinking the labels away.
             if factor<.45:
-                story.append(para('Full diagram exceeds a readable A3 scale. See complete SVG / worksheet in archive; the first active items are summarized below.'))
+                story.append(para('Full diagram exceeds a readable scale on this paper. Every active row is listed below; the SVG is in the archive.'))
                 fields=REGISTRY[w['method']]['fields']
-                for row in [r for r in w['payload']['rows'] if not r.get('archived')][:12]:
-                    story.append(para(' · '.join(f'{f["label"]}: {row.get(f["key"],"")}' for f in fields)[:500]))
+                for row in [r for r in w['payload']['rows'] if not r.get('archived')]:
+                    story.append(para(' · '.join(f'{f["label"]}: {row.get(f["key"],"")}' for f in fields),'A3Small'))
             else:
                 drawing.scale(factor,factor);drawing.width*=factor;drawing.height*=factor;story.append(drawing)
         conclusion=w['payload'].get('conclusion','')
-        story.append(Spacer(1,10));story.append(para('Conclusion / next test','Heading2'));story.append(para(conclusion[:1800]+(' [Summary shortened; full archive retained.]' if len(conclusion)>1800 else '') or 'Not recorded'))
-        story.append(para('Method source: '+REGISTRY[w['method']]['source'],'A3Small'))
+        story.extend([Spacer(1,8),para('Conclusion / next test','A3Block'),para(conclusion or 'Not recorded'),para('Method source: '+REGISTRY[w['method']]['source'],'A3Small')])
         if w['method']=='5s' and photo_bytes:
             for row in w['payload'].get('rows',[]):
                 if row.get('archived'):continue
@@ -74,27 +162,62 @@ def build_pdf(content,photo_bytes=None):
                     identifier=str(row.get(key,''))
                     if identifier in photo_bytes:
                         image=Image(BytesIO(photo_bytes[identifier]));factor=min(450/image.imageWidth,240/image.imageHeight,1);image.drawWidth=image.imageWidth*factor;image.drawHeight=image.imageHeight*factor
-                        story.append(KeepTogether([para(f'{row.get("pillar","")} · {label} photo (attachment #{identifier})','Heading3'),image]))
+                        story.append(KeepTogether([para(f'{row.get("pillar","")} · {label} photo (attachment #{identifier})','A3Block'),image]))
+    return story
+
+def build_pdf_many(items,paper='A3',title='TCA Progress report',label=None):
+    """items: (content, photos, final) per event, each starting on a new page."""
+    paper=paper if paper in PAPERS else 'A3'
+    output=BytesIO();width,height=PAPERS[paper];margin=24 if paper=='A4' else 32;styles=_styles(paper)
+    doc=SimpleDocTemplate(output,pagesize=(width,height),rightMargin=margin,leftMargin=margin,topMargin=margin,bottomMargin=margin+10,title=title)
+    story=[]
+    for index,(content,photos,final) in enumerate(items):
+        if index: story.append(PageBreak())
+        story.extend(_event_story(content,photos,paper,final,styles))
     def footer(canvas,doc):
-        canvas.setFont('Helvetica',9);canvas.setFillColor(colors.HexColor('#475569'));canvas.drawString(32,22,f'TCA Progress · synthetic/local pilot · event {content["event_id"]} r{content["event_revision"]} · complete archive retained');canvas.drawRightString(width-32,22,str(doc.page))
+        canvas.setFont('Helvetica',8);canvas.setFillColor(MUTED)
+        canvas.drawString(margin,14,label or 'TCA Progress · synthetic/local pilot · complete archive retained')
+        canvas.drawRightString(width-margin,14,f'Page {doc.page}')
     doc.build(story,onFirstPage=footer,onLaterPages=footer)
     return output.getvalue()
 
-def ensure_report(event,user):
-    """Event is locked by caller; reports are immutable at each finalization revision."""
-    existing=event.a3_reports.filter(event_revision=event.revision,renderer_version=RENDERER_VERSION).first()
-    if existing:return existing
-    content=report_snapshot(event)
-    import json
-    from django.core.serializers.json import DjangoJSONEncoder
-    content=json.loads(json.dumps(content,cls=DjangoJSONEncoder))
+def build_pdf(content,photo_bytes=None,paper='A3',final=True):
+    label=f'TCA Progress · synthetic/local pilot · KZ-{content["event_id"]} r{content["event_revision"]} · {"finalised version" if final else "working copy"} · complete archive retained'
+    return build_pdf_many([(content,photo_bytes,final)],paper,f'TCA Progress {paper} · {content["title"]}',label)
+
+def _table(rows,total,fractions):
+    table=Table(rows,colWidths=[total*f for f in fractions],repeatRows=1,hAlign='LEFT')
+    table.setStyle(TableStyle([('FONTSIZE',(0,0),(-1,-1),8),('FONTNAME',(0,0),(-1,0),'Helvetica-Bold'),('TEXTCOLOR',(0,0),(-1,0),NAVY),
+        ('LINEBELOW',(0,0),(-1,0),.8,NAVY),('LINEBELOW',(0,1),(-1,-1),.3,LINE),('VALIGN',(0,0),(-1,-1),'TOP')]))
+    return table
+
+def _photos(event):
     photos={}
-    from pathlib import Path
     for item in event.attachments.filter(classification='internal'):
         file=item.file;name=item.original_name
         if item.evidence and item.evidence.site_id==event.site_id and item.evidence.classification=='internal':file=item.evidence.file;name=file.name if file else ''
         if file and Path(name).suffix.lower() in ('.png','.jpg','.jpeg'):
             with file.open('rb') as stream:photos[str(item.pk)]=stream.read()
-    raw=build_pdf(content,photos);version=(event.a3_reports.order_by('-version').values_list('version',flat=True).first() or 0)+1
-    report=A3Report(event=event,event_revision=event.revision,renderer_version=RENDERER_VERSION,version=version,snapshot=content,sha256=hashlib.sha256(raw).hexdigest(),created_by=user)
-    report.file.save(f'kaizen-{event.pk}-a3-v{version}.pdf',ContentFile(raw),save=False);report.save();return report
+    return photos
+
+def frozen_content(event):
+    import json
+    from django.core.serializers.json import DjangoJSONEncoder
+    return json.loads(json.dumps(report_snapshot(event),cls=DjangoJSONEncoder))
+
+def working_pdf(event,paper='A3'):
+    """Unstored PDF of the current saved revision, clearly marked as a working copy."""
+    return build_pdf(frozen_content(event),_photos(event),paper,final=False)
+
+def ensure_report(event,user,paper='A3'):
+    """Event is locked by caller; reports are immutable at each finalization revision and paper."""
+    existing=event.a3_reports.filter(event_revision=event.revision,renderer_version=RENDERER_VERSION,paper=paper).first()
+    if existing:return existing
+    content=frozen_content(event)
+    raw=build_pdf(content,_photos(event),paper);version=(event.a3_reports.order_by('-version').values_list('version',flat=True).first() or 0)+1
+    report=A3Report(event=event,event_revision=event.revision,renderer_version=RENDERER_VERSION,paper=paper,version=version,snapshot=content,sha256=hashlib.sha256(raw).hexdigest(),created_by=user)
+    report.file.save(f'kaizen-{event.pk}-{paper.lower()}-v{version}.pdf',ContentFile(raw),save=False);report.save();return report
+
+def ensure_reports(event,user):
+    """Finalization stores both paper versions of the same frozen revision."""
+    return [ensure_report(event,user,paper) for paper in PAPERS]

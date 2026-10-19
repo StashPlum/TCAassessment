@@ -6,17 +6,19 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-from .forms import ActionForm, BenefitForm, DocumentUpdateForm, EvidenceForm, KaizenForm, KaizenStageForm, KaizenTemplateForm, ObservationForm, OpportunityForm, OtherAuditForm, ParticipantForm, PreparationFilterForm, ResponseForm, ReviewNoteForm, ReviewQueueForm, SessionForm
-from .models import Assessment, AssessmentSession, AuditEvent, Benefit, Category, Clause, Coverage, Evidence, Kaizen, KaizenAction, Membership, Opportunity, OtherAudit, Requirement, Response, ReviewNote, Site
+from .forms import ActionForm, BenefitForm, DocumentUpdateForm, EvidenceForm, KaizenForm, KaizenStageForm, KaizenTemplateForm, ObservationForm, OpportunityForm, OtherAuditForm, ParticipantForm, PreparationFilterForm, ResponseForm, ReviewNoteForm, ReviewQueueForm, SessionForm, TeamMemberForm
+from .models import Assessment, AssessmentSession, AuditEvent, Benefit, Category, Clause, Coverage, Evidence, Kaizen, KaizenAction, Membership, Opportunity, OtherAudit, Participant, Requirement, Response, ReviewNote, Site
 from .scoring import category_result
 from .measurements import compare_observations, event_benefits
 from .quality import results_criterion, sustain_types_criterion
 from .exports import archive_xlsx, export_errors
 from .readiness import accepted_codes, assessment_snapshot
 from .context import authorized_sites, selected_site
-from .kaizen import REVIEW_KEYS, changed_since_review, checkpoint, document_type_count, measurement_warnings, public_snapshot, reopen_after_change, reuse_observations, review_checks, snapshot
+from .kaizen import initials, REVIEW_KEYS, REVIEW_STATE_LABELS, changed_since_review, checkpoint, current_phase, document_type_count, gantt, gate_summary, measurement_warnings, pdca_segments, public_snapshot, reopen_after_change, review_checks, review_state, reuse_observations, snapshot, team_display
+from .access import can_edit_event, can_manage_team, require_event_editor
 from .profiles import local_checks, suggest_profile
 from .scoring import pass_codes
 from .assessment_config import frozen_configuration,question_for_assessment
@@ -60,7 +62,8 @@ def home(request):
         context['upcoming_sessions']=AssessmentSession.objects.filter(site=site,date__gte=timezone.localdate()).order_by('date')[:3]
         context['active_improvements']=Kaizen.objects.filter(site=site).exclude(status='reassessment_accepted').order_by('-updated_at')[:3]
         context['my_improvements']=Kaizen.objects.filter(site=site,created_by=request.user).order_by('-updated_at')[:5]
-        context['my_kaizen_actions']=KaizenAction.objects.filter(event__site=site,owner__iexact=request.user.username).select_related('event').order_by('end_date','pk')[:5]
+        context['my_kaizen_actions']=KaizenAction.objects.filter(event__site=site).filter(Q(assignee__user=request.user)|Q(assignee__isnull=True,owner__iexact=request.user.username)).exclude(progress=100).select_related('event').order_by('end_date','pk')[:8]
+        context['progress_choices']=(0,20,40,60,80,100)
         context['review_improvements']=Kaizen.objects.filter(site=site).order_by('-updated_at')[:5]
         context['advisory_followups']=Response.objects.filter(assessment=latest,code='A').select_related('requirement')[:5] if latest else []
     return render(request,'home.html',context)
@@ -347,8 +350,10 @@ def sessions(request,site_code):
 def kaizens(request,site_code):
     site=site_access(request,site_code)
     finding=Opportunity.objects.filter(site=site,pk=request.GET.get('finding')).first() if request.GET.get('finding','').isdigit() else None
+    requirement=Requirement.objects.filter(code=request.GET.get('requirement','')).first() or (finding.requirement if finding else None)
     form=KaizenForm(request.POST or None,initial={'owner':request.user.username,'process_location':site.name,
-                                                'opportunity':finding,'title':finding.problem[:190] if finding else ''})
+                                                'opportunity':finding,'title':finding.problem[:190] if finding else '',
+                                                'requirement':requirement.code if requirement else ''})
     form.fields['opportunity'].queryset=Opportunity.objects.filter(site=site)
     if request.method=='POST':
         site_access(request,site_code,['staff','coach','manager','admin'])
@@ -357,13 +362,28 @@ def kaizens(request,site_code):
             obj.data={'overall_problem':obj.title,'owner':form.cleaned_data['owner'] or request.user.username,
                       'process_location':form.cleaned_data['process_location'] or site.name,
                       'due_date':form.cleaned_data['due_date'].isoformat() if form.cleaned_data['due_date'] else ''}
-            _,obj.data['profile_suggestion_reason']=suggest_profile(form.cleaned_data['cross_process'],form.cleaned_data['unknown_cause'],form.cleaned_data['recurring'])
+            if form.cleaned_data['specific_problem'].strip(): obj.data['specific_problem']=form.cleaned_data['specific_problem'].strip()
+            obj.data['profile_suggestion'],obj.data['profile_suggestion_reason']=form.suggestion()
             obj.save()
-            if obj.opportunity and obj.opportunity.requirement: obj.linked_requirements.add(obj.opportunity.requirement)
+            linked=obj.opportunity.requirement if obj.opportunity and obj.opportunity.requirement else Requirement.objects.filter(code=form.cleaned_data['requirement']).first()
+            if linked: obj.linked_requirements.add(linked)
+            # The creator leads the team by default; this is not an approval or a source authority.
+            Participant.objects.create(event=obj,user=request.user,first_initial=(request.user.first_name[:1] or request.user.username[:1]).upper(),
+                                       last_name=request.user.last_name or request.user.username,kaizen_role='Kaizen lead')
             checkpoint(obj,request.user,'Draft created')
             log(site,request.user,'kaizen_accepted',obj)
-            return redirect('kaizen_detail',site_code=site.code,pk=obj.pk)
-    return render(request,'kaizens.html',{'site':site,'items':Kaizen.objects.filter(site=site).order_by('-updated_at'),'form':form,
+            return redirect(reverse('kaizen_detail',args=[site.code,obj.pk])+'?created=1')
+    items=list(Kaizen.objects.filter(site=site).prefetch_related('linked_requirements').order_by('-updated_at'))
+    state=request.GET.get('state','')
+    if state not in REVIEW_STATE_LABELS: state=''
+    cards=[]
+    for event in items:
+        current=review_state(event)
+        if state and current!=state: continue
+        cards.append({'event':event,'state':current,'state_label':REVIEW_STATE_LABELS[current],'gates':gate_summary(event),'segments':pdca_segments(event)})
+    suggestion=form.suggestion() if form.is_bound else None
+    return render(request,'kaizens.html',{'site':site,'cards':cards,'form':form,'state':state,'states':REVIEW_STATE_LABELS,'linked_requirement':requirement,
+                  'suggestion':suggestion,'show_form':request.GET.get('new')=='1' or form.is_bound or bool(finding or requirement),
                   'can_create':Membership.objects.filter(user=request.user,site=site,role__in=['staff','coach','manager','admin']).exists()})
 
 @login_required
@@ -372,6 +392,7 @@ def kaizen_detail(request,site_code,pk):
     obj=get_object_or_404(Kaizen,pk=pk,site=site)
     if request.method=='POST':
         site_access(request,site_code,['coach','manager','admin','staff'])
+        require_event_editor(request.user,obj)
         form=KaizenStageForm(request.POST)
         if form.is_valid():
             with transaction.atomic():
@@ -393,9 +414,10 @@ def kaizen_detail(request,site_code,pk):
                         if missing: form.add_error(None,'Before local closure: '+', '.join(missing))
                         else: obj.local_status='closed'
                     elif action=='submit_review':
-                        missing=review_checks(obj,include_coach=False)
+                        # Open sensei requests are resolved by the sensei at finalisation, so they do not block a resubmission.
+                        missing=[gate['label'] for gate in gate_summary(obj)['gates'] if not gate['ok'] and gate['key']!='requests']
                         if missing: form.add_error(None,'Before submitting: '+', '.join(missing))
-                        else: obj.status='results_under_review'
+                        else: obj.status='results_under_review';obj.submitted_at=timezone.now()
                     elif action=='request_reassessment':
                         if obj.status not in ('verified','sustained'):
                             form.add_error(None,'Coach verification is required before reassessment can be requested.')
@@ -433,7 +455,8 @@ def kaizen_detail(request,site_code,pk):
                     elif action=='advance':
                         order=['proposed','planned','in_progress','implemented','results_under_review']
                         if obj.status in order:
-                            needed={'proposed':('overall_problem','specific_problem'), 'planned':('solution',),
+                            from .methodology import cause_analysis_required
+                            needed={'proposed':('overall_problem','specific_problem')+(('root_cause',) if cause_analysis_required(obj) else ()), 'planned':('solution',),
                                     'in_progress':('solution',), 'implemented':('baseline','actual','unit','population','data_source')}.get(obj.status,())
                             if any(not obj.data.get(k) for k in needed): form.add_error(None,'Complete the current PDCA fields before advancing.')
                             elif obj.status=='results_under_review': form.add_error(None,'Coach verification is required before sustain status.')
@@ -449,8 +472,8 @@ def kaizen_detail(request,site_code,pk):
                         obj.revision+=1;obj.save();log(site,request.user,'kaizen_saved',obj,{'status':obj.status})
                         checkpoint(obj,request.user,'Saved '+action)
                         if action=='close_local' or (action in ('verify','advance','accept_reassessment') and obj.status in ('verified','sustained','reassessment_accepted')):
-                            from .a3 import ensure_report
-                            ensure_report(obj,request.user)
+                            from .a3 import ensure_reports
+                            ensure_reports(obj,request.user)
                         messages.success(request,'Kaizen saved. Linked TCA responses were not changed.')
                         return redirect(request.path+'?stage='+request.POST.get('workspace_stage','Plan') if request.POST.get('workspace_stage') in ('Plan','Do','Check','Act') else request.path)
     else: form=KaizenStageForm(initial={**obj.data,'revision':obj.revision})
@@ -458,19 +481,21 @@ def kaizen_detail(request,site_code,pk):
 
 def render_kaizen(request,site,obj,form,child_forms=None):
     from .access import visible_attachments
-    active_phase=request.GET.get('stage') or request.POST.get('workspace_stage') or {'proposed':'Plan','planned':'Do','in_progress':'Do','implemented':'Check'}.get(obj.status,'Act')
+    from .methodology import rules_for
+    active_phase=request.GET.get('stage') or request.POST.get('workspace_stage') or current_phase(obj)
     if active_phase not in ('Plan','Do','Check','Act'): active_phase='Plan'
-    children={'action_form':ActionForm(auto_id='id_action_%s',initial={'owner':obj.data.get('owner'),'phase':'ACT' if active_phase=='Act' else 'DO'}),'observation_form':ObservationForm(auto_id='id_observation_%s',initial={'measure':obj.data.get('measure'),'unit':obj.data.get('unit'),'population':obj.data.get('population'),'data_source':obj.data.get('data_source')}),
+    phase_code={'Plan':'PLN','Do':'DO','Check':'CHK','Act':'ACT'}[active_phase]
+    children={'action_form':ActionForm(event=obj,auto_id='id_action_%s',initial={'phase':phase_code}),'observation_form':ObservationForm(auto_id='id_observation_%s',initial={'measure':obj.data.get('measure'),'unit':obj.data.get('unit'),'population':obj.data.get('population'),'data_source':obj.data.get('data_source')}),
               'benefit_form':BenefitForm(auto_id='id_benefit_%s'),'participant_form':ParticipantForm(auto_id='id_participant_%s'),
-              'document_form':DocumentUpdateForm(auto_id='id_document_%s')}
+              'document_form':DocumentUpdateForm(auto_id='id_document_%s'),'member_form':TeamMemberForm(event=obj,auto_id='id_member_%s')}
     children.update(child_forms or {})
     quality={'results_over_30_days_and_5_points':results_criterion(obj.data,list(obj.observations.all())),
              'two_document_types':document_type_count(obj)>=2}
     star_count=sum(obj.data.get(f'star_{i}')=='Y' for i in range(1,11))
     financial_access=Membership.objects.filter(user=request.user,site=site,role__in=['assessor','manager','admin']).exists()
     participant_access=Membership.objects.filter(user=request.user,site=site,role__in=['assessor','coach','manager','admin']).exists()
-    participants=list(obj.participants.all())
-    unique_participants=len({p.email.lower() if p.email else (p.first_initial.lower(),p.last_name.lower()) for p in participants})
+    participants=list(obj.participants.select_related('user'))
+    unique_participants=len({('user',p.user_id) if p.user_id else (p.email.lower() if p.email else (p.first_initial.lower(),p.last_name.lower())) for p in participants})
     phases=[('Plan','Define the problem and the intended result.', ['overall_problem','outcome_criterion','specific_problem','root_cause','cause_status','measure','baseline','target','unit','population','direction']),
             ('Do','Record the countermeasure and implementation.', ['solution']),
             ('Check','Compare equivalent results and retain the data source.', ['observed_result','result_date','actual','result_period_start','result_period_end','data_points','data_source']),
@@ -485,7 +510,14 @@ def render_kaizen(request,site,obj,form,child_forms=None):
             phase['extra_fields']=[f for f in phase['fields'] if f.name not in basic]
             phase['fields']=[f for f in phase['fields'] if f.name in basic]
             phase['open']=True
-    edit_actions=[{'record':action,'form':children.get('edit_action_form') if children.get('edit_action_id')==action.pk else ActionForm(instance=action,auto_id=f'id_action_{action.pk}_%s')} for action in obj.actions.all()]
+    actions=list(obj.actions.select_related('assignee__user').order_by('start_date','pk'))
+    edit_actions=[{'record':action,'form':children.get('edit_action_form') if children.get('edit_action_id')==action.pk else ActionForm(event=obj,instance=action,auto_id=f'id_action_{action.pk}_%s')} for action in actions]
+    gates=gate_summary(obj);state=review_state(obj)
+    anchors={'do_action':'actions','act_action':'actions','observations':'observations','requests':'review','star_7':'review','star_8':'review'}
+    for gate in gates['gates']: gate['anchor']=anchors.get(gate['key'],'id_'+gate['key'])
+    can_edit=can_edit_event(request.user,obj)
+    missing=[gate for gate in gates['gates'] if not gate['ok'] and gate['key']!='requests']
+    view=request.GET.get('view','table')
     return render(request,'kaizen_detail.html',{'site':site,'event':obj,'form':form,'quality':quality,'star_count':star_count,
         'phase_forms':phase_forms,'active_phase':active_phase,'local_checks':local_checks(obj),'attachments':visible_attachments(obj,request.user),
         'edit_actions':edit_actions,'working_summary':[(title,obj.data.get(key,'')) for title,key in [('Problem','overall_problem'),('Specific problem','specific_problem'),('Cause investigation','root_cause'),('Countermeasure','solution'),('Result','actual'),('Sustain / learning','sustain_check')]],
@@ -493,14 +525,25 @@ def render_kaizen(request,site,obj,form,child_forms=None):
         'review_fields':[form[k] for k in REVIEW_KEYS] if review_access else [],'review_access':review_access,
         'review_form':children.get('bound_review_form') or ReviewNoteForm(initial={'stage':active_phase,'revision':obj.revision},auto_id='id_review_%s'),
         'review_checks':review_checks(obj),'previous_review':previous,'review_changes':changes,
-        'measurement_warnings':measurement_warnings(obj),
-        'can_edit':Membership.objects.filter(user=request.user,site=site,role__in=['staff','coach','manager','admin']).exists(),
+        'measurement_warnings':measurement_warnings(obj),'can_edit':can_edit,'can_manage_team':can_manage_team(request.user,obj),
+        'gates':gates,'next_gate':missing[0] if missing else None,'state':state,'state_label':REVIEW_STATE_LABELS[state],
+        'segments':pdca_segments(obj),'method_rules':rules_for(obj.profile),'created':request.GET.get('created')=='1',
+        'open_returns':obj.review_notes.filter(kind='return',resolved=False).select_related('actor'),
+        'team':[{'record':p,'name':team_display(p),'initials':initials(team_display(p)),'role':p.kaizen_role,'is_me':p.user_id==request.user.pk} for p in participants],
+        'gantt':gantt(actions,timezone.localdate()),'actions_view':'gantt' if view=='gantt' else 'table',
         'next_action':{'Plan':'Define the specific problem and measure, then move to Do.','Do':'Record implementation actions and dates, then check the result.','Check':'Record comparable observations, then plan how to sustain the change.','Act':'Record standardization and sustain checks, then submit the prepared work for sensei review.'}[active_phase],
         'notes':obj.review_notes.select_related('actor','reply_to'),'history':obj.history.all()[:15],
         **children,'unique_participants':unique_participants,
         'visible_participants':participants if participant_access else [],'participant_access':participant_access,
-        'comparisons':compare_observations(obj.observations.all()),'visible_benefits':obj.benefits.all() if financial_access else [],
+        'comparisons':_with_bars(compare_observations(obj.observations.all())),'visible_benefits':obj.benefits.all() if financial_access else [],
         'financial_access':financial_access,'benefit_totals':event_benefits(obj.benefits.all()) if financial_access else {}})
+
+def _with_bars(rows):
+    for row in rows:
+        if row['before_average'] is not None and row['after_average'] is not None:
+            top=max(abs(row['before_average']),abs(row['after_average'])) or 1
+            row['before_pct']=round(float(abs(row['before_average'])/top*100),1);row['after_pct']=round(float(abs(row['after_average'])/top*100),1)
+    return rows
 
 @login_required
 @require_POST
@@ -508,6 +551,7 @@ def kaizen_autosave(request,site_code,pk):
     site=site_access(request,site_code,['staff','coach','manager','admin'])
     with transaction.atomic():
         event=get_object_or_404(Kaizen.objects.select_for_update(),site=site,pk=pk)
+        if not can_edit_event(request.user,event): return JsonResponse({'message':'Only the event team can change this Kaizen.'},status=403)
         # Validate against saved dates as well as the edited fields, without replacing unsubmitted values.
         combined={**event.data,**request.POST.dict()}
         form=KaizenStageForm(combined)
@@ -530,24 +574,33 @@ def kaizen_autosave(request,site_code,pk):
 @login_required
 def review_queue(request,site_code):
     site=site_access(request,site_code,['coach','manager','admin'])
+    from django.db.models.functions import Coalesce
     form=ReviewQueueForm(request.GET or None)
-    rows=[]
+    rows=[];counts={key:0 for key in REVIEW_STATE_LABELS}
+    filters=form.cleaned_data if form.is_bound and form.is_valid() else {}
+    state=filters.get('state') or ('all' if filters.get('scope')=='all' else 'submitted')
+    # Most recently submitted first; never-submitted work follows by latest change.
+    events=Kaizen.objects.filter(site=site).exclude(status='reassessment_accepted').annotate(
+        last_submitted=Coalesce('submitted_at','updated_at')).order_by('-last_submitted','-pk')
+    if filters.get('q'): events=events.filter(Q(title__icontains=filters['q'])|Q(pk__in=[int(x) for x in [filters['q'].upper().replace('KZ-','')] if x.isdigit()]))
     if not form.is_bound or form.is_valid():
-        filters=form.cleaned_data if form.is_bound else {}
-        events=Kaizen.objects.filter(site=site).exclude(status='reassessment_accepted').order_by('updated_at')
-        if filters.get('scope','submitted')!='all': events=events.filter(status='results_under_review')
         for event in events:
-            stage={'proposed':'Plan','planned':'Do','in_progress':'Do','implemented':'Check'}.get(event.status,'Act')
-            missing=review_checks(event);previous,changes=changed_since_review(event)
+            current=review_state(event);counts[current]+=1
+            if state!='all' and current!=state: continue
+            stage=current_phase(event)
             if filters.get('stage') and stage!=filters['stage']: continue
             if filters.get('due'):
                 try:
                     if date.fromisoformat(event.data.get('due_date',''))>filters['due']: continue
                 except ValueError: continue
+            missing=review_checks(event);gates=gate_summary(event);previous,changes=changed_since_review(event)
             if filters.get('readiness')=='ready' and missing: continue
             if filters.get('readiness')=='missing' and not missing: continue
-            rows.append({'event':event,'stage':stage,'missing':missing,'changes':changes})
-    return render(request,'review_queue.html',{'site':site,'form':form,'rows':Paginator(rows,20).get_page(request.GET.get('page'))})
+            rows.append({'event':event,'stage':stage,'missing':missing,'changes':changes,'gates':gates,'state':current,'state_label':REVIEW_STATE_LABELS[current]})
+    query=request.GET.copy();query.pop('page',None);query.pop('state',None);query.pop('scope',None)
+    return render(request,'review_queue.html',{'site':site,'form':form,'rows':Paginator(rows,20).get_page(request.GET.get('page')),
+        'state':state,'counts':counts,'states':[('submitted','Submitted'),('returned','Sensei feedback'),('in_progress','In progress'),('finalised','Finalised'),('all','All')],
+        'base_query':query.urlencode(),'filters_active':bool(filters.get('stage') or filters.get('due') or filters.get('readiness') or filters.get('q'))})
 
 @login_required
 @require_POST
@@ -557,6 +610,7 @@ def review_note(request,site_code,pk):
     if not is_sensei and not request.POST.get('reply_to'): raise Http404
     with transaction.atomic():
         event=get_object_or_404(Kaizen.objects.select_for_update(),site=site,pk=pk)
+        if not is_sensei: require_event_editor(request.user,event)
         if request.POST.get('revision')!=str(event.revision):
             response=review_failure(request,site,event,'Another edit was saved. Your message is retained; review the refreshed record before retrying.')
             response.status_code=409;return response
@@ -588,6 +642,7 @@ def review_note(request,site_code,pk):
     messages.success(request,'Review advice saved with the event. TCA responses remain separate.')
     from django.urls import reverse
     stage=request.POST.get('workspace_stage') or request.POST.get('stage')
+    if request.POST.get('next')=='review' and is_sensei: return redirect('kaizen_review_detail',site_code=site.code,pk=event.pk)
     url=reverse('kaizen_detail',args=[site.code,event.pk])
     return redirect(url+'?stage='+stage if stage in ('Plan','Do','Check','Act') else url)
 
@@ -607,8 +662,9 @@ def review_failure(request,site,event,message):
 def kaizen_action_edit(request,site_code,pk,action_pk):
     site=site_access(request,site_code,['staff','coach','manager','admin'])
     event=get_object_or_404(Kaizen,site=site,pk=pk)
+    require_event_editor(request.user,event)
     action=get_object_or_404(event.actions,pk=action_pk)
-    form=ActionForm(request.POST,instance=action,auto_id=f'id_action_{action.pk}_%s')
+    form=ActionForm(request.POST,event=event,instance=action,auto_id=f'id_action_{action.pk}_%s')
     if form.is_valid():
         with transaction.atomic():
             event=Kaizen.objects.select_for_update().get(pk=event.pk)
@@ -619,7 +675,7 @@ def kaizen_action_edit(request,site_code,pk,action_pk):
                 checkpoint(event,request.user,'Action updated');log(site,request.user,'kaizen_action_updated',action)
                 from django.urls import reverse
                 stage=request.POST.get('workspace_stage','Do')
-                return redirect(reverse('kaizen_detail',args=[site.code,event.pk])+'?stage='+('Act' if stage=='Act' else 'Do'))
+                return redirect(reverse('kaizen_detail',args=[site.code,event.pk])+'?stage='+(stage if stage in ('Plan','Do','Check','Act') else 'Do'))
     return render_kaizen(request,site,event,KaizenStageForm(initial={**event.data,'revision':event.revision}),{'edit_action_id':action.pk,'edit_action_form':form})
 
 @login_required
@@ -628,9 +684,12 @@ def kaizen_add(request,site_code,pk,kind):
     allowed=['manager','admin'] if kind=='benefit' else ['coach','manager','admin'] if kind=='participant' else ['staff','coach','manager','admin']
     site=site_access(request,site_code,allowed)
     event=get_object_or_404(Kaizen,site=site,pk=pk)
-    forms={'action':ActionForm,'observation':ObservationForm,'benefit':BenefitForm,'participant':ParticipantForm,'document':DocumentUpdateForm}
+    forms={'action':ActionForm,'observation':ObservationForm,'benefit':BenefitForm,'participant':ParticipantForm,'document':DocumentUpdateForm,'member':TeamMemberForm}
     if kind not in forms: raise Http404
-    form=forms[kind](request.POST,auto_id=f'id_{kind}_%s')
+    if kind=='member':
+        if not can_manage_team(request.user,event): raise Http404
+    else: require_event_editor(request.user,event)
+    form=forms[kind](request.POST,auto_id=f'id_{kind}_%s',**({'event':event} if kind in ('action','member') else {}))
     if form.is_valid():
         with transaction.atomic():
             event=Kaizen.objects.select_for_update().get(pk=event.pk)
@@ -638,24 +697,33 @@ def kaizen_add(request,site_code,pk,kind):
                 form.add_error(None,'Another edit was saved. Reload before adding this record.')
                 return render_kaizen(request,site,event,KaizenStageForm(initial={**event.data,'revision':event.revision}),{kind+'_form':form})
             checkpoint(event,request.user,'Before '+kind+' record')
-            obj=form.save(commit=False);obj.event=event;obj.save()
+            if kind=='member':
+                user=form.cleaned_data['user']
+                # Membership was checked by the form queryset; re-check to block a forged identifier.
+                if not Membership.objects.filter(user=user,site=site).exists(): raise Http404
+                obj=Participant.objects.create(event=event,user=user,first_initial=(user.first_name[:1] or user.username[:1]).upper(),
+                                               last_name=user.last_name or user.username,kaizen_role=form.cleaned_data['kaizen_role'])
+            else:
+                obj=form.save(commit=False);obj.event=event;obj.save()
             if kind=='observation': reuse_observations(event)
             reopen_after_change(event);event.revision+=1;event.save();checkpoint(event,request.user,kind.title()+' added')
             log(site,request.user,f'kaizen_{kind}_added',obj)
-        messages.success(request,f'{kind.title()} saved in the full archive.')
+        messages.success(request,{'member':'Team member added. They can now see and edit this event.','action':'Task saved. It shows in the table, the Gantt and the owner\'s task list.'}.get(kind,f'{kind.title()} saved in the full archive.'))
     else:
         messages.error(request,'Could not save the item. Correct the highlighted fields; your entries are retained.')
         return render_kaizen(request,site,event,KaizenStageForm(initial={**event.data,'revision':event.revision}),{kind+'_form':form})
-    from django.urls import reverse
     stage=request.POST.get('workspace_stage')
     url=reverse('kaizen_detail',args=[site.code,event.pk])
-    return redirect(url+'?stage='+stage if stage in ('Plan','Do','Check','Act') else url)
+    query='?stage='+stage if stage in ('Plan','Do','Check','Act') else ''
+    if request.POST.get('actions_view')=='gantt': query+=('&' if query else '?')+'view=gantt'
+    return redirect(url+query)
 
 @login_required
 def kaizen_template_details(request,site_code,pk):
     site=site_access(request,site_code,['staff','coach','manager','admin'])
     event=get_object_or_404(Kaizen,site=site,pk=pk)
     if request.method=='POST':
+        require_event_editor(request.user,event)
         form=KaizenTemplateForm(request.POST)
         if form.is_valid():
             with transaction.atomic():

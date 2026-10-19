@@ -250,15 +250,19 @@ class Kaizen(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)  # latest submission for sensei review; queue sorts on it
     def __str__(self): return self.title
 
 class KaizenAction(models.Model):
+    """One action/task store: the table, Gantt and personal task lists all read these rows."""
     event = models.ForeignKey(Kaizen, on_delete=models.CASCADE, related_name='actions')
-    phase = models.CharField(max_length=3, choices=[('DO','Do'),('ACT','Act')])
+    phase = models.CharField(max_length=3, choices=[('PLN','Plan'),('DO','Do'),('CHK','Check'),('ACT','Act')])
     description = models.TextField()
     owner = models.CharField(max_length=160)
+    assignee = models.ForeignKey('Participant', null=True, blank=True, on_delete=models.SET_NULL, related_name='tasks')
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
+    progress = models.PositiveSmallIntegerField(default=0)
     key_action = models.BooleanField(default=False)
 
 class KaizenRevision(models.Model):
@@ -290,6 +294,7 @@ class ReviewNote(models.Model):
 
 class Participant(models.Model):
     event = models.ForeignKey(Kaizen, on_delete=models.CASCADE, related_name='participants')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name='kaizen_participations')
     first_initial = models.CharField(max_length=3)
     last_name = models.CharField(max_length=100)
     email = models.EmailField(blank=True)
@@ -399,6 +404,7 @@ class VerificationClaim(models.Model):
 class A3Report(models.Model):
     event = models.ForeignKey(Kaizen, on_delete=models.CASCADE, related_name='a3_reports')
     event_revision = models.PositiveIntegerField()
+    paper = models.CharField(max_length=2, default='A3', choices=[('A3','A3 landscape'),('A4','A4 landscape')])  # report paper only, never event type
     renderer_version = models.PositiveSmallIntegerField(default=1)
     version = models.PositiveIntegerField()
     snapshot = models.JSONField()

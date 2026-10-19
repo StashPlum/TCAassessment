@@ -104,28 +104,52 @@ class OtherAuditForm(forms.ModelForm):
             raise forms.ValidationError('Audit period end must be on or after its start.')
         return data
 
+HELP_SCOPE=[('one','One step'),('several','Several steps'),('site','Site-wide')]
+HELP_RECURRENCE=[('once','One-off'),('recurring','Recurring')]
+HELP_CAUSE=[('known','Known'),('partly','Partly'),('unknown','Unknown')]
+
 class KaizenForm(forms.ModelForm):
     cross_process = forms.BooleanField(required=False,label='Several processes / departments')
     unknown_cause = forms.BooleanField(required=False,label='Cause still unknown')
     recurring = forms.BooleanField(required=False,label='Recurring problem')
+    help_scope = forms.ChoiceField(required=False,choices=HELP_SCOPE,widget=forms.RadioSelect,label='Process scope')
+    help_recurrence = forms.ChoiceField(required=False,choices=HELP_RECURRENCE,widget=forms.RadioSelect,label='Does the problem recur?')
+    help_cause = forms.ChoiceField(required=False,choices=HELP_CAUSE,widget=forms.RadioSelect,label='Is the cause known?')
     owner = forms.CharField(max_length=160, required=False)
     process_location = forms.CharField(max_length=200, required=False, label='Process / location')
     due_date = forms.DateField(required=False,widget=forms.DateInput(attrs={'type':'date'}))
+    specific_problem = forms.CharField(required=False,widget=forms.Textarea(attrs={'rows':2}),label='Specific problem',
+        help_text='Optional now; needed before Plan moves to Do.')
+    requirement = forms.CharField(required=False,max_length=15,widget=forms.HiddenInput)
     class Meta:
         model = Kaizen
         fields = ['title','input_profile','profile','opportunity']
-        labels={'title':'Problem / working title','profile':'Methodological profile','opportunity':'Linked finding'}
+        labels={'title':'Title','profile':'Methodological type','opportunity':'Linked finding','input_profile':'Input view'}
+        widgets={'input_profile':forms.RadioSelect,'title':forms.TextInput(attrs={'maxlength':200,'data-counter':'75'})}
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
+        self.fields['title'].help_text='Also becomes the overall problem. The Excel template allows 75 characters.'
         self.fields['profile'].required=False
         self.fields['profile'].initial='A4'
-        self.fields['input_profile'].choices=[c for c in self.fields['input_profile'].choices if c[0]!='legacy']
-        self.fields['input_profile'].initial='small'
+        self.fields['profile'].choices=[c for c in self.fields['profile'].choices if c[0]]
+        self.fields['profile'].help_text='A4 by default. Separate from the input view and the report paper.'
+        self.fields['input_profile'].choices=[c for c in self.fields['input_profile'].choices if c[0] not in ('legacy','')]
+        self.fields['input_profile'].initial=None
         self.fields['input_profile'].required=False
     def clean_profile(self): return self.cleaned_data.get('profile') or 'A4'
-    def clean_input_profile(self):
+    def suggestion(self):
         from .profiles import suggest_profile
-        return self.cleaned_data.get('input_profile') or suggest_profile(bool(self.data.get('cross_process')),bool(self.data.get('unknown_cause')),bool(self.data.get('recurring')))[0]
+        data=self.data
+        cross=bool(data.get('cross_process')) or data.get('help_scope') in ('several','site')
+        unknown=bool(data.get('unknown_cause')) or data.get('help_cause') in ('partly','unknown')
+        recurring=bool(data.get('recurring')) or data.get('help_recurrence')=='recurring'
+        return suggest_profile(cross,unknown,recurring)
+    def clean_input_profile(self):
+        return self.cleaned_data.get('input_profile') or self.suggestion()[0]
+    def clean_requirement(self):
+        code=self.cleaned_data.get('requirement','').strip()
+        if code and not Requirement.objects.filter(code=code).exists(): raise forms.ValidationError('Choose an existing TCA requirement.')
+        return code
 
 class KaizenStageForm(forms.Form):
     outcome_criterion = forms.CharField(required=False,widget=forms.Textarea(attrs={'rows':2}),label='Desired outcome / observable check criterion')
@@ -188,21 +212,79 @@ class ReviewNoteForm(forms.Form):
     text=forms.CharField(widget=forms.Textarea(attrs={'rows':3}),label='Advice or specific request',max_length=10000)
     revision=forms.IntegerField(widget=forms.HiddenInput)
 
+REVIEW_STATES=[('submitted','Submitted'),('returned','Sensei feedback'),('in_progress','In progress'),('finalised','Finalised'),('all','All')]
+
 class ReviewQueueForm(forms.Form):
+    state=forms.ChoiceField(required=False,choices=REVIEW_STATES,label='Review status')
     scope=forms.ChoiceField(required=False,choices=[('submitted','Submitted for review'),('all','All active work')])
     stage=forms.ChoiceField(required=False,choices=[('','All stages')]+[(s,s) for s in ('Plan','Do','Check','Act')])
     due=forms.DateField(required=False,label='Due by',widget=forms.DateInput(attrs={'type':'date'}))
     readiness=forms.ChoiceField(required=False,choices=[('','All readiness'),('ready','Ready for local verification'),('missing','Needs attention')])
+    q=forms.CharField(required=False,max_length=200,label='Search')
 
 class ActionForm(forms.ModelForm):
+    """Actions and tasks are one record type; the owner comes from the team when an assignee is chosen."""
     class Meta:
         model = KaizenAction
-        fields = ['phase','description','owner','start_date','end_date','key_action']
-        widgets = {**{k: forms.DateInput(attrs={'type':'date'}) for k in ['start_date','end_date']},'description':forms.Textarea(attrs={'rows':3})}
+        fields = ['phase','description','assignee','owner','start_date','end_date','progress','key_action']
+        widgets = {**{k: forms.DateInput(attrs={'type':'date'}) for k in ['start_date','end_date']},'description':forms.Textarea(attrs={'rows':2})}
+        labels = {'assignee':'Owner from team','owner':'Other owner (not on the team)','progress':'Progress %'}
+    def __init__(self,*args,event=None,**kwargs):
+        super().__init__(*args,**kwargs)
+        self.fields['owner'].required=False
+        self.fields['progress'].required=False
+        self.fields['progress'].widget=forms.Select(choices=[(v,str(v)+'%') for v in (0,20,40,60,80,100)])
+        team=event.participants.select_related('user') if event is not None else Participant.objects.none()
+        self.fields['assignee'].queryset=team
+        from .kaizen import team_display
+        self.fields['assignee'].label_from_instance=lambda p: team_display(p)+' · '+p.kaizen_role
+        self.fields['assignee'].empty_label='Choose a team member'
+    def clean_progress(self):
+        value=self.cleaned_data.get('progress')
+        if value in (None,''): return 0
+        if value>100: raise forms.ValidationError('Progress is 0 to 100%.')
+        return value
     def clean(self):
         data=super().clean()
         if data.get('start_date') and data.get('end_date') and data['end_date']<data['start_date']:
             raise forms.ValidationError('End date must be on or after start date.')
+        if data.get('assignee'):
+            from .kaizen import team_display
+            data['owner']=team_display(data['assignee'])
+            self.instance.owner=data['owner']
+        elif not (data.get('owner') or '').strip():
+            self.add_error('assignee','Choose an owner from the team or name another owner.')
+        return data
+
+class TeamMemberForm(forms.Form):
+    """Adds an authorized site user to one event; contact details are not copied."""
+    user=forms.ModelChoiceField(queryset=None,label='Site member',empty_label='Choose a site member')
+    kaizen_role=forms.ChoiceField(choices=[('Kaizen lead','Kaizen lead'),('Team member','Team member'),('Subject expert','Subject expert'),('Sensei','Sensei')],label='Role in this event',initial='Team member')
+    def __init__(self,*args,event=None,**kwargs):
+        super().__init__(*args,**kwargs)
+        from django.contrib.auth import get_user_model
+        users=get_user_model().objects.filter(membership__site=event.site).distinct().order_by('username') if event else get_user_model().objects.none()
+        if event: users=users.exclude(pk__in=event.participants.filter(user__isnull=False).values_list('user_id',flat=True))
+        self.fields['user'].queryset=users
+        self.fields['user'].label_from_instance=lambda u: u.get_full_name() or u.username
+
+PHASES=('Plan','Do','Check','Act')
+
+class ReviewDecisionForm(forms.Form):
+    """Sensei feedback per PDCA phase; returning needs at least one comment."""
+    feedback_Plan=forms.CharField(required=False,max_length=10000,widget=forms.Textarea(attrs={'rows':2}),label='Plan')
+    feedback_Do=forms.CharField(required=False,max_length=10000,widget=forms.Textarea(attrs={'rows':2}),label='Do')
+    feedback_Check=forms.CharField(required=False,max_length=10000,widget=forms.Textarea(attrs={'rows':2}),label='Check')
+    feedback_Act=forms.CharField(required=False,max_length=10000,widget=forms.Textarea(attrs={'rows':2}),label='Act')
+    coach_review=forms.CharField(required=False,max_length=32767,widget=forms.Textarea(attrs={'rows':3}),label='Overall sensei review')
+    decision=forms.ChoiceField(choices=[('return','Return with feedback'),('finalize','Finalise and create A3')])
+    revision=forms.IntegerField(widget=forms.HiddenInput)
+    def comments(self):
+        return [(phase,self.cleaned_data['feedback_'+phase].strip()) for phase in PHASES if self.cleaned_data.get('feedback_'+phase,'').strip()]
+    def clean(self):
+        data=super().clean()
+        if data.get('decision')=='return' and not self.comments():
+            raise forms.ValidationError('Write at least one comment before returning the event.')
         return data
 
 class ObservationForm(forms.ModelForm):

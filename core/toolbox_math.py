@@ -126,7 +126,7 @@ def calculate(key,payload):
                 result['correlation']=sum((a-xm)*(b-ym) for a,b in pairs)/den if den else None
                 if not den: result['messages'].append('Correlation is undefined when one variable has zero variance.')
             elif not meta.get('scale'): result['messages'].append('Define the local scoring anchors before using these scores to choose.')
-            result.update(points=[{'x':a,'y':b,'label':r.get('option',str(i+1))} for i,((a,b),r) in enumerate(zip(pairs,rows))],formula='Pearson r for paired numeric values; no causal inference.' if key=='scatter' else 'Local 1–5 impact and effort; no official threshold.')
+            result.update(points=[{'x':a,'y':b,'label':r.get('option') or r.get('period') or str(i+1)} for i,((a,b),r) in enumerate(zip(pairs,rows))],formula='Pearson r for paired numeric values; no causal inference.' if key=='scatter' else 'Local 1–5 impact and effort; no official threshold.')
         elif key=='decision-matrix':
             need(rows,'option','criterion','weight','score');criteria={};options=defaultdict(dict)
             for r in rows:

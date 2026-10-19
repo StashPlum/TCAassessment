@@ -9,6 +9,7 @@ from django.db import transaction
 from django.http import FileResponse,Http404,JsonResponse
 from django.shortcuts import get_object_or_404,redirect,render
 from .models import *
+from .access import require_event_editor
 from .views import site_access,log
 from .access import allowed_classifications,visible_attachments
 from .files import checked_upload,read_table
@@ -44,7 +45,7 @@ def attachment_form(request,event,stage):
 
 @login_required
 def attachment_add(request,site_code,pk):
-    site=site_access(request,site_code,EDIT_ROLES);event=get_object_or_404(Kaizen,pk=pk,site=site)
+    site=site_access(request,site_code,EDIT_ROLES);event=get_object_or_404(Kaizen,pk=pk,site=site);require_event_editor(request.user,event)
     form=attachment_form(request,event,request.GET.get('stage','Check'))
     if request.method=='POST' and form.is_valid():
         with transaction.atomic():
@@ -88,7 +89,7 @@ def attachment_preview(request,site_code,pk,attachment_pk):
 
 @login_required
 def import_preview(request,site_code,pk):
-    site=site_access(request,site_code,EDIT_ROLES);event=get_object_or_404(Kaizen,pk=pk,site=site)
+    site=site_access(request,site_code,EDIT_ROLES);event=get_object_or_404(Kaizen,pk=pk,site=site);require_event_editor(request.user,event)
     form=forms.Form(request.POST or None)
     form.fields['attachment']=forms.ModelChoiceField(queryset=visible_attachments(event,request.user).exclude(file=''),label='Original event CSV / XLSX')
     form.fields['sheet']=forms.CharField(required=False,label='XLSX worksheet (blank selects the first)')
@@ -104,7 +105,7 @@ def import_preview(request,site_code,pk):
 
 @login_required
 def import_confirm(request,site_code,pk,preview_pk):
-    site=site_access(request,site_code,EDIT_ROLES);event=get_object_or_404(Kaizen,pk=pk,site=site)
+    site=site_access(request,site_code,EDIT_ROLES);event=get_object_or_404(Kaizen,pk=pk,site=site);require_event_editor(request.user,event)
     preview=get_object_or_404(ImportPreview,event=event,pk=preview_pk,attachment__classification__in=allowed_classifications(request.user,site))
     target=request.POST.get('target') or request.GET.get('target') or 'observations'
     if target!='observations' and target not in REGISTRY: target='observations'

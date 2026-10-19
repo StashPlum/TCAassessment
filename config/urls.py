@@ -7,8 +7,14 @@ from core import attachment_views as av
 from core import report_views as rv
 from core import config_views as qv
 from core import journey_views as jv
+from core import kaizen_views as kv
 
 urlpatterns = [
+    path('sites/<slug:site_code>/kaizen/review/export/<str:fmt>/', kv.review_export, name='review_export'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/review/', kv.review_detail, name='kaizen_review_detail'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/tasks/<int:action_pk>/progress/', kv.task_progress, name='task_progress'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/export/<str:fmt>/', kv.event_export, name='event_export'),
+    path('sites/<slug:site_code>/toolbox/', kv.toolbox_library, name='toolbox_library'),
     path('sites/<slug:site_code>/kaizen/<int:pk>/attachments/<int:attachment_pk>/preview/', av.attachment_preview, name='attachment_preview'),
     path('sites/<slug:site_code>/kaizen/<int:pk>/a3/', rv.a3_preview, name='a3_preview'),
     path('sites/<slug:site_code>/kaizen/<int:pk>/a3/finalize/', rv.a3_finalize, name='a3_finalize'),

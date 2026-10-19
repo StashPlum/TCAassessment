@@ -1,5 +1,9 @@
 # Kaizen field and rule matrix — refinement R1
 
+## Stage 4 — methodological type rules (19 October 2026)
+
+`core/methodology.py` holds the only source-backed A4/A3/BPK differences: PLAN!B69 marks cause analysis "Optional for A4", so A3 and Business Process events need cause analysis before Plan→Do and in the review gates; DL_UPLOAD!C22/F22 report A4/A3 as category Standard and BPK as type "A3 Kaizen". Input view (small/medium/extensive) and report paper (A3/A4 PDF) never derive from the type. Open CEVA interpretations are listed in the same module and shown in the workspace. Tasks are `KaizenAction` rows (new phases Plan/Check, team assignee, progress); team members are `Participant` rows optionally linked to a site user.
+
 ## Toolbox additions — 14 October 2026
 
 `toolbox-field-rules.csv` is the additive **82-row** profile/route/source/storage/report register. `toolbox-catalog.json` records all 45 method schemas, explanations, steps, limitations and checked source URLs. `tools/build_toolbox_register.py` regenerates both. Existing 75 rows and exact source requirements below remain unchanged. Small/medium/extensive choose input presentation, not methodological A4/A3/BP or an official exemption.

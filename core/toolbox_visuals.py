@@ -5,7 +5,7 @@ from collections import defaultdict
 from .toolbox_registry import REGISTRY
 from .toolbox_math import calculate, number
 
-BLUE='#2458a6';ORANGE='#b45309';NAVY='#051039'
+BLUE='#2458a6';ORANGE='#b45309';NAVY='#0B1A48'
 def text(x,y,value,size=14,color=NAVY):
     return f'<text x="{x:g}" y="{y:g}" font-family="Arial, sans-serif" font-size="{size}" fill="{color}">{escape(str(value))}</text>'
 def line(x1,y1,x2,y2,color=BLUE,dash=False):
@@ -15,6 +15,18 @@ def wrapped(x,y,value,width=34,size=13):
     for para in str(value).splitlines() or ['']:
         lines.extend(textwrap.wrap(para,width,break_long_words=True) or [''])
     return ''.join(text(x,y+i*(size+4),s,size) for i,s in enumerate(lines)),len(lines)*(size+4)
+def legend(x,y,items,width=110,size=12):
+    """Numbered keys for in-chart markers; full labels wrap below the plot instead of overlapping it."""
+    body='';h=0
+    for number,label in items:
+        value,lh=wrapped(x,y+h,f'{number}. {label}',width,size);body+=value;h+=lh+4
+    return body,h
+def fit_text(x,y,value,size,width):
+    """Label beside a marker, flipped to the left when it would leave the drawing."""
+    estimate=len(str(value))*size*.55
+    return text(x+6 if x+6+estimate<=width-8 else max(4,x-6-estimate),y,value,size)
+def short(value,limit=24):
+    value=str(value);return value if len(value)<=limit else value[:limit-1]+'…'
 def svg_shell(name,body,width,height):
     return f'<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="{escape(name)}" viewBox="0 0 {width} {height}" width="{width}" height="{height}"><title>{escape(name)}</title><rect width="100%" height="100%" fill="white"/>{body}</svg>'
 
@@ -116,18 +128,23 @@ def render_svg(key,payload):
                 height=780
         elif kind in ('scatter','matrix'):
             points=result['points'];xs=[p['x'] for p in points];ys=[p['y'] for p in points];xmin=min(xs) if kind=='scatter' else 1;xmax=max(xs) if kind=='scatter' else 5;ymin=min(ys) if kind=='scatter' else 1;ymax=max(ys) if kind=='scatter' else 5
-            for p in points:
+            for index,p in enumerate(points,1):
                 x=70+(p['x']-xmin)/(xmax-xmin or 1)*860;y=350-(p['y']-ymin)/(ymax-ymin or 1)*290
-                body+=f'<circle cx="{x}" cy="{y}" r="6" fill="{BLUE}"/>'+text(x+8,y-5,p['label'],12)
+                body+=f'<circle cx="{x}" cy="{y}" r="6" fill="{BLUE}"/>'+fit_text(x+2,y-5,str(index),12,width)
             body+=text(70,385,f'X {xmin:g} to {xmax:g} · Y {ymin:g} to {ymax:g}',13)
             if kind=='matrix': body+=line(500,35,500,350,ORANGE,True)+line(70,205,940,205,ORANGE,True)+text(70,415,'Local scale: X effort, Y impact. Midpoint is a discussion aid.',13)
+            keys,kh=legend(70,445,[(i,p['label']) for i,p in enumerate(points,1)],120);body+=keys;height=max(height,460+kh)
         elif kind=='boxplot':
             series=result['series'];lo=min(s['low'] for s in series);hi=max(s['high'] for s in series)
             lo=min([lo]+[v for s in series for v in s['outliers']]);hi=max([hi]+[v for s in series for v in s['outliers']]);span=hi-lo or 1
-            body='';height=max(220,len(series)*90+70)
+            body='';rows_y=[];y=55
+            for s in series:
+                _,lh=wrapped(15,0,s['label'],34);rows_y.append(y);y+=max(90,lh+50)
+            height=max(220,y+20)
             for i,s in enumerate(series):
-                y=55+i*90;scale=lambda v:300+(v-lo)/span*600
-                body+=text(15,y,s['label'],13)+line(scale(s['low']),y,scale(s['high']),y)+f'<rect x="{scale(s["q1"])}" y="{y-15}" width="{max(1,scale(s["q3"])-scale(s["q1"]))}" height="30" fill="#c9d8ed" stroke="{BLUE}"/>'+line(scale(s['median']),y-15,scale(s['median']),y+15,ORANGE)
+                y=rows_y[i];scale=lambda v:300+(v-lo)/span*600
+                label,_=wrapped(15,y,s['label'],34)
+                body+=label+line(scale(s['low']),y,scale(s['high']),y)+f'<rect x="{scale(s["q1"])}" y="{y-15}" width="{max(1,scale(s["q3"])-scale(s["q1"]))}" height="30" fill="#c9d8ed" stroke="{BLUE}"/>'+line(scale(s['median']),y-15,scale(s['median']),y+15,ORANGE)
                 body+=text(300,y+35,f'n={s["n"]}; median {s["median"]:g}; Q1 {s["q1"]:g}; Q3 {s["q3"]:g}',12)
                 for v in s['outliers']: body+=f'<circle cx="{scale(v)}" cy="{y}" r="4" fill="{ORANGE}"/>'
         else:
@@ -135,9 +152,12 @@ def render_svg(key,payload):
             for i,route in enumerate(routes):
                 color=BLUE if i%2==0 else ORANGE;coords=[(70+(number(p['x'])-lo)/sx*860,350-(number(p['y'])-bot)/sy*290) for p in route['points']]
                 body+=f'<polyline points="{" ".join(f"{x},{y}" for x,y in coords)}" fill="none" stroke="{color}" stroke-width="2"/>'
-                for (x,y),p in zip(coords,route['points']): body+=f'<circle cx="{x}" cy="{y}" r="4" fill="{color}"/>'+text(x+5,y-7,p.get('point',''),12)
+                for (x,y),p in zip(coords,route['points']): body+=f'<circle cx="{x}" cy="{y}" r="4" fill="{color}"/>'+fit_text(x,y-7,short(p.get('point',''),18),12,width)
                 body+=text(70,385+i*20,f'{route["label"]}: {route["distance"]:g} {rows[0]["unit"]}',13,color)
             height=max(height,410+len(routes)*20)
+            long=[(f'{route["label"]}',p.get('point','')) for route in routes for p in route['points'] if len(str(p.get('point','')))>18]
+            if long:
+                keys,kh=legend(70,height+10,[(label,point) for label,point in long],120);body+=keys;height+=kh+20
         return svg_shell(spec['name'],body,width,height)
     # Flow, trees, affinity boards and operational plans: generated labeled blocks
     # retain every active row. Connections reference row IDs; list alternatives

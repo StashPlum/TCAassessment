@@ -16,19 +16,68 @@ LABELS={'overall_problem':'Overall problem','specific_problem':'Specific problem
 def document_type_count(event):
     return len({value.strip().casefold() for value in event.document_updates.values_list('document_type',flat=True) if value.strip()})
 
+GATE_PHASES=('Plan','Do','Check','Act')
+
+def gate_list(event):
+    """Every review gate as a structured row; review_checks() keeps the same wording for messages."""
+    from .methodology import cause_analysis_required
+    data=event.data
+    filled=lambda key: bool(str(data.get(key,'')).strip())
+    gates=[('overall_problem','Plan',filled('overall_problem')),('specific_problem','Plan',filled('specific_problem'))]
+    if cause_analysis_required(event): gates.append(('root_cause','Plan',filled('root_cause')))
+    gates+=[('baseline','Plan',filled('baseline')),('unit','Plan',filled('unit')),('population','Plan',filled('population')),
+            ('solution','Do',filled('solution')),('do_action','Do',event.actions.filter(phase='DO').exists()),
+            ('actual','Check',filled('actual')),('data_source','Check',filled('data_source')),
+            ('observations','Check',any(row['difference'] is not None for row in compare_observations(event.observations.all()))),
+            ('sustain','Act',filled('sustain')),('act_action','Act',event.actions.filter(phase='ACT').exists()),
+            ('requests','Act',not event.review_notes.filter(kind__in=['return','clarify'],resolved=False).exists())]
+    if event.data.get('star_7')=='Y': gates.append(('star_7','Check',results_criterion(event.data,list(event.observations.all()))))
+    if event.data.get('star_8')=='Y': gates.append(('star_8','Act',document_type_count(event)>=2))
+    return [{'key':key,'label':GATE_LABELS[key],'phase':phase,'ok':ok} for key,phase,ok in gates]
+
+GATE_LABELS={**{key:LABELS[key] for key in PARTICIPANT_REQUIRED},'root_cause':'Cause analysis (required for A3 and Business Process)',
+    'observations':'Comparable before and after observations','do_action':'Do action','act_action':'Act sustain action',
+    'requests':'Sensei requests resolved','star_7':'Star 7: more than 30 days, more than five after points, comparable measures and target/follow-up',
+    'star_8':'Star 8: two different document/site-tool types'}
+
 def review_checks(event, include_coach=True):
-    required=PARTICIPANT_REQUIRED+(('coach_review',) if include_coach else ())
-    missing=[LABELS[key] for key in required if not str(event.data.get(key,'')).strip()]
-    if not any(row['difference'] is not None for row in compare_observations(event.observations.all())):
-        missing.append('Comparable before and after observations')
-    if not event.actions.filter(phase='DO').exists(): missing.append('Do action')
-    if not event.actions.filter(phase='ACT').exists(): missing.append('Act sustain action')
-    if event.data.get('star_7')=='Y' and not results_criterion(event.data,list(event.observations.all())):
-        missing.append('Star 7: more than 30 days, more than five after points, comparable measures and target/follow-up')
-    if event.data.get('star_8')=='Y' and document_type_count(event)<2:
-        missing.append('Star 8: two different document/site-tool types')
-    if event.review_notes.filter(kind__in=['return','clarify'],resolved=False).exists(): missing.append('Unresolved sensei requests')
+    missing=[('Unresolved sensei requests' if gate['key']=='requests' else gate['label']) for gate in gate_list(event) if not gate['ok']]
+    if include_coach and not str(event.data.get('coach_review','')).strip(): missing.insert(len(missing),LABELS['coach_review'])
     return missing
+
+def gate_summary(event):
+    gates=gate_list(event);done=sum(g['ok'] for g in gates)
+    return {'gates':gates,'done':done,'total':len(gates),'percent':round(done/len(gates)*100) if gates else 0,
+            'by_phase':{phase:(sum(g['ok'] for g in gates if g['phase']==phase),sum(g['phase']==phase for g in gates)) for phase in GATE_PHASES}}
+
+REVIEW_STATE_LABELS={'draft':'Draft','in_progress':'In progress','submitted':'Submitted for review','returned':'Sensei feedback','finalised':'Finalised'}
+
+def review_state(event):
+    """Honest review state for lists and exports; derived from saved status and open sensei requests."""
+    if event.status in PROTECTED_STATES: return 'finalised'
+    if event.status=='results_under_review' and event.submitted_at: return 'submitted'
+    if event.review_notes.filter(kind='return',resolved=False).exists(): return 'returned'
+    if event.status=='proposed': return 'draft'
+    return 'in_progress'
+
+def current_phase(event):
+    return {'proposed':'Plan','planned':'Do','in_progress':'Do','implemented':'Check'}.get(event.status,'Act')
+
+def pdca_segments(event):
+    """Four-segment bar: done navy, current red, all green when finalised."""
+    state=review_state(event);current=current_phase(event)
+    order=list(GATE_PHASES);index=order.index(current)
+    return [{'phase':phase,'state':'final' if state=='finalised' else 'done' if i<index else 'current' if i==index else 'todo'} for i,phase in enumerate(order)]
+
+def initials(name):
+    parts=[p for p in name.replace('.',' ').split() if p]
+    return ''.join(p[0] for p in parts[:2]).upper() or '?'
+
+def team_display(participant):
+    if participant.user_id:
+        user=participant.user;full=user.get_full_name()
+        return full or user.username
+    return f'{participant.first_initial}. {participant.last_name}'.strip()
 
 def snapshot(event):
     value={'title':event.title,'profile':event.profile,'input_profile':event.input_profile,'local_status':event.local_status,'status':event.status,'data':deepcopy(event.data),
@@ -102,3 +151,21 @@ def public_snapshot(content,financial,participants):
     attachment_ids={a['id'] for a in value['attachments']}
     value['imports']=[i for i in value.get('imports',[]) if i.get('attachment_id') in attachment_ids]
     return value
+
+def gantt(actions,today):
+    """Bars for the same action rows the table shows; no second planning store."""
+    from datetime import timedelta
+    dated=[a for a in actions if a.start_date and a.end_date]
+    rows=[]
+    if not dated:
+        return {'rows':[{'action':a,'bar':None} for a in actions],'ticks':[],'today':None,'start':None,'end':None}
+    lo=min([a.start_date for a in dated]+[today])-timedelta(days=2);hi=max([a.end_date for a in dated]+[today])+timedelta(days=2)
+    span=(hi-lo).days+1;pct=lambda days: round(days/span*100,3)
+    for a in actions:
+        if a.start_date and a.end_date:
+            width=pct((a.end_date-a.start_date).days+1)
+            rows.append({'action':a,'bar':{'left':pct((a.start_date-lo).days),'width':width,'fill':round(width*min(a.progress,100)/100,3)}})
+        else: rows.append({'action':a,'bar':None})
+    step=7 if span<=70 else 14 if span<=140 else 28
+    ticks=[{'left':pct(d),'date':lo+timedelta(days=d)} for d in range(0,span,step)]
+    return {'rows':rows,'ticks':ticks,'today':pct((today-lo).days),'today_date':today,'start':lo,'end':hi}
