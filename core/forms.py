@@ -3,8 +3,10 @@ from .models import AssessmentSession, Benefit, DocumentUpdate, Evidence, Kaizen
 from .source import coach_labels, document_types, star_criteria
 
 class ResponseForm(forms.Form):
-    code = forms.ChoiceField(choices=[('', 'Unanswered'), ('Y','Yes'), ('N','No'), ('A','A — unresolved')], required=False)
+    code = forms.ChoiceField(choices=[('', 'Unanswered'), ('Y','Yes'), ('N','No'), ('A','A — Advisory pass with follow-up')], required=False)
     conclusion = forms.CharField(widget=forms.Textarea(attrs={'rows': 3}), required=False)
+    advisory_follow_up = forms.CharField(widget=forms.Textarea(attrs={'rows':2}),required=False,label='Advisory improvement and follow-up')
+    retest_confirm = forms.BooleanField(required=False,label='I explicitly retested the previous Advisory in this assessment')
     revision = forms.IntegerField(widget=forms.HiddenInput)
 
 class EvidenceForm(forms.ModelForm):

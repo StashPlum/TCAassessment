@@ -1,6 +1,6 @@
 # TCA Progress local pilot
 
-This repository contains a local Django pilot. The immutable original workbooks and governance PDF belong in the ignored `sources/original/` directory; they are not distributed through Git. The current cumulative scoring policy is unapproved draft v1. Local dated assessments are not official certification.
+This repository contains a local Django pilot. The immutable original workbooks, governance PDF and supplied Word brief belong in the ignored `sources/original/` directory; they are not distributed through Git. Older assessments retain unapproved `draft-v1` scoring; new assessments use the separately versioned, unapproved `advisory-v2` local rule. Local dated assessments are not official certification.
 
 ## Start the fictional demonstration on this Windows host
 
@@ -10,7 +10,7 @@ Open PowerShell in `C:\Users\stash\OneDrive\Documents\ChatGPT\tca` and run:
 powershell -ExecutionPolicy Bypass -File .\scripts\start_demo.ps1 -SkipInstall
 ```
 
-The first run on another machine can omit `-SkipInstall` to install the pinned packages into `.vendor` from the standard Python registry. The script hashes and extracts the originals, migrates the local SQLite demo, imports the full catalog, creates the fictional site and account if absent, and binds the server to `127.0.0.1:8000`. Open `http://127.0.0.1:8000/login/` and sign in as `demo` with `LocalDemo2026!`. Change the demonstration password before sharing a workstation. The seed command does not reset an existing password.
+The first run on another machine can omit `-SkipInstall` to install the pinned packages into `.vendor` from the standard Python registry. The script hashes and extracts the originals, migrates the local SQLite demo, imports the full catalog, creates fictional sites and accounts if absent, and binds the server to `127.0.0.1:8000`. Open `http://127.0.0.1:8000/login/` and sign in as `demo` with `LocalDemo2026!`. Stage 1 role views use `auditor_demo`, `manager_demo`, `sensei_demo`, and `team_demo` with the same local demonstration password. Select **Fictional Advisory Pilot** for the 5-response example with one amber Advisory. Change demonstration passwords before sharing a workstation. Seed commands do not reset existing passwords.
 
 Optional configuration can go in an ignored `.env` file copied from `.env.example`. The startup script loads its `KEY=value` entries into the current process.
 
@@ -26,6 +26,8 @@ Set `$pythonExe` as shown under **Commands** below. The toolbox seed adds fictio
 The UX upgrade uses four menu groups and an authorized country/site selector. The two fictional fixtures carry explicit NL/Benelux and UK metadata. The header shows the global baseline reference and local assessment version; governed template/profile assignment is the next upgrade milestone. [Governance interpretation](docs/GOVERNANCE_DELTA.md) and [current upgrade status](docs/STATUS.md) record the boundaries and checks.
 
 The Kaizen workspace has participant drafts/autosave, four PDCA stages, sensei review, retained revisions, size suggestions, local closure and a searchable Lean toolbox. Open **Improvements → Kaizen events**, **Sensei review**, or a worksheet from an event. Original attachments are private and separate from a deliberate CSV/XLSX import preview. A3 PDFs, full archives and scoped learning are available locally. [Field/rule mapping](docs/KAIZEN_FIELD_RULES.md) keeps conditional source requirements explicit. [Final toolbox review](docs/TOOLBOX_REVIEW.md) records verified boundaries and deployment decisions.
+
+The [19 October change register](docs/CHANGESET_2026-10-19.md) tracks every Word point and its stage. Stage 1 provides role-focused starts, site-question versions frozen into new assessments, and Y/A/N with traceable Advisory follow-up. Stage 2 is next; the matrix and full visual redesign are not part of the stage 1 demonstration.
 
 ## Commands
 

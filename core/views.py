@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from .forms import ActionForm, BenefitForm, DocumentUpdateForm, EvidenceForm, KaizenForm, KaizenStageForm, KaizenTemplateForm, ObservationForm, OpportunityForm, OtherAuditForm, ParticipantForm, PreparationFilterForm, ResponseForm, ReviewNoteForm, ReviewQueueForm, SessionForm
-from .models import Assessment, AssessmentSession, AuditEvent, Benefit, Category, Clause, Coverage, Evidence, Kaizen, Membership, Opportunity, OtherAudit, Requirement, Response, ReviewNote, Site
+from .models import Assessment, AssessmentSession, AuditEvent, Benefit, Category, Clause, Coverage, Evidence, Kaizen, KaizenAction, Membership, Opportunity, OtherAudit, Requirement, Response, ReviewNote, Site
 from .scoring import category_result
 from .measurements import compare_observations, event_benefits
 from .quality import results_criterion, sustain_types_criterion
@@ -18,6 +18,9 @@ from .readiness import accepted_codes, assessment_snapshot
 from .context import authorized_sites, selected_site
 from .kaizen import REVIEW_KEYS, changed_since_review, checkpoint, document_type_count, measurement_warnings, public_snapshot, reopen_after_change, reuse_observations, review_checks, snapshot
 from .profiles import local_checks, suggest_profile
+from .scoring import pass_codes
+from .assessment_config import frozen_configuration,question_for_assessment
+from .roles import role_context
 
 def site_access(request, site_code, roles=None):
     site = get_object_or_404(Site, code=site_code)
@@ -31,7 +34,9 @@ def active_assessment(site, user):
     if draft: return draft
     previous = site.assessments.first()
     if previous: return previous
-    return Assessment.objects.create(site=site, version=1, created_by=user)
+    if not Membership.objects.filter(site=site,user=user,role__in=['assessor','manager','admin']).exists():
+        raise Http404('No assessment is available for this site.')
+    return Assessment.objects.create(site=site, version=1, created_by=user,configuration_snapshot=frozen_configuration(site))
 
 def log(site, user, action, obj, detail=None):
     AuditEvent.objects.create(site=site, actor=user, action=action, object_type=type(obj).__name__, object_id=str(obj.pk), detail=detail or {})
@@ -41,18 +46,23 @@ def home(request):
     site=selected_site(request)
     context={'site':site}
     if site:
+        context.update(role_context(request.user,site))
         from .progress import coverage_progress
         context['progress']=coverage_progress(site)
         latest=site.assessments.first()
         codes,_=accepted_codes(site,latest)
         categories=Category.objects.prefetch_related('requirements')
-        context['ready_sections']=sum(category_result({r.position:codes.get(r.code,'') for r in c.requirements.all()})['earned'] is not None for c in categories)
+        context['ready_sections']=sum(category_result({r.position:codes.get(r.code,'') for r in c.requirements.all()},latest.policy_version if latest else 'draft-v1')['earned'] is not None for c in categories)
         target={'C':5,'B':8,'A':10}[site.target_level]
-        context['blockers']=Requirement.objects.filter(position__lte=target).exclude(code__in=[key for key,value in codes.items() if value=='Y'])[:5]
+        context['blockers']=Requirement.objects.filter(position__lte=target).exclude(code__in=[key for key,value in codes.items() if value in pass_codes(latest.policy_version if latest else 'draft-v1')])[:5]
         context['priority_actions']=Opportunity.objects.filter(site=site,status='open').order_by('-immediate_corrective','-prerequisite','due_date','pk')[:5]
         context['my_actions']=Opportunity.objects.filter(site=site,status='open',owner__iexact=request.user.username)[:5]
         context['upcoming_sessions']=AssessmentSession.objects.filter(site=site,date__gte=timezone.localdate()).order_by('date')[:3]
         context['active_improvements']=Kaizen.objects.filter(site=site).exclude(status='reassessment_accepted').order_by('-updated_at')[:3]
+        context['my_improvements']=Kaizen.objects.filter(site=site,created_by=request.user).order_by('-updated_at')[:5]
+        context['my_kaizen_actions']=KaizenAction.objects.filter(event__site=site,owner__iexact=request.user.username).select_related('event').order_by('end_date','pk')[:5]
+        context['review_improvements']=Kaizen.objects.filter(site=site).order_by('-updated_at')[:5]
+        context['advisory_followups']=Response.objects.filter(assessment=latest,code='A').select_related('requirement')[:5] if latest else []
     return render(request,'home.html',context)
 
 @login_required
@@ -89,8 +99,8 @@ def site_progress(request, site_code):
     rows = []
     for category in Category.objects.all():
         requirements = list(category.requirements.all())
-        result = category_result({r.position:codes.get(r.code,'') for r in requirements})
-        blockers = [r for r in requirements if r.position <= {'C':5,'B':8,'A':10}[site.target_level] and codes.get(r.code) != 'Y']
+        result = category_result({r.position:codes.get(r.code,'') for r in requirements},latest.policy_version if latest else 'draft-v1')
+        blockers = [r for r in requirements if r.position <= {'C':5,'B':8,'A':10}[site.target_level] and codes.get(r.code) not in pass_codes(latest.policy_version if latest else 'draft-v1')]
         rows.append((category,result,dated.get(category.number),blockers))
     from .progress import coverage_progress
     return render(request, 'site.html', {'site':site,'latest':latest,'draft':draft,'approved':approved,'rows':rows,'unverified':unverified,'progress':coverage_progress(site)})
@@ -106,7 +116,9 @@ def assessment(request, site_code):
     if query: reqs = reqs.filter(Q(code__icontains=query)|Q(detail_text__icontains=query)|Q(expected_evidence__icontains=query))
     page = Paginator(reqs,20).get_page(request.GET.get('page'))
     codes = {r.requirement_id:r.code for r in obj.responses.filter(requirement__in=page.object_list)}
-    for req in page.object_list: req.response_code = codes.get(req.code,'')
+    for req in page.object_list:
+        req.response_code = codes.get(req.code,'')
+        req.local_question=question_for_assessment(obj,req)
     context={'site':site,'assessment':obj,'page':page,'query':query,'category':category,'categories':Category.objects.all(),
              'history':site.assessments.all()}
     return render(request,'assessment_results.html' if request.headers.get('HX-Request')=='true' else 'assessment.html',context)
@@ -117,12 +129,20 @@ def respond(request, site_code, req_code):
     can_respond=Membership.objects.filter(user=request.user,site=site,role__in=['assessor','manager','admin']).exists()
     if request.method=='POST' and not can_respond: raise Http404
     req = get_object_or_404(Requirement.objects.prefetch_related('clauses'),code=req_code)
-    obj = active_assessment(site,request.user)
-    existing = Response.objects.filter(assessment=obj,requirement=req).first()
+    try:
+        obj = active_assessment(site,request.user)
+    except Http404:
+        if can_respond: raise
+        obj = None  # Read-only global question remains visible before the first assessment.
+    existing = Response.objects.filter(assessment=obj,requirement=req).first() if obj else None
+    prior=site.assessments.filter(status='approved',version__lt=obj.version).order_by('-version').first() if obj else None
+    previous_advisory=Response.objects.filter(assessment=prior,requirement=req,code='A').first() if prior else None
     next_req=Requirement.objects.filter(Q(category_id__gt=req.category_id)|Q(category_id=req.category_id,position__gt=req.position)).first()
     coverage=Coverage.objects.filter(evidence__site=site,clause__requirement=req).select_related('evidence','clause')
     if not can_respond: coverage=coverage.filter(evidence__classification='internal')
-    response_context={'site':site,'req':req,'assessment':obj,'next_req':next_req,'can_respond':can_respond,'coverage':coverage}
+    response_context={'site':site,'req':req,'assessment':obj,'response':existing,'next_req':next_req,'can_respond':can_respond,'coverage':coverage,
+                      'question':question_for_assessment(obj,req),'previous_advisory':previous_advisory,
+                      'needs_retest':bool(existing and existing.advisory_retest_status=='pending')}
     if request.method == 'POST':
         form = ResponseForm(request.POST)
         if form.is_valid():
@@ -132,23 +152,34 @@ def respond(request, site_code, req_code):
                 if obj.revision != form.cleaned_data['revision']:
                     form.add_error(None,'Another edit was saved. Reload and review the latest response.')
                 else:
-                    if form.cleaned_data['code']=='Y':
-                        if not form.cleaned_data['conclusion'].strip(): form.add_error('conclusion','Explain the assessor conclusion for Yes.')
+                    code=form.cleaned_data['code']
+                    if response_context['needs_retest'] and not form.cleaned_data['retest_confirm']:
+                        form.add_error('retest_confirm','Record an explicit retest of the previous Advisory before changing this answer.')
+                    if code=='A' and obj.policy_version=='advisory-v2':
+                        if not form.cleaned_data['advisory_follow_up'].strip(): form.add_error('advisory_follow_up','Describe the open improvement and next check.')
+                    if code in pass_codes(obj.policy_version):
+                        if not form.cleaned_data['conclusion'].strip(): form.add_error('conclusion','Explain the evidence-based assessor conclusion for this pass.')
                         valid_coverage=Coverage.objects.filter(evidence__site=site,clause__requirement=req,accepted=True,
                             reviewed_by__isnull=False,reviewed_at__isnull=False).filter(~Q(evidence__evidence_type='audit')|Q(evidence__other_audit__isnull=False)).filter(Q(evidence__valid_until__isnull=True)|Q(evidence__valid_until__gte=timezone.localdate()))
                         covered=set(valid_coverage.values_list('clause_id',flat=True))
                         missing=[c.ordinal for c in req.clauses.all() if c.id not in covered]
-                        if missing: form.add_error('code',f'Cannot accept Yes. Clauses {missing} lack accepted, currently valid evidence coverage.')
+                        if missing: form.add_error('code',f'Cannot accept a pass. Clauses {missing} lack accepted, currently valid evidence coverage.')
                     if form.errors:
                         return render(request,'respond.html',{**response_context,'form':form})
-                    Response.objects.update_or_create(assessment=obj,requirement=req,defaults={'code':form.cleaned_data['code'],'conclusion':form.cleaned_data['conclusion'],'updated_by':request.user})
+                    retest_status=('due_next' if code=='A' and obj.policy_version=='advisory-v2' else
+                                   'retested' if response_context['needs_retest'] and code in ('Y','N') else 'not_due')
+                    Response.objects.update_or_create(assessment=obj,requirement=req,defaults={
+                        'code':code,'conclusion':form.cleaned_data['conclusion'],
+                        'advisory_follow_up':form.cleaned_data['advisory_follow_up'] if code=='A' else '',
+                        'advisory_retest_status':retest_status,'updated_by':request.user})
                     obj.revision += 1; obj.save(update_fields=['revision'])
                     log(site,request.user,'response_saved',req,{'code':form.cleaned_data['code'],'assessment':obj.pk})
                     messages.success(request,f'{req.code} saved.')
                     if request.POST.get('go')=='next' and next_req: return redirect('respond',site_code=site.code,req_code=next_req.code)
                     return redirect('assessment',site_code=site.code)
     else:
-        form = ResponseForm(initial={'code':existing.code if existing else '', 'conclusion':existing.conclusion if existing else '', 'revision':obj.revision})
+        form = ResponseForm(initial={'code':existing.code if existing else '', 'conclusion':existing.conclusion if existing else '',
+                                     'advisory_follow_up':existing.advisory_follow_up if existing else '', 'revision':obj.revision if obj else 0})
     return render(request,'respond.html',{**response_context,'form':form})
 
 @login_required
@@ -158,9 +189,12 @@ def approve(request,site_code):
     with transaction.atomic():
         obj=Assessment.objects.select_for_update().filter(site=site,status='draft').first()
         if not obj: raise Http404
+        if obj.policy_version=='advisory-v2' and obj.responses.filter(advisory_retest_status='pending').exists():
+            messages.error(request,'Retest every carried Advisory explicitly before approving this assessment.')
+            return redirect('assessment',site_code=site.code)
         obj.status='approved'; obj.approved_by=request.user; obj.approved_at=timezone.now(); obj.rationale=request.POST.get('rationale',''); obj.save()
         obj.snapshot=assessment_snapshot(site,obj);obj.save(update_fields=['snapshot'])
-        log(site,request.user,'local_snapshot_approved',obj,{'policy':'draft-v1'})
+        log(site,request.user,'local_snapshot_approved',obj,{'policy':obj.policy_version})
     messages.success(request,'Dated local assessment saved. Draft scoring policy is unapproved; this is not an official certification.')
     return redirect('site',site_code=site.code)
 
@@ -172,9 +206,11 @@ def new_draft(request,site_code):
     with transaction.atomic():
         if not site.assessments.filter(status='draft').exists():
             previous=site.assessments.first()
-            obj=Assessment.objects.create(site=site,version=previous.version+1 if previous else 1,created_by=request.user,rationale=request.POST.get('rationale',''),scope_snapshot=scope_for(previous))
+            obj=Assessment.objects.create(site=site,version=previous.version+1 if previous else 1,created_by=request.user,rationale=request.POST.get('rationale',''),scope_snapshot=scope_for(previous),configuration_snapshot=frozen_configuration(site))
             if previous:
-                Response.objects.bulk_create([Response(assessment=obj,requirement=r.requirement,code=r.code,conclusion=r.conclusion,updated_by=request.user) for r in previous.responses.all()])
+                Response.objects.bulk_create([Response(assessment=obj,requirement=r.requirement,code=r.code,conclusion=r.conclusion,
+                    advisory_follow_up=r.advisory_follow_up,advisory_retest_status='pending' if r.code=='A' else r.advisory_retest_status,
+                    updated_by=request.user) for r in previous.responses.all()])
             log(site,request.user,'new_draft',obj,{'from':previous.pk if previous else None})
         else: messages.info(request,'An editable draft already exists.')
     return redirect('assessment',site_code=site.code)
@@ -197,7 +233,7 @@ def opportunities(request,site_code):
     codes,_=accepted_codes(site,current)
     limit={'C':5,'B':8,'A':10}[site.target_level]
     for item in items:
-        item.target_blocker=bool(item.requirement and item.requirement.position<=limit and codes.get(item.requirement_id)!='Y')
+        item.target_blocker=bool(item.requirement and item.requirement.position<=limit and codes.get(item.requirement_id) not in pass_codes(current.policy_version if current else 'draft-v1'))
         item.sequence_reason=('Immediate corrective need' if item.immediate_corrective else
                               'Blocker for target level' if item.target_blocker else
                               'Prerequisite' if item.prerequisite else 'Other opportunity')
@@ -222,7 +258,9 @@ def sessions(request,site_code):
 @login_required
 def kaizens(request,site_code):
     site=site_access(request,site_code)
-    form=KaizenForm(request.POST or None,initial={'owner':request.user.username,'process_location':site.name})
+    finding=Opportunity.objects.filter(site=site,pk=request.GET.get('finding')).first() if request.GET.get('finding','').isdigit() else None
+    form=KaizenForm(request.POST or None,initial={'owner':request.user.username,'process_location':site.name,
+                                                'opportunity':finding,'title':finding.problem[:190] if finding else ''})
     form.fields['opportunity'].queryset=Opportunity.objects.filter(site=site)
     if request.method=='POST':
         site_access(request,site_code,['staff','coach','manager','admin'])
@@ -283,8 +321,8 @@ def kaizen_detail(request,site_code,pk):
                             approved=site.assessments.filter(status='approved').first()
                             accepted,_=accepted_codes(site,approved)
                             linked=list(obj.linked_requirements.values_list('code',flat=True))
-                            if not linked or any(accepted.get(code)!='Y' for code in linked):
-                                form.add_error(None,'Every linked requirement needs a current accepted Yes in an approved dated assessment.')
+                            if not linked or not approved or any(accepted.get(code) not in pass_codes(approved.policy_version) for code in linked):
+                                form.add_error(None,'Every linked requirement needs a current evidence-supported pass in an approved dated assessment.')
                             else: obj.status='reassessment_accepted'
                     elif action=='verify':
                         if not Membership.objects.filter(user=request.user,site=site,role__in=['coach','manager','admin']).exists():
@@ -341,8 +379,8 @@ def render_kaizen(request,site,obj,form,child_forms=None):
     quality={'results_over_30_days_and_5_points':results_criterion(obj.data,list(obj.observations.all())),
              'two_document_types':document_type_count(obj)>=2}
     star_count=sum(obj.data.get(f'star_{i}')=='Y' for i in range(1,11))
-    financial_access=Membership.objects.filter(user=request.user,site=site,role__in=['manager','admin']).exists()
-    participant_access=Membership.objects.filter(user=request.user,site=site,role__in=['coach','manager','admin']).exists()
+    financial_access=Membership.objects.filter(user=request.user,site=site,role__in=['assessor','manager','admin']).exists()
+    participant_access=Membership.objects.filter(user=request.user,site=site,role__in=['assessor','coach','manager','admin']).exists()
     participants=list(obj.participants.all())
     unique_participants=len({p.email.lower() if p.email else (p.first_initial.lower(),p.last_name.lower()) for p in participants})
     phases=[('Plan','Define the problem and the intended result.', ['overall_problem','outcome_criterion','specific_problem','root_cause','cause_status','measure','baseline','target','unit','population','direction']),
@@ -700,13 +738,13 @@ def report(request,site_code):
     from .progress import coverage_progress,progress_export
     site=site_access(request,site_code);latest=site.assessments.first()
     approved=site.assessments.filter(status='approved').first()
-    data={'site':site.name,'policy':'draft-v1 (unapproved)','assessment':None,'dated_snapshot':approved.snapshot if approved else None,'categories':[]}
+    data={'site':site.name,'policy':latest.policy_version if latest else None,'approved_policy':False,'assessment':None,'dated_snapshot':approved.snapshot if approved else None,'categories':[]}
     data['verified_progress']=progress_export(coverage_progress(site))
     if latest:
         data['assessment']={'version':latest.version,'status':latest.status,'approved_at':latest.approved_at.isoformat() if latest.approved_at else None}
         codes,unverified=accepted_codes(site,latest)
         data['unverified_yes']=unverified
-        for cat in Category.objects.all(): data['categories'].append({'name':cat.name,'result':category_result({r.position:codes.get(r.code,'') for r in cat.requirements.all()})})
+        for cat in Category.objects.all(): data['categories'].append({'name':cat.name,'result':category_result({r.position:codes.get(r.code,'') for r in cat.requirements.all()},latest.policy_version)})
     return JsonResponse(data,json_dumps_params={'indent':2})
 
 @login_required
@@ -725,16 +763,19 @@ def assessment_archive(request,site_code):
                      'clauses':[{'address':c.source_address,'exact_text':c.exact_text} for c in req.clauses.all()],
                      'response':response.code if response else '',
                      'conclusion':response.conclusion if response else '',
-                     'accepted_for_readiness':codes.get(req.code)=='Y'})
+                     'advisory_follow_up':response.advisory_follow_up if response else '',
+                     'advisory_retest_status':response.advisory_retest_status if response else '',
+                     'frozen_site_question':question_for_assessment(obj,req),
+                     'accepted_for_readiness':codes.get(req.code) in pass_codes(obj.policy_version if obj else 'draft-v1')})
     return JsonResponse({'site':site.name,'assessment_version':obj.version if obj else None,
-                         'status':obj.status if obj else None,'policy':'draft-v1 (unapproved)',
+                         'status':obj.status if obj else None,'policy':obj.policy_version if obj else None,'approved_policy':False,
                          'unverified_yes':unverified,'requirements':rows},json_dumps_params={'indent':2})
 
 @login_required
 def kaizen_archive(request,site_code,pk):
     site=site_access(request,site_code);obj=get_object_or_404(Kaizen,site=site,pk=pk)
-    financial_access=Membership.objects.filter(user=request.user,site=site,role__in=['manager','admin']).exists()
-    participant_access=Membership.objects.filter(user=request.user,site=site,role__in=['coach','manager','admin']).exists()
+    financial_access=Membership.objects.filter(user=request.user,site=site,role__in=['assessor','manager','admin']).exists()
+    participant_access=Membership.objects.filter(user=request.user,site=site,role__in=['assessor','coach','manager','admin']).exists()
     data=public_snapshot(snapshot(obj),financial_access,participant_access)
     data['source_field_mapping']='core/forms.py and docs/KAIZEN_FIELD_RULES.md'
     data['revision']=obj.revision
@@ -747,8 +788,8 @@ def kaizen_excel(request,site_code,pk):
     site=site_access(request,site_code);obj=get_object_or_404(Kaizen,site=site,pk=pk)
     errors=export_errors(obj)
     if errors: return JsonResponse({'export_errors':errors},status=422)
-    financial_access=Membership.objects.filter(user=request.user,site=site,role__in=['manager','admin']).exists()
-    participant_access=Membership.objects.filter(user=request.user,site=site,role__in=['coach','manager','admin']).exists()
+    financial_access=Membership.objects.filter(user=request.user,site=site,role__in=['assessor','manager','admin']).exists()
+    participant_access=Membership.objects.filter(user=request.user,site=site,role__in=['assessor','coach','manager','admin']).exists()
     output=archive_xlsx(obj,financial_access,participant_access,request.user)
     response=HttpResponse(output.getvalue(),content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition']=f'attachment; filename="kaizen-{obj.pk}-archive.xlsx"'

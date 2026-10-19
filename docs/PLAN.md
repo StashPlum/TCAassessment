@@ -1,5 +1,9 @@
 # Milestone plan
 
+## Current five-stage improvement sequence
+
+The user-provided `TCA_Verbeterplan_5_Etappes.md` is the controlling execution plan for the 19 October Word changes. `docs/CHANGESET_2026-10-19.md` tracks all 39 points and stage ownership. Execute **only the first unfinished stage** per request, using that stage's full execution prompt and recording actual checks in STATUS.md. Stage 1: roles, versioned Advisory, and frozen site question/evidence guidance (completed locally 19 October 2026). **Next: stage 2**, CEVA-aligned interface, compact Overview and clickable 15×10 improvement matrix. Stages 3–5 follow only in later runs. The older U/R/K milestone histories below remain as architectural and governance context, not the active run selector.
+
 1. **Source and foundation.** Archive and hash exact workbook bytes. Inventory all sheets, cells, formulas, comments, validations, names, embedded parts, and mappings. Import 15 categories and 150 records transactionally and repeatably. Run source coverage checks and start a local app.
 2. **Assessment domain.** Add sites, roles, responses, immutable snapshots, draft scoring, evidence and clause coverage. Test A handling, lower-level preservation, idempotence, history, and site authorization.
 3. **Complete journey.** From a gap and evidence to a proposed PDCA event, results review, reassessment request, and new dated snapshot. Exercise the journey in a browser and retain the complete catalog.

@@ -29,7 +29,7 @@ class Command(BaseCommand):
         requirements=list(Requirement.objects.all())
         evidence=Evidence.objects.create(site=site,title='FICTIONAL clause verification source',owner='Synthetic assessor',version='1',source='Fictional fixture; no production evidence',evidence_type='document',created_by=user)
         Coverage.objects.bulk_create([Coverage(evidence=evidence,clause=c,accepted=True,decision='FICTIONAL reviewed detail',reviewed_by=user,reviewed_at=timezone.now()) for c in Clause.objects.filter(requirement__in=requirements[:51])])
-        assessment=Assessment.objects.create(site=site,version=1,created_by=user,rationale='FICTIONAL 45/150 baseline')
+        assessment=Assessment.objects.create(site=site,version=1,policy_version='draft-v1',created_by=user,rationale='FICTIONAL 45/150 baseline')
         Response.objects.bulk_create([Response(assessment=assessment,requirement=r,code='Y' if i<45 else 'N',conclusion='FICTIONAL reviewed baseline',updated_by=user) for i,r in enumerate(requirements)])
         assessment.status='approved';assessment.approved_at=timezone.now();assessment.approved_by=user;assessment.snapshot=assessment_snapshot(site,assessment);assessment.save()
         for size,title,kind in [('medium','FICTIONAL reduce label rework','A3'),('extensive','FICTIONAL full packaging investigation','BP')]:

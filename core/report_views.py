@@ -47,7 +47,7 @@ def a3_finalize(request,site_code,pk):
 def event_archive_zip(request,site_code,pk):
     site=site_access(request,site_code);event=get_object_or_404(Kaizen,site=site,pk=pk)
     roles=set(Membership.objects.filter(user=request.user,site=site).values_list('role',flat=True))
-    financial=bool(roles&{'manager','admin'});participants=bool(roles&{'coach','manager','admin'})
+    financial=bool(roles&{'assessor','manager','admin'});participants=bool(roles&{'assessor','coach','manager','admin'})
     content=public_snapshot(snapshot(event),financial,participants)
     content['history']=[{'revision':r.revision,'state':r.state,'snapshot':public_snapshot(r.snapshot,financial,participants)} for r in event.history.all()]
     output=BytesIO()

@@ -65,9 +65,14 @@ def claim_review(request,site_code,pk):
                 elif site.assessments.filter(status='draft').exists(): form.add_error(None,'An assessment draft is open. Complete or approve that draft first; targeted decisions must not displace ongoing assessment work.')
                 if not form.errors:
                     version=(site.assessments.aggregate(v=Max('version'))['v'] or 0)+1
-                    assessment=Assessment.objects.create(site=site,version=version,created_by=request.user,scope_snapshot=scope,full_section_review=False,rationale='Targeted requirement review: '+form.cleaned_data['reason'])
+                    assessment=Assessment.objects.create(site=site,version=version,created_by=request.user,scope_snapshot=scope,
+                        configuration_snapshot=latest.configuration_snapshot if latest else {},
+                        policy_version=latest.policy_version if latest else 'advisory-v2',
+                        full_section_review=False,rationale='Targeted requirement review: '+form.cleaned_data['reason'])
                     if latest:
-                        Response.objects.bulk_create([Response(assessment=assessment,requirement_id=r.requirement_id,code=r.code,conclusion=r.conclusion,updated_by_id=r.updated_by_id) for r in latest.responses.all() if r.requirement_id!=claim.requirement_id])
+                        Response.objects.bulk_create([Response(assessment=assessment,requirement_id=r.requirement_id,code=r.code,conclusion=r.conclusion,
+                            advisory_follow_up=r.advisory_follow_up,advisory_retest_status=r.advisory_retest_status,
+                            updated_by_id=r.updated_by_id) for r in latest.responses.all() if r.requirement_id!=claim.requirement_id])
                     Response.objects.create(assessment=assessment,requirement=claim.requirement,code='Y',conclusion=form.cleaned_data['reason'],updated_by=request.user)
                     assessment.status='approved';assessment.approved_by=request.user;assessment.approved_at=timezone.now();assessment.snapshot=assessment_snapshot(site,assessment);assessment.save()
                     claim.assessment=assessment

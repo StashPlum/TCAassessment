@@ -63,7 +63,7 @@ class Assessment(models.Model):
     site = models.ForeignKey(Site, on_delete=models.CASCADE, related_name='assessments')
     version = models.PositiveIntegerField()
     status = models.CharField(max_length=12, choices=[('draft','Draft'),('approved','Approved')], default='draft')
-    policy_version = models.CharField(max_length=20, default='draft-v1')
+    policy_version = models.CharField(max_length=20, default='advisory-v2')
     rationale = models.TextField(blank=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='created_assessments')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -72,11 +72,15 @@ class Assessment(models.Model):
     revision = models.PositiveIntegerField(default=0)
     snapshot = models.JSONField(default=dict)  # frozen accepted coverage and category results at approval
     scope_snapshot = models.JSONField(default=dict)  # explicit frozen denominator; legacy snapshots untouched
+    configuration_snapshot = models.JSONField(default=dict)  # frozen local question/evidence wording for this assessment
     full_section_review = models.BooleanField(default=False)  # targeted decisions never reset section frequency
     def save(self,*args,**kwargs):
         if self._state.adding and not self.scope_snapshot:
             from .progress import baseline_scope
             self.scope_snapshot=baseline_scope()
+        if self._state.adding and not self.configuration_snapshot:
+            from .assessment_config import frozen_configuration
+            self.configuration_snapshot=frozen_configuration(self.site)
         return super().save(*args,**kwargs)
     class Meta:
         constraints = [models.UniqueConstraint(fields=['site','version'], name='unique_site_assessment_version')]
@@ -85,8 +89,10 @@ class Assessment(models.Model):
 class Response(models.Model):
     assessment = models.ForeignKey(Assessment, on_delete=models.CASCADE, related_name='responses')
     requirement = models.ForeignKey(Requirement, on_delete=models.PROTECT)
-    code = models.CharField(max_length=1, choices=[('Y','Yes'),('N','No'),('A','Unresolved A'),('','Unanswered')], blank=True)
+    code = models.CharField(max_length=1, choices=[('Y','Yes'),('N','No'),('A','Advisory'),('','Unanswered')], blank=True)
     conclusion = models.TextField(blank=True)
+    advisory_follow_up = models.TextField(blank=True)
+    advisory_retest_status = models.CharField(max_length=16, default='not_due', choices=[('not_due','Not due'),('due_next','Due at next assessment'),('pending','Pending retest'),('retested','Retested')])
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.PROTECT)
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:
@@ -100,6 +106,26 @@ class ApplicabilityException(models.Model):
     source_authority = models.TextField()
     approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT)
     approved_at = models.DateTimeField(null=True, blank=True)
+
+class SiteQuestionVersion(models.Model):
+    """Append-only local wording; official source clauses remain in Requirement/Clause."""
+    site = models.ForeignKey(Site, on_delete=models.CASCADE, related_name='question_versions')
+    requirement = models.ForeignKey(Requirement, on_delete=models.PROTECT, related_name='site_versions')
+    version = models.PositiveIntegerField()
+    kind = models.CharField(max_length=20, choices=[('local_guidance','Local guidance'),('official_proposal','Official change proposal')])
+    question_text = models.TextField()
+    evidence_items = models.JSONField(default=list)
+    local_explanation = models.TextField(blank=True)
+    change_reason = models.TextField()
+    diff = models.JSONField(default=dict)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['site','requirement','version'], name='unique_site_question_version')]
+        ordering = ['-version']
+    def save(self,*args,**kwargs):
+        if not self._state.adding: raise ValueError('Site question versions are immutable; create a new version.')
+        return super().save(*args,**kwargs)
 
 class Evidence(models.Model):
     site = models.ForeignKey(Site, on_delete=models.CASCADE)

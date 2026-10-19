@@ -22,7 +22,7 @@ class Command(BaseCommand):
         for role in ('staff','assessor','coach','manager'):
             Membership.objects.get_or_create(user=user,site=examples,role=role)
         if new:
-            assessment=Assessment.objects.create(site=examples,version=1,status='approved',created_by=user,
+            assessment=Assessment.objects.create(site=examples,version=1,status='approved',policy_version='draft-v1',created_by=user,
                 approved_by=user,approved_at=timezone.now(),rationale='Fictional examples for the unapproved local draft policy')
             for category,limit in ((1,5),(2,8),(3,10)):
                 for req in Requirement.objects.filter(category_id=category,position__lte=limit):

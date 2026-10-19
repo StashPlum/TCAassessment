@@ -16,7 +16,7 @@ All roles are scoped to assigned sites. Financial and HR detail require separate
 
 ## Core records and rules
 
-Store each official requirement separately with its complete clause text, reasoning, expected evidence, remote method, source address, and immutable source version. Preserve duplicate text as distinct IDs. Responses are Y, N, unresolved A, or unanswered. Applicability exceptions have separate approval fields and no scoring effect pending policy. Draft policy v1 awards each category Certified for the first five accepted Y responses, Advanced for the first eight, and Showcase for all ten. Report lower levels even if higher requirements fail. Do not average categories into an overall certification. Show the policy version and its unapproved status.
+Store each official requirement separately with its complete clause text, reasoning, expected evidence, remote method, source address, and immutable source version. Preserve duplicate text as distinct IDs. Response codes Y/A/N are separate from maturity codes C/B/A. Existing `draft-v1` snapshots remain Y-only: their A is unresolved. New `advisory-v2` assessments count Y and Advisory A as a pass only with an assessor conclusion and accepted current evidence for every clause; A also requires an open follow-up and explicit retest at the next assessment. N fails. Applicability exceptions have separate approval fields and no scoring effect pending policy. The cumulative section gate uses first five/eight/ten accepted passes for Certified/Advanced/Showcase, retains the lowest applicable section rule, and is a local unapproved calculation. Do not average categories into an overall certification or imply CAT confirmation. Show the effective policy version.
 
 Assessment drafts and approved dated snapshots are separate. Approval freezes responses and their evidence references. Changes create a new draft and later snapshot with actor, time, and reason. Current readiness can change without rewriting a historical snapshot.
 
@@ -30,7 +30,7 @@ My Work, Site Progress, Assessment, Improvement Opportunities, Kaizen Workspace,
 
 ## Business decisions pending
 
-Meaning of response A; formal approval of cumulative levels; whether and how exceptions affect gates; conflicting meeting duration guidance; Environment evidence period; missing FAQ and User Guide; dated qualifiers; Kaizen profile mandatory fields and ten-star interpretation where guide is absent; authority for approval and remote methods. Do not fill these by inference.
+Formal approval of the `advisory-v2` local calculation and its corporate implementation; whether and how exceptions affect gates; conflicting meeting duration guidance; Environment evidence period; missing FAQ and User Guide; dated qualifiers; Kaizen profile mandatory fields and ten-star interpretation where guide is absent; authority for official-obligation/site-template changes, CAT confirmation and remote methods. The user has defined response A as Advisory for the new version, but older `draft-v1` decisions are not reinterpreted. Do not fill other gaps by inference.
 
 ## Technical boundaries
 
@@ -44,6 +44,10 @@ The 12 October upgrade has three bounded milestones described in PLAN.md. Govern
 
 Input size (small, medium, extensive, legacy), methodological A4/A3/Business Process, analysis method, local closure, global review and A3 output are separate. Small exposes a concise single-page PDCA path while retaining all stored fields and source-backed global gates. Profile switches, worksheets, attachments, imports and reports retain revisions. Stale writes fail. Worksheets use method schema versions and preserve archived rows; a future schema requires an explicit migration before editing.
 
-Verified requirements coverage counts unique current accepted Y responses with accepted clause evidence within the frozen baseline scope. Pending claims and Kaizen closure do not contribute. An accepted claim creates a new dated snapshot; previous approved versions remain immutable. Empty, unknown or changed scopes are marked as such. The figures are local operational indicators, not CAT certification.
+Verified requirements coverage counts unique current accepted passes under each assessment's frozen rule (Y only in `draft-v1`; Y or Advisory A in `advisory-v2`, with accepted clause evidence and required Advisory follow-up) within the frozen baseline scope. Assessed, pass, open Advisory, local readiness and CAT standing remain separate. Pending claims and Kaizen closure do not contribute. An accepted claim creates a new dated snapshot; previous approved versions remain immutable. Empty, unknown or changed scopes are marked as such. The figures are local operational indicators, not CAT certification.
+
+## Five-stage improvement request
+
+`TCA_Verbeterplan_5_Etappes.md` and `docs/CHANGESET_2026-10-19.md` govern the Word change register. Stage 1 adds four role-focused entry points and server checks, versioned Advisory decisions, and append-only site question/evidence guidance frozen at assessment start. A local wording change cannot amend an official clause. Stage 2 is the next requested milestone; its design and matrix work must not be claimed complete from the stage 1 foundation.
 
 Private A3 PDFs snapshot the event revision and renderer version. The full archive contains retained detail, worksheets and authorized original files. Locally approved cross-site learning contains a deliberately small approach summary and explicit recipient sites; adaptation begins a new unapproved event with no inherited evidence, metrics, benefits or TCA answers. Corporate sharing authority remains pending.

@@ -5,6 +5,7 @@ from core import toolbox_views as tv
 from core import claim_views as cv
 from core import attachment_views as av
 from core import report_views as rv
+from core import config_views as qv
 
 urlpatterns = [
     path('sites/<slug:site_code>/kaizen/<int:pk>/attachments/<int:attachment_pk>/preview/', av.attachment_preview, name='attachment_preview'),
@@ -34,6 +35,8 @@ urlpatterns = [
     path('sites/<slug:site_code>/resources/', views.resources, name='resources'),
     path('sites/<slug:site_code>/', views.site_progress, name='site'),
     path('sites/<slug:site_code>/assessment/', views.assessment, name='assessment'),
+    path('sites/<slug:site_code>/assessment/configuration/', qv.configuration, name='assessment_configuration'),
+    path('sites/<slug:site_code>/assessment/configuration/<str:req_code>/', qv.question_configuration, name='question_configuration'),
     path('sites/<slug:site_code>/assessment/respond/<str:req_code>/', views.respond, name='respond'),
     path('sites/<slug:site_code>/assessment/approve/', views.approve, name='approve'),
     path('sites/<slug:site_code>/assessment/new/', views.new_draft, name='new_draft'),
