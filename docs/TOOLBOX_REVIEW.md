@@ -14,7 +14,7 @@ Site access is checked on pages, mutations, exports, previews and downloads. Fin
 
 ## Verification and limits
 
-42 local Django tests and 18 source-free CI fixture tests passed; schema and JavaScript checks passed. A disposable migration, live preservation comparison and three rendered synthetic landscape A3 reports passed. Actual desktop and 390 px browser workflows were inspected; the verified progress screen displayed 34% / 51 of 150 with the baseline still 45. A3 and complete ZIP remain private operational outputs, not official Global Kaizen workbook substitutes. PostgreSQL, corporate SSO, CAT synchronization and production storage were not exercised. The GitHub workflow result is recorded in STATUS.md after publication.
+42 local Django tests and 18 source-free CI fixture tests passed; schema and JavaScript checks passed. A disposable migration, live preservation comparison, separate backup restore and three rendered synthetic landscape A3 reports passed. Actual desktop and 390 px browser workflows were inspected; the verified progress screen displayed 34% / 51 of 150 with the baseline still 45. The private feature branch's GitHub Actions verification passed (run 39209164036); details and SHA are in STATUS.md. A3 and complete ZIP remain private operational outputs, not official Global Kaizen workbook substitutes. PostgreSQL, corporate SSO, CAT synchronization and production storage were not exercised.
 
 ## Decisions needed before deployment
 
