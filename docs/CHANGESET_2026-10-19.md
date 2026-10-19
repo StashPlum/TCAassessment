@@ -2,16 +2,16 @@
 
 Source: `sources/original/software aanpassingen.docx` (byte-for-byte local copy of the supplied Word file; SHA-256 `0CA93898C063F6BCE998051121B5D97593F517613A06E391FAD0A34DD7B8D59B`). The original is intentionally Git-ignored. Page references are to the five-page Word document; **image** means its embedded `word/media/image1.png`, the Site DIY Plan Summary matrix. Stage ownership and W IDs are checked against all 39 rows of `TCA_Verbeterplan_5_Etappes.md`. The plan has 39/39 Word points; no missing point was found. The incomplete sensei sentence on page 1 has no inferred authority. Criteria here are testable project interpretations, not new official CEVA obligations.
 
-Status vocabulary: **Done E1** = implemented and checked in stage 1; **Part E1** = stage 1 foundation implemented, remaining criterion assigned to a later stage; **Pending** = later stage. Evidence for E1: 47 Django tests, 23 source-free CI tests, additive migration/record comparison, and browser captures in `docs/verification/`; see `STATUS.md` for commands and limits.
+Status vocabulary: **Done E1/E2** = implemented and checked in that stage; **Part** = current foundation implemented, remaining criterion assigned to a later stage; **Pending** = later stage. Evidence for E1: 47 Django tests, 23 source-free CI tests, additive migration/record comparison, and browser captures in `docs/verification/`. E2 evidence: `docs/DESIGN_SYSTEM.md`, `core/test_stage2.py`, synthetic full-matrix fixture and `docs/verification/stage2-*.png`; see `STATUS.md` for commands and limits.
 
 | ID | Word source | Change point and acceptance criterion | Stage | Status |
 |---|---|---|---|---|
-| W01 | p.1, roles | Four named roles each open a task-focused start page; server site rights match their duties. | 1, 2 | Done E1; visual refinement E2 |
-| W02 | p.1, roles | Authorized users reach needed source/detail/history through role-appropriate links; restricted objects/downloads deny direct requests. | 1, 2, 5 | Part E1; final journey E5 |
-| W03 | p.1, presentation | Approved CEVA tokens/assets where available, coherent business UI, no generic decoration. | 2, 5 | Pending E2 |
-| W04 | p.1, presentation | Short header, consistent type/spacing/dropdowns and working click-throughs at all breakpoints. | 2, 5 | Pending E2 |
-| W05 | p.1, Overview | Separate assessed/pass counters, local level, compact percentage with honest denominator and expandable explanation. | 1, 2, 5 | Part E1: semantics; compact visual E2 |
-| W06 | p.2, Overview | Authorized locations block hidden while site selection and server authorization still work. | 2 | Pending E2 |
+| W01 | p.1, roles | Four named roles each open a task-focused start page; server site rights match their duties. | 1, 2 | Done E1+E2: compact role summaries and links retained |
+| W02 | p.1, roles | Authorized users reach needed source/detail/history through role-appropriate links; restricted objects/downloads deny direct requests. | 1, 2, 5 | Part E1+E2: matrix/detail and role links checked; final integrated journey E5 |
+| W03 | p.1, presentation | Approved CEVA tokens/assets where available, coherent business UI, no generic decoration. | 2, 5 | Done E2 foundation; no approved logo/font supplied; final consistency E5 |
+| W04 | p.1, presentation | Short header, consistent type/spacing/dropdowns and working click-throughs at all breakpoints. | 2, 5 | Part E2: three routes at 1440/1024/390 and shared filter shell; final cross-app pass E5 |
+| W05 | p.1, Overview | Separate assessed/pass counters, local level, compact percentage with honest denominator and expandable explanation. | 1, 2, 5 | Done E1+E2 on Overview; final integral count review E5 |
+| W06 | p.2, Overview | Authorized locations block hidden while site selection and server authorization still work. | 2 | Done E2: nav hidden, selector and server rights retained |
 | W07 | p.2, Prepare evidence | Real selected-record XLSX and readable CEVA PDF include ID, obligation, evidence, owner and period. | 3 | Pending E3 |
 | W08 | p.2, Prepare evidence | Auditor versions site documentation needs with provenance without changing the official requirement. | 1, 3 | Part E1: site evidence guidance; prep-list workflow E3 |
 | W09 | p.2, Plan assessment | Manager confirms availability or proposes alternate/backup; conflicts, owner and late-change impact remain visible. | 3 | Pending E3 |
@@ -25,14 +25,14 @@ Status vocabulary: **Done E1** = implemented and checked in stage 1; **Part E1**
 | W17 | p.3, Conduct | Auditor can save Y/A/N, conclusion, Advisory follow-up and evidence; stale writes fail. | 1, 3 | Part E1: rule and form; richer conduct journey E3 |
 | W18 | p.3, History | Single or selected assessment PDF/XLSX contains frozen questions, answers, comments, evidence and follow-up. | 3 | Pending E3 |
 | W19 | p.3, History | Year, site, version and auditor filters operate on authorized history. | 3 | Pending E3 |
-| W20 | p.3, image | Clickable 15×10 standard matrix (or approved alternate scope), C/B/A bands, Y green/A amber/N red/blank neutral; cell links to full detail. | 2 | Pending E2 |
+| W20 | p.3, image | Clickable 15×10 standard matrix (or approved alternate scope), C/B/A bands, Y green/A amber/N red/blank neutral; cell links to full detail. | 2 | Done E2: 150-cell synthetic matrix and alternate frozen-scope test; detail parity verified |
 | W21 | pp.3–4, Kaizen | Small/Medium/Extensive choices keep source gates and use short optional guidance. | 4 | Pending E4 refinement |
 | W22 | p.4, toolbox | Each Lean method has purpose, steps, inputs and a short logistics example from its working editor. | 4 | Pending E4 refinement |
 | W23 | p.4, toolbox | Tool diagrams and exported labels remain legible for long and dynamic data. | 4 | Pending E4 refinement |
 | W24 | p.4, Kaizen | Authorized team members collaborate on the same versioned event with visible ownership. | 4 | Pending E4 |
 | W25 | p.4, Kaizen | Assign tasks to team members; each sees own work and edits without stale overwrite. | 4 | Pending E4 |
 | W26 | p.4, Plan | Gantt uses the existing action dates/owners/progress and matches an accessible table. | 4 | Pending E4 |
-| W27 | p.4, workflow | Routine journeys minimize duplicate administration while retaining mandatory source information. | 1–5 | Part E1: role-focused entry; full journey E5 |
+| W27 | p.4, workflow | Routine journeys minimize duplicate administration while retaining mandatory source information. | 1–5 | Part E1+E2: role entry, matrix-to-detail, compact Conduct; full journey E5 |
 | W28 | p.4, A3/A4 | Functional A3/A4 event difference follows approved source rules, independent of input size/report paper. | 4 | Pending E4; CEVA mapping open |
 | W29 | p.4, Kaizen | Event, analyses, files, measures, tasks, revisions and review survive save/archive. | 4 | Pending E4 completion |
 | W30 | p.4, reports | Authorized user downloads approved A3/A4 PDF and true XLSX from event/review for manual Teams storage. | 4 | Pending E4 |

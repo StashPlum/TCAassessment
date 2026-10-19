@@ -111,15 +111,21 @@ def assessment(request, site_code):
     obj = active_assessment(site, request.user)
     query = request.GET.get('q','').strip()
     category = request.GET.get('category','')
+    answer = request.GET.get('answer','')
+    if answer not in ('Y','A','N','unanswered'): answer=''
     reqs = Requirement.objects.all()
     if category.isdigit(): reqs = reqs.filter(category_id=int(category))
     if query: reqs = reqs.filter(Q(code__icontains=query)|Q(detail_text__icontains=query)|Q(expected_evidence__icontains=query))
+    if answer:
+        answered_ids=obj.responses.filter(code__in=('Y','A','N')).values_list('requirement_id',flat=True)
+        reqs=reqs.exclude(code__in=answered_ids) if answer=='unanswered' else reqs.filter(code__in=obj.responses.filter(code=answer).values_list('requirement_id',flat=True))
     page = Paginator(reqs,20).get_page(request.GET.get('page'))
     codes = {r.requirement_id:r.code for r in obj.responses.filter(requirement__in=page.object_list)}
     for req in page.object_list:
         req.response_code = codes.get(req.code,'')
         req.local_question=question_for_assessment(obj,req)
-    context={'site':site,'assessment':obj,'page':page,'query':query,'category':category,'categories':Category.objects.all(),
+    context={'site':site,'assessment':obj,'page':page,'query':query,'category':category,'answer':answer,
+             'filters_active':bool(query or category or answer),'categories':Category.objects.all(),
              'history':site.assessments.all()}
     return render(request,'assessment_results.html' if request.headers.get('HX-Request')=='true' else 'assessment.html',context)
 
@@ -142,7 +148,9 @@ def respond(request, site_code, req_code):
     if not can_respond: coverage=coverage.filter(evidence__classification='internal')
     response_context={'site':site,'req':req,'assessment':obj,'response':existing,'next_req':next_req,'can_respond':can_respond,'coverage':coverage,
                       'question':question_for_assessment(obj,req),'previous_advisory':previous_advisory,
-                      'needs_retest':bool(existing and existing.advisory_retest_status=='pending')}
+                      'needs_retest':bool(existing and existing.advisory_retest_status=='pending'),
+                      'related_actions':Opportunity.objects.filter(site=site,requirement=req).order_by('-id')[:10],
+                      'related_kaizens':Kaizen.objects.filter(site=site,linked_requirements=req).distinct().order_by('-updated_at')[:10]}
     if request.method == 'POST':
         form = ResponseForm(request.POST)
         if form.is_valid():
@@ -240,7 +248,25 @@ def opportunities(request,site_code):
     items.sort(key=lambda x:(x.priority_override if x.priority_override is not None else 100,
                              0 if x.immediate_corrective else 1,0 if x.target_blocker else 1,
                              0 if x.prerequisite else 1,x.due_date or date.max,x.id))
-    return render(request,'opportunities.html',{'site':site,'items':items,'form':form})
+    from .matrix import assessment_matrix
+    matrix=assessment_matrix(current)
+    matrix_section=request.GET.get('section','')
+    if not matrix_section.isdigit() or int(matrix_section) not in {category.number for category in matrix['categories']}:
+        matrix_section=''
+    matrix_state=request.GET.get('state','')
+    if matrix_state not in ('yes','advisory','no','unanswered'):
+        matrix_state=''
+    matrix_query=request.GET.get('q','').strip()[:200]
+    if matrix_section.isdigit():
+        matrix['rows']=[row for row in matrix['rows'] if row['category'].number==int(matrix_section)]
+    if matrix_state in ('yes','advisory','no','unanswered') or matrix_query:
+        matrix['rows']=[row for row in matrix['rows'] if any(cell['requirement'] and
+            (not matrix_state or cell['state']==matrix_state) and
+            (not matrix_query or matrix_query.casefold() in cell['requirement'].code.casefold() or
+             matrix_query.casefold() in cell['requirement'].detail_text.casefold()) for cell in row['cells'])]
+    return render(request,'opportunities.html',{'site':site,'items':items,'form':form,'matrix':matrix,
+        'matrix_section':matrix_section,'matrix_state':matrix_state,'matrix_query':matrix_query,
+        'matrix_filters_active':bool(matrix_section or matrix_state or matrix_query)})
 
 @login_required
 def sessions(request,site_code):

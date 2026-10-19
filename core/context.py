@@ -8,7 +8,7 @@ AREAS = {
     'locations': ('Overview','Authorized locations'),
     'preparation': ('Assessments','Prepare evidence'), 'sessions': ('Assessments','Plan assessment'),
     'assessment': ('Assessments','Conduct assessment'), 'respond': ('Assessments','Requirement response'),
-    'opportunities': ('Improvements','Actions and blockers'), 'kaizens': ('Improvements','Kaizen events'),
+    'opportunities': ('Improvements','TCA matrix'), 'kaizens': ('Improvements','Kaizen events'),
     'kaizen_detail': ('Improvements','PDCA workspace'), 'kaizen_template_details': ('Improvements','Supporting template fields'),
     'review_queue': ('Improvements','Sensei review'),
     'input_profile': ('Improvements','Input profile'), 'toolbox': ('Improvements','Lean toolbox'),
@@ -37,8 +37,8 @@ def workspace(request):
     name=request.resolver_match.url_name if request.resolver_match else 'home'
     area,title=AREAS.get(name,('Resources','Workspace'))
     source=SourceVersion.objects.filter(filename='TCA assessment work categorisation.xlsx').first()
-    parent={'Overview':'home','Assessments':'assessment','Improvements':'kaizens','Resources':'resources','Administration':'administration'}[area]
-    area_url=reverse(parent,kwargs={'site_code':site.code}) if site and parent in ('assessment','kaizens','resources') else reverse('administration' if area=='Administration' else 'home')
+    parent={'Overview':'home','Assessments':'assessment','Improvements':'opportunities','Resources':'resources','Administration':'administration'}[area]
+    area_url=reverse(parent,kwargs={'site_code':site.code}) if site and parent in ('assessment','opportunities','resources') else reverse('administration' if area=='Administration' else 'home')
     return {'workspace_site':site,'authorized_sites':sites,**role_context(request.user,site),
             'authorized_countries':[(code,dict(Site.COUNTRY_CHOICES).get(code,'Country not assigned')) for code in sorted({s.country_code for s in sites})],
             'workspace_assessment':site.assessments.first() if site else None,

@@ -27,7 +27,7 @@ The UX upgrade uses four menu groups and an authorized country/site selector. Th
 
 The Kaizen workspace has participant drafts/autosave, four PDCA stages, sensei review, retained revisions, size suggestions, local closure and a searchable Lean toolbox. Open **Improvements → Kaizen events**, **Sensei review**, or a worksheet from an event. Original attachments are private and separate from a deliberate CSV/XLSX import preview. A3 PDFs, full archives and scoped learning are available locally. [Field/rule mapping](docs/KAIZEN_FIELD_RULES.md) keeps conditional source requirements explicit. [Final toolbox review](docs/TOOLBOX_REVIEW.md) records verified boundaries and deployment decisions.
 
-The [19 October change register](docs/CHANGESET_2026-10-19.md) tracks every Word point and its stage. Stage 1 provides role-focused starts, site-question versions frozen into new assessments, and Y/A/N with traceable Advisory follow-up. Stage 2 is next; the matrix and full visual redesign are not part of the stage 1 demonstration.
+The [19 October change register](docs/CHANGESET_2026-10-19.md) tracks every Word point and its stage. Stage 1 provides role-focused starts, site-question versions frozen into new assessments, and Y/A/N with traceable Advisory follow-up. Stage 2 adds the compact [design foundation](docs/DESIGN_SYSTEM.md), a clear Overview, Conduct filters and a clickable matrix. Select **Fictional Matrix Pilot** to inspect the complete 15×10 fictional answer set: 56 Y, 19 Advisory and 75 N. It shows 150/150 assessed and 75/150 accepted passes under the local `advisory-v2` rule, with CAT confirmation still pending. Click a cell for its frozen question, evidence, follow-up and linked work. Stage 3 is the next separate milestone.
 
 ## Commands
 
