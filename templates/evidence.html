@@ -1,0 +1,19 @@
+{% extends 'base.html' %}{% block content %}
+<h1>Evidence & Reports</h1>
+<p>Evidence coverage stays pending until an assessor accepts named clauses. Restricted files need separate permission.</p>
+<div class="card"><h2>Add evidence</h2><form method="post" enctype="multipart/form-data">{% csrf_token %}{% include 'form_fields.html' %}
+  <p><label>Requirement ID for pending link <input name="requirement_code" value="{{ requested_requirement }}" placeholder="1.C.1"></label></p>
+  <p><label>Clause number <input name="clause_ordinal" type="number" min="1"></label></p>
+  <button>Save evidence</button></form></div>
+<div class="table-scroll"><table><thead><tr><th>Evidence</th><th>Owner and period</th><th>Clause coverage</th></tr></thead><tbody>
+{% for x in items %}<tr><td>{{ x.title }}<p>{{ x.get_evidence_type_display }} · {{ x.classification }}</p>
+  {% if x.file %}<a href="{% url 'download' site.code x.pk %}">Download</a>{% endif %}
+  {% if x.evidence_type == 'audit' %}<p><a href="{% url 'other_audit' site.code x.pk %}">Audit scope and finding</a></p>{% endif %}
+  </td><td>{{ x.owner }}<p>{{ x.period_start|default:'Unset' }} – {{ x.period_end|default:'Unset' }}</p></td><td>
+  {% for c in x.coverage.all %}<p>{{ c.clause.requirement.code }} clause {{ c.clause.ordinal }}: {% if c.accepted %}Accepted{% elif c.reviewed_at %}Rejected{% else %}Pending{% endif %}{% if c.reviewed_at %} · reviewed {{ c.reviewed_at|date:'d M Y' }}{% endif %}</p>
+  <form method="post" action="{% url 'review_coverage' site.code c.pk %}">{% csrf_token %}<input name="reason" aria-label="Coverage reason" placeholder="Decision reason" required><button name="decision" value="accept">Accept coverage</button> <button name="decision" value="reject">Reject coverage</button></form>
+  {% endfor %}
+  <form method="post" action="{% url 'link_evidence' site.code x.pk %}">{% csrf_token %}<label>Also link requirement <input name="requirement_code" placeholder="1.C.1"></label><label>Clause <input name="clause_ordinal" type="number" min="1"></label><button>Add pending link</button></form>
+  </td></tr>{% endfor %}</tbody></table></div>
+<p><a class="button" href="{% url 'preparation' site.code %}">Evidence preparation list</a> <a class="button" href="{% url 'report' site.code %}">Status report JSON</a></p>
+{% endblock %}
