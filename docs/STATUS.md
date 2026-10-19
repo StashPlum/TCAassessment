@@ -1,5 +1,10 @@
 # Project status — updated 19 October 2026
 
+## Hosted feedback demo (branch `TCA_Demo`)
+
+`TCA_DEMO=1` runs the app as a hosted demo: HTTPS-only secure settings, WhiteNoise static files, `DATABASE_URL` PostgreSQL, a yellow demo bar, a Feedback button on every page (`DemoFeedback`, migration 0016; managers read and export it) and `noindex`. `manage.py prepare_demo` runs at every start: catalog from a private secret file if present (hash-checked) or a labelled synthetic 15 × 10 catalog, fictional seeds, demo and named tester accounts with `TCA_DEMO_PASSWORD`. Kaizen template texts also come from a secret file, with a labelled fallback. Stored PDFs are rebuilt from their frozen snapshot if the temporary file store was wiped; other missing files return a clear 404. `render.yaml` defines the free Render web service and database; steps are in [DEPLOY_RENDER.md](DEPLOY_RENDER.md). Checks run: `manage.py test core` **74 passed** (4 new in `core/test_demo.py`), source-free CI **50 passed**, `check --deploy` (only HSTS subdomain/preload notices), and a local demo-mode smoke run (migrate, prepare_demo, collectstatic, HTTP→HTTPS redirect, static CSS 200, login, demo bar). Not yet run on Render itself.
+
+
 ## Follow-up 19 October 2026 — user decisions and template-based A3/A4
 
 User decisions (19 Oct 2026): CAT confirmation is not needed for the demo (no CAT work planned; the app still never implies CAT standing); best practice may only be validated by the TCA auditor (was sensei); CEVA brand and font use are approved for the demo. The supplied `Global_Kaizen_Template_20241219 1.xlsx` is byte-identical to the original already in `sources/original/` (SHA-256 `9bfcfd62…bae3bce`), so no new source was stored.

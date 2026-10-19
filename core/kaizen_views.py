@@ -114,7 +114,8 @@ def event_export(request,site_code,pk,fmt):
         if paper not in ('A3','A4'): raise Http404
         stored=event.a3_reports.filter(event_revision=event.revision,paper=paper,renderer_version=RENDERER_VERSION).order_by('-version').first()
         if stored and report_visible(stored,request.user):
-            with stored.file.open('rb') as handle: raw=handle.read()
+            from .a3 import report_bytes
+            raw=report_bytes(stored)
             name=f'KZ-{event.pk}-{paper}-v{stored.version}.pdf'
         else:
             raw=working_pdf(event,paper);name=f'KZ-{event.pk}-{paper}-r{event.revision}-working-copy.pdf'

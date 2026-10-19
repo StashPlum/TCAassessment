@@ -9,8 +9,11 @@ from core import config_views as qv
 from core import journey_views as jv
 from core import kaizen_views as kv
 from core import library_views as lv
+from core import demo_views as dv
 
 urlpatterns = [
+    path('feedback/', dv.feedback_add, name='feedback_add'),
+    path('feedback/list/', dv.feedback_list, name='feedback_list'),
     path('sites/<slug:site_code>/kaizen/review/export/<str:fmt>/', kv.review_export, name='review_export'),
     path('sites/<slug:site_code>/kaizen/<int:pk>/review/', kv.review_detail, name='kaizen_review_detail'),
     path('sites/<slug:site_code>/kaizen/<int:pk>/tasks/<int:action_pk>/progress/', kv.task_progress, name='task_progress'),

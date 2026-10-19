@@ -338,3 +338,10 @@ button.compact{min-height:40px;padding:0 12px;font-size:15px;align-self:flex-end
 /* E5: matrix cells use the prototype solid status colours, always with the letter. */
 .matrix-cell.state-yes{background:var(--y);color:#fff}.matrix-cell.state-advisory{background:var(--a);color:#2E1F00}.matrix-cell.state-no{background:var(--n);color:#fff}.matrix-cell.state-unanswered{background:var(--neutral-bg);color:var(--neutral-ink)}
 .matrix-key.state-yes,.answer-badge.state-yes{background:var(--y);color:#fff;border-color:var(--y)}.matrix-key.state-advisory,.answer-badge.state-advisory{background:var(--a);color:#2E1F00;border-color:var(--a)}.matrix-key.state-no,.answer-badge.state-no{background:var(--n);color:#fff;border-color:var(--n)}
+.demo-bar{background:#FFF6D6;border-bottom:1px dashed #9A7400;color:#3D2E00;font-size:13px;padding:6px 20px}.demo-bar strong{font-family:var(--head-font);letter-spacing:.08em;text-transform:uppercase;margin-right:8px}
+.feedback-widget{position:fixed;right:16px;bottom:16px;z-index:40;max-width:min(360px,calc(100vw - 32px));margin:0}
+.feedback-widget>summary{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;background:var(--accent);color:#fff;font-family:var(--head-font);font-weight:600;font-size:16px;list-style:none;box-shadow:var(--shadow-pop);float:right}
+.feedback-widget>summary::-webkit-details-marker{display:none}
+.feedback-widget[open]>summary{margin-bottom:8px}
+.feedback-widget form{clear:both;background:#fff;border:1px solid var(--line-strong);box-shadow:var(--shadow-pop);padding:14px}
+@media print{.demo-bar,.feedback-widget{display:none!important}}

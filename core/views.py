@@ -879,7 +879,8 @@ def download(request,site_code,pk):
     item=get_object_or_404(Evidence,site=site,pk=pk)
     if item.classification!='internal' and not Membership.objects.filter(user=request.user,site=site,role__in=['manager','admin','assessor']).exists(): raise Http404
     if not item.file: raise Http404
-    return FileResponse(item.file.open('rb'),as_attachment=True,filename=item.file.name.split('/')[-1])
+    from .storage import open_or_404
+    return FileResponse(open_or_404(item.file),as_attachment=True,filename=item.file.name.split('/')[-1])
 
 @login_required
 def report(request,site_code):

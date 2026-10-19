@@ -1,0 +1,6 @@
+{% extends 'base.html' %}{% block content %}
+<div class="page-head"><div><span class="kicker">Demo</span><h1>Tester feedback</h1><p>Notes left with the feedback button. Visible to site managers only.</p></div><a class="button secondary" href="?format=csv">Export CSV</a></div>
+{% if items %}<div class="table-scroll" role="region" aria-label="Feedback" tabindex="0"><table class="queue-table"><thead><tr><th scope="col">Date</th><th scope="col">Tester</th><th scope="col">Page</th><th scope="col">Rating</th><th scope="col">Feedback</th></tr></thead><tbody>
+{% for f in items %}<tr><td>{{ f.created_at|date:'d M H:i' }}</td><td>{{ f.user.get_full_name|default:f.user.username }}<small>{{ f.role }}{% if f.site %} · {{ f.site.name }}{% endif %}</small></td><td><a href="{{ f.page }}">{{ f.page|truncatechars:50 }}</a></td><td>{{ f.get_rating_display|default:'—' }}</td><td>{{ f.text|linebreaksbr }}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="empty-state"><h2>No feedback yet</h2><p>Testers use the Feedback button at the bottom right of every page.</p></div>{% endif %}
+{% endblock %}

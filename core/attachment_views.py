@@ -10,6 +10,7 @@ from django.http import FileResponse,Http404,JsonResponse
 from django.shortcuts import get_object_or_404,redirect,render
 from .models import *
 from .access import require_event_editor
+from .storage import open_or_404
 from .views import site_access,log
 from .access import allowed_classifications,visible_attachments
 from .files import checked_upload,read_table
@@ -70,7 +71,7 @@ def attachment_download(request,site_code,pk,attachment_pk):
         if item.evidence.site_id!=site.pk or item.evidence.classification not in allowed_classifications(request.user,site): raise Http404
         return redirect('download',site_code=site.code,pk=item.evidence_id)
     if not item.file: raise Http404
-    response=FileResponse(item.file.open('rb'),as_attachment=True,filename=item.original_name)
+    response=FileResponse(open_or_404(item.file),as_attachment=True,filename=item.original_name)
     response['Cache-Control']='private, no-store';return response
 
 @login_required
@@ -84,7 +85,7 @@ def attachment_preview(request,site_code,pk,attachment_pk):
         if item.evidence.site_id!=site.pk or item.evidence.classification not in allowed_classifications(request.user,site):raise Http404
         file=item.evidence.file;name=file.name if file else ''
     if not file or Path(name).suffix.lower() not in ('.png','.jpg','.jpeg'):raise Http404
-    response=FileResponse(file.open('rb'),content_type=mimetypes.guess_type(name)[0],as_attachment=False)
+    response=FileResponse(open_or_404(file),content_type=mimetypes.guess_type(name)[0],as_attachment=False)
     response['Cache-Control']='private, no-store';return response
 
 @login_required

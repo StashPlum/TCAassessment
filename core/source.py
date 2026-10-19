@@ -3,12 +3,27 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
+import os
 ROOT=Path(__file__).resolve().parents[1]
+# The hosted demo receives extracted sources as private secret files; they are never committed.
+SECRET_DIR=Path(os.environ.get('TCA_SOURCE_DIR','/etc/secrets'))
+KAIZEN_FILES=(ROOT/'sources/extracted/Global_Kaizen_Template_20241219.json',SECRET_DIR/'kaizen-template.json')
+CATALOG_FILES=(ROOT/'sources/extracted/TCA assessment work categorisation.json',SECRET_DIR/'tca-catalog.json')
+
+def first_existing(paths):
+    return next((path for path in paths if path.is_file()),None)
+
+def synthetic_kaizen_record():
+    """Clearly labelled stand-in when the private template extract is absent (hosted demo without secret file)."""
+    coach=[{'address':f'C{78+i}','value':f'Synthetic quality criterion {i} (template text not loaded)'} for i in range(1,11)]
+    coach+=[{'address':f'B{row}','value':f'Supplemental template field B{row}'} for row in range(1,111)]
+    drops=[{'address':f'Z{4+i}','value':value} for i,value in enumerate(['Work Instruction','Performance Board','Checklist','Training Record'])]
+    return {'sheets':[{'name':'COACH REVIEW','cells':coach},{'name':'DROP_DOWNS','cells':drops}],'defined_names':{},'synthetic':True}
 
 @lru_cache(maxsize=1)
 def kaizen_record():
-    path=ROOT/'sources/extracted/Global_Kaizen_Template_20241219.json'
-    return json.loads(path.read_text(encoding='utf-8'))
+    path=first_existing(KAIZEN_FILES)
+    return json.loads(path.read_text(encoding='utf-8')) if path else synthetic_kaizen_record()
 
 def star_criteria():
     sheet=next(s for s in kaizen_record()['sheets'] if s['name']=='COACH REVIEW')

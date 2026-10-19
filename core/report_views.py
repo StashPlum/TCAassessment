@@ -30,7 +30,8 @@ def a3_preview(request,site_code,pk):
 def a3_download(request,site_code,pk,report_pk):
     site=site_access(request,site_code);event=get_object_or_404(Kaizen,site=site,pk=pk);report=get_object_or_404(A3Report,event=event,pk=report_pk)
     if not report_visible(report,request.user):raise Http404
-    response=FileResponse(report.file.open('rb'),as_attachment=True,filename=f'kaizen-{pk}-a3-v{report.version}.pdf');response['Cache-Control']='private, no-store';return response
+    from .a3 import report_bytes
+    response=HttpResponse(report_bytes(report),content_type='application/pdf');response['Content-Disposition']=f'attachment; filename="kaizen-{pk}-{report.paper.lower()}-v{report.version}.pdf"';response['Cache-Control']='private, no-store';return response
 
 @login_required
 @require_POST
@@ -64,7 +65,8 @@ def event_archive_zip(request,site_code,pk):
                 with item.evidence.file.open('rb') as file:archive.writestr(f'originals/evidence-{item.evidence_id}-{Path(item.evidence.file.name).name}',file.read())
         for report in event.a3_reports.all():
             if not report_visible(report,request.user):continue
-            with report.file.open('rb') as file:archive.writestr(f'reports/a3-v{report.version}.pdf',file.read())
+            from .a3 import report_bytes
+            archive.writestr(f'reports/a3-v{report.version}.pdf',report_bytes(report))
     response=HttpResponse(output.getvalue(),content_type='application/zip');response['Content-Disposition']=f'attachment; filename="kaizen-{pk}-complete.zip"';return response
 
 class SharingForm(forms.Form):

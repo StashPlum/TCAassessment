@@ -204,6 +204,14 @@ def ensure_report(event,user,paper='A3'):
     report=A3Report(event=event,event_revision=event.revision,renderer_version=RENDERER_VERSION,paper=paper,version=version,snapshot=content,sha256=hashlib.sha256(raw).hexdigest(),created_by=user)
     report.file.save(f'kaizen-{event.pk}-{paper.lower()}-v{version}.pdf',ContentFile(raw),save=False);report.save();return report
 
+def report_bytes(report):
+    """Stored PDF bytes. If the file store was wiped (e.g. a free demo host restarted), the identical
+    finalised layout is rebuilt from the frozen snapshot kept in the database; the hash is not reused."""
+    try:
+        with report.file.open('rb') as handle: return handle.read()
+    except (FileNotFoundError,OSError,ValueError):
+        return build_pdf(report.snapshot,None,report.paper,final=True)
+
 def ensure_reports(event,user):
     """Finalization stores both paper versions of the same frozen revision."""
     return [ensure_report(event,user,paper) for paper in PAPERS]

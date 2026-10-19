@@ -434,3 +434,15 @@ class BestPracticeValidation(models.Model):
     validated_at = models.DateTimeField(auto_now_add=True)
     how_achieved = models.TextField()  # how the result was reached and sustained, in the validator's words
     validation_basis = models.TextField()  # what the validator checked (sites, period, sustainment evidence)
+
+class DemoFeedback(models.Model):
+    """Feedback left by demo testers on any page; kept apart from assessment and Kaizen records."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    site = models.ForeignKey(Site, null=True, blank=True, on_delete=models.SET_NULL)
+    page = models.CharField(max_length=300)
+    role = models.CharField(max_length=60, blank=True)
+    rating = models.CharField(max_length=10, blank=True, choices=[('good','Works well'),('unclear','Unclear'),('problem','Problem')])
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-created_at']

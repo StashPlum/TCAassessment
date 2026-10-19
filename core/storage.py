@@ -13,3 +13,10 @@ class PrivateLocalStorage(FileSystemStorage):
 
     def url(self, name):
         raise ValueError('Private evidence has no public URL. Use the authorized download view.')
+
+
+def open_or_404(field):
+    """Open a private file; a file that no longer exists (temporary demo storage) is a clean 404."""
+    from django.http import Http404
+    try: return field.open('rb')
+    except (FileNotFoundError,OSError,ValueError): raise Http404('This file is no longer available. Uploads are temporary in the hosted demo.')

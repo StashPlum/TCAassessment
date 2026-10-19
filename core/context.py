@@ -34,7 +34,9 @@ def selected_site(request):
     return sites.filter(code=code).first() or sites.first()
 
 def workspace(request):
-    if not request.user.is_authenticated: return {}
+    from django.conf import settings
+    demo={'demo_mode':getattr(settings,'DEMO',False)}
+    if not request.user.is_authenticated: return demo
     sites=list(authorized_sites(request.user))
     site=selected_site(request)
     name=request.resolver_match.url_name if request.resolver_match else 'home'
@@ -43,7 +45,9 @@ def workspace(request):
     parent={'Overview':'home','Assessments':'assessment','Improvements':'opportunities','Resources':'resources','Administration':'administration'}[area]
     area_url=reverse(parent,kwargs={'site_code':site.code}) if site and parent in ('assessment','opportunities','resources') else reverse('administration' if area=='Administration' else 'home')
     from .kaizen import initials
-    return {'user_initials':initials(request.user.get_full_name() or request.user.username),'workspace_site':site,'authorized_sites':sites,**role_context(request.user,site),
+    from .demo_views import can_read_feedback
+    demo['can_read_feedback']=demo['demo_mode'] and can_read_feedback(request.user)
+    return {**demo,'user_initials':initials(request.user.get_full_name() or request.user.username),'workspace_site':site,'authorized_sites':sites,**role_context(request.user,site),
             'authorized_countries':[(code,dict(Site.COUNTRY_CHOICES).get(code,'Country not assigned')) for code in sorted({s.country_code for s in sites})],
             'workspace_assessment':site.assessments.first() if site else None,
             'baseline_reference':source.sha256[:8] if source else 'Not imported',
