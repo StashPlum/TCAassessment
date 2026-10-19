@@ -1,8 +1,8 @@
 """Saved-data A3/A4 report + full structured archive; no source-template parity claim.
 
-Paper size (A3 or A4 landscape) is a report choice only. The first page is a concise six-block
-sheet; every shortened block continues in full in the "Complete content" pages, so no saved source
-content is dropped to make the sheet fit.
+Paper size is a report choice only. The first page follows the Global Kaizen template report tabs
+(A3 landscape = LANDSCAPE tab, A4 portrait = PORTRAIT tab, see a3_sheet.py); every shortened value
+continues in full in the "Complete content" pages, so no saved source content is dropped to fit.
 """
 from io import BytesIO
 from html import escape
@@ -22,8 +22,8 @@ from .methodology import rules_for
 from .toolbox_visuals import render_svg
 from .toolbox_registry import REGISTRY
 from .toolbox_math import calculate
-RENDERER_VERSION=3
-PAPERS={'A3':landscape(A3),'A4':landscape(A4)}
+RENDERER_VERSION=4
+PAPERS={'A3':landscape(A3),'A4':A4}
 NAVY=colors.HexColor('#0B1A48');MUTED=colors.HexColor('#4B5265');LINE=colors.HexColor('#D8DBE3');RED=colors.HexColor('#E4002B')
 LOGO=Path(__file__).resolve().parent/'static/core/ceva-logo.png'
 PHASE_LABELS={'PLN':'Plan','DO':'Do','CHK':'Check','ACT':'Act'}
@@ -40,6 +40,8 @@ def report_snapshot(event):
     content['team']=[{'name':team_display(p),'role':p.kaizen_role} for p in event.participants.select_related('user')]
     names={p.pk:team_display(p) for p in event.participants.select_related('user')}
     for action in content['actions']: action['assignee_name']=names.get(action.get('assignee_id'),'')
+    from .a3_sheet import header_fields
+    content['header']=header_fields(event,content['team'])
     content['feedback']=[{'stage':n.stage,'kind':n.kind,'text':n.text,'resolved':n.resolved} for n in event.review_notes.exclude(kind='reply')]
     return content
 
@@ -60,7 +62,10 @@ def report_blocks(content):
     """The six numbered A3 blocks in full; the sheet shortens them, continuation pages do not."""
     data=content['data'];actions=content.get('actions',[])
     results=[f'{c["measure"]} · {c["population"]} · {c["unit"]}: before {_n(c["before_average"])} ({c["before_count"]} points), after {_n(c["after_average"])} ({c["after_count"]} points), change {_n(c["difference"])}' for c in content.get('comparisons',[])]
-    return [('1','Problem',_lines(data,['overall_problem','process_location','outcome_criterion','specific_problem'])),
+    context='\n'.join([f'{label}: {value}' for label,value in content.get('header',[]) if str(value).strip()]+
+        [f'{label}: {data[key]}' for label,key in [('Why important','fivew2h_why'),('Problem area','coach_49'),('Problem process','coach_50'),('Who','fivew2h_who'),
+         ('When','fivew2h_when'),('Product / service','fivew2h_what'),('Solution area','coach_60'),('Solution process','coach_61'),("Site manager's comments",'coach_35')] if str(data.get(key,'')).strip()])
+    return [('0','Context',context),('1','Problem',_lines(data,['overall_problem','process_location','outcome_criterion','specific_problem'])),
             ('2','Cause',_lines(data,['root_cause','cause_status'])),
             ('3','Countermeasure',_lines(data,['solution'])),
             ('4','Actions','\n'.join(_action_line(a) for a in actions)),
@@ -91,41 +96,22 @@ def _styles(paper):
     styles.add(ParagraphStyle(name='A3Small',fontSize=base-1.5,leading=(base-1.5)*1.35,textColor=MUTED))
     styles.add(ParagraphStyle(name='A3Block',fontName='Helvetica-Bold',fontSize=base+2,leading=(base+2)*1.3,textColor=NAVY,spaceAfter=3))
     styles.add(ParagraphStyle(name='A3Banner',fontName='Helvetica-Bold',fontSize=base,leading=base*1.35,textColor=colors.HexColor('#8E1D17')))
+    cell=6.6 if small else 9
+    styles.add(ParagraphStyle(name='Cell',fontSize=cell,leading=cell*1.25))
+    styles.add(ParagraphStyle(name='Small',fontSize=cell-.6,leading=(cell-.6)*1.25,textColor=MUTED))
+    styles.add(ParagraphStyle(name='Label',fontName='Helvetica-Bold',fontSize=cell-.6,leading=(cell-.6)*1.25,textColor=NAVY))
+    styles.add(ParagraphStyle(name='SheetTitle',fontName='Helvetica-Bold',fontSize=14 if small else 18,leading=17 if small else 22,textColor=NAVY))
+    styles.add(ParagraphStyle(name='Banner',fontName='Helvetica-Bold',fontSize=cell+.4,leading=(cell+.4)*1.3,textColor=colors.HexColor('#8E1D17')))
+    styles.add(ParagraphStyle(name='Band',fontName='Helvetica-Bold',fontSize=cell+2,leading=(cell+2)*1.3,textColor=colors.white,backColor=NAVY,borderPadding=(2,4,2,4),spaceAfter=4))
     return styles
 
 def _event_story(content,photo_bytes,paper,final,styles):
     width,height=PAPERS[paper];small=paper=='A4';margin=24 if small else 32
     def para(value,style='A3Body'): return Paragraph(escape(str(value)).replace('\n','<br/>'),styles[style])
-    header=[para(content['title'],'A3Title'),
-            para(f'{content["site"]} · KZ-{content["event_id"]} · revision {content["event_revision"]} · methodological type {rules_for(content["profile"])["label"]} · '
-                 f'input view {content["input_profile"]} · review state {content.get("review_state","")} · paper {paper} landscape','A3Small')]
-    if LOGO.exists():
-        logo=Image(str(LOGO),width=72,height=25,mask='auto')
-        top=Table([[logo,header]],colWidths=[90,width-2*margin-90]);top.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('LEFTPADDING',(0,0),(-1,-1),0)]))
-        story=[top]
-    else: story=header
-    if not final: story.append(para('WORKING COPY · not a finalised report version. Review state and gates are shown as saved at this revision.','A3Banner'))
-    story.append(Spacer(1,6))
-    limit=420 if small else 900;column=(width-2*margin-12)/2
-    blocks=report_blocks(content);cells=[];shortened=False
-    for number,title,value in blocks:
-        concise=value or 'Not recorded'
-        if len(concise)>limit:
-            concise=concise[:limit].rsplit(' ',1)[0]+'\n[Summary shortened; complete wording continues under "Complete content".]';shortened=True
-        flow=[para(f'{number}  {title}','A3Block'),para(concise)]
-        if number=='5':
-            for comparison in content.get('comparisons',[])[:2]:
-                drawing=_result_drawing(comparison,column-30)
-                if drawing: flow.append(drawing)
-        cells.append(flow)
-    sheet=Table([[cells[0],cells[3]],[cells[1],cells[4]],[cells[2],cells[5]]],colWidths=[column,column],hAlign='LEFT')
-    sheet.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('BOX',(0,0),(-1,-1),.8,LINE),('INNERGRID',(0,0),(-1,-1),.5,LINE),
-        ('LINEBEFORE',(0,0),(0,-1),3,NAVY),('LEFTPADDING',(0,0),(-1,-1),10),('RIGHTPADDING',(0,0),(-1,-1),10),('TOPPADDING',(0,0),(-1,-1),8),('BOTTOMPADDING',(0,0),(-1,-1),8)]))
-    story.append(sheet)
-    gates=content.get('gates',[]);done=sum(1 for g in gates if g['ok'])
-    methods=', '.join(sorted({w['title'] for w in content.get('worksheets',[])})) or 'None selected'
-    story.extend([Spacer(1,6),para(f'Gates met {done} of {len(gates)} · methods: {methods}. {content.get("method_rules","")}','A3Small'),
-                  para('Report paper does not change event type or TCA classification. Local summary; CAT confirmation and official submission policy remain separate.','A3Small')])
+    from .a3_sheet import template_sheet
+    story,_=template_sheet(content,paper,final,styles,width,margin)
+    blocks=report_blocks(content);gates=content.get('gates',[])
+    story.append(para('Report paper does not change event type or TCA classification. Local summary; official submission policy remains separate.','A3Small'))
     # Complete content: every block, action, gate, team role and review item in full.
     story.extend([PageBreak(),para('Complete content','A3Title'),para('Full wording of every block. Nothing on the summary sheet is omitted here.','A3Small')])
     for number,title,value in blocks: story.extend([para(f'{number}  {title}','A3Block'),para(value or 'Not recorded'),Spacer(1,4)])

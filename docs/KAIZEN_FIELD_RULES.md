@@ -1,5 +1,9 @@
 # Kaizen field and rule matrix — refinement R1
 
+## Report layout mapping (19 October 2026)
+
+`core/a3_sheet.py` maps the template report tabs: LANDSCAPE (A3) header B2:EG10 ← title, `COACH REVIEW` C12/C19–C22/C25/C28/C29/C31/C33/C48, team; PLAN B18–B61 ← PLAN!G11, 5W2H why/who/when/what, C49/C50; AZ42 ← PLAN!G63; AZ98 ← PLAN!G85; DO BS21/BS27 ← C60/C61, DQ23 ← DO!E15, key actions rows 1–5 ← Do actions (owner, end − start days); CHECK ← after average, improvement, target; ACT rows 1–5 ← Act actions; B123 ← C35. PORTRAIT (A4) stacks the same fields. Formulas are not recalculated; the app reads its own saved values.
+
 ## Stage 4 — methodological type rules (19 October 2026)
 
 `core/methodology.py` holds the only source-backed A4/A3/BPK differences: PLAN!B69 marks cause analysis "Optional for A4", so A3 and Business Process events need cause analysis before Plan→Do and in the review gates; DL_UPLOAD!C22/F22 report A4/A3 as category Standard and BPK as type "A3 Kaizen". Input view (small/medium/extensive) and report paper (A3/A4 PDF) never derive from the type. Open CEVA interpretations are listed in the same module and shown in the workspace. Tasks are `KaizenAction` rows (new phases Plan/Check, team assignee, progress); team members are `Participant` rows optionally linked to a site user.

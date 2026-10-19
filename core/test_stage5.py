@@ -90,14 +90,16 @@ class StageFiveJourneyTests(TestCase):
         self.assertEqual((card['comparison']['before'],card['comparison']['after']),(60.0,96.0))
         self.assertContains(page,'Not validated as best practice')
         self.assertEqual(len(self.client.get(reverse('learning',args=[self.recipient.code]),{'req':'1.C.1'}).context['cards']),0)
-        # Only a sensei validates best practice; a team member cannot.
+        # Only the TCA auditor validates best practice; team members and the sensei cannot.
         self.assertEqual(self.client.post(reverse('best_practice_validate',args=[self.recipient.code,entry.pk]),{'how_achieved':'x'*12,'validation_basis':'y'*12}).status_code,404)
         self.login('sensei_demo')
         url=reverse('best_practice_validate',args=[self.recipient.code,entry.pk])
+        self.assertEqual(self.client.post(url,{'how_achieved':'x'*12,'validation_basis':'y'*12}).status_code,404)
+        self.login('auditor_demo')
         self.client.post(url,{'how_achieved':'short','validation_basis':'short'})
         self.assertFalse(BestPracticeValidation.objects.exists())
         self.client.post(url,{'how_achieved':'Fixed slot sustained for three months','validation_basis':'Synthetic board data at two sites'})
-        practice=BestPracticeValidation.objects.get();self.assertEqual(practice.validated_by,self.users['sensei_demo'])
+        practice=BestPracticeValidation.objects.get();self.assertEqual(practice.validated_by,self.users['auditor_demo'])
         page=self.client.get(reverse('learning',args=[self.recipient.code]),{'practice':'validated'})
         self.assertContains(page,'Validated by');self.assertEqual(len(page.context['cards']),1)
         # Adoption creates a new linked draft without approvals, evidence, measures or TCA answers.

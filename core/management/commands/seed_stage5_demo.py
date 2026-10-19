@@ -30,7 +30,7 @@ class Command(BaseCommand):
                 transfer_limits='FICTIONAL: check your own shift pattern and board location before adopting.',approach=learning_approach(event),
                 approved_by=manager,approval_reason='FICTIONAL pilot sharing for the stage 5 demonstration')
             entry.allowed_sites.set([source,target])
-            BestPracticeValidation.objects.create(entry=entry,validated_by=sensei,how_achieved='FICTIONAL: fixed slot and agenda card, sustained by a weekly manager check.',
+            BestPracticeValidation.objects.create(entry=entry,validated_by=User.objects.get(username='auditor_demo'),how_achieved='FICTIONAL: fixed slot and agenda card, sustained by a weekly manager check.',
                 validation_basis='FICTIONAL: eight weeks of board data at the source site.')
             evidence=Evidence.objects.create(site=source,title='FICTIONAL PDCA board photo week 41',evidence_type='observation',owner='Mila Janssen',created_by=sensei)
             EventAttachment.objects.create(event=event,stage='Check',evidence=evidence,title='Board photo',version='1',provenance='Existing fictional evidence',created_by=sensei)

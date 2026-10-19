@@ -404,7 +404,7 @@ class VerificationClaim(models.Model):
 class A3Report(models.Model):
     event = models.ForeignKey(Kaizen, on_delete=models.CASCADE, related_name='a3_reports')
     event_revision = models.PositiveIntegerField()
-    paper = models.CharField(max_length=2, default='A3', choices=[('A3','A3 landscape'),('A4','A4 landscape')])  # report paper only, never event type
+    paper = models.CharField(max_length=2, default='A3', choices=[('A3','A3 landscape'),('A4','A4 portrait')])  # report paper only, never event type
     renderer_version = models.PositiveSmallIntegerField(default=1)
     version = models.PositiveIntegerField()
     snapshot = models.JSONField()
@@ -428,7 +428,7 @@ class LearningEntry(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 class BestPracticeValidation(models.Model):
-    """Separate sensei validation; a closed or shared event never becomes best practice by itself."""
+    """Separate TCA auditor validation; a closed or shared event never becomes best practice by itself."""
     entry = models.OneToOneField(LearningEntry, on_delete=models.PROTECT, related_name='best_practice')
     validated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     validated_at = models.DateTimeField(auto_now_add=True)

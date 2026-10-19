@@ -186,7 +186,7 @@ class StageFourTests(TestCase):
         pdf=self.client.get(reverse('review_export',args=[self.site.code,'pdf']),{'ids':[new.pk],'paper':'A4'})
         self.assertEqual(pdf['Content-Type'],'application/pdf')
         from pypdf import PdfReader
-        reader=PdfReader(BytesIO(pdf.content));self.assertAlmostEqual(float(reader.pages[0].mediabox.width),841.89,places=1)
+        reader=PdfReader(BytesIO(pdf.content));self.assertAlmostEqual(float(reader.pages[0].mediabox.width),595.28,places=1)
         self.assertIn('WORKING COPY',reader.pages[0].extract_text())
         # Another site's event identifier is refused.
         foreign=Kaizen.objects.create(site=self.other,title='Fictional foreign',profile='A4',created_by=self.foreign)
@@ -236,7 +236,7 @@ class StageFourTests(TestCase):
         KaizenAction.objects.filter(event=event,phase='DO').update(assignee=lead,progress=80)
         pdf=reverse('event_export',args=[self.site.code,event.pk,'pdf']);xlsx=reverse('event_export',args=[self.site.code,event.pk,'xlsx'])
         from pypdf import PdfReader
-        for paper,width in [('A3',1190.55),('A4',841.89)]:
+        for paper,width in [('A3',1190.55),('A4',595.28)]:
             response=self.client.get(pdf,{'paper':paper});self.assertEqual(response.status_code,200)
             reader=PdfReader(BytesIO(response.content));text=''.join(p.extract_text() for p in reader.pages)
             self.assertAlmostEqual(float(reader.pages[0].mediabox.width),width,places=1)

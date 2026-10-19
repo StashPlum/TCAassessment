@@ -77,13 +77,13 @@ def learning(request,site_code):
     return render(request,'learning.html',{'site':site,'cards':cards,'selected':selected,'req':req,'section':section,'method':method,'methods':methods,
         'query':q,'practice':practice,'categories':Category.objects.all(),'filter_query':query.urlencode(),
         'filters_active':bool(req or section or method or q or practice),
-        'can_validate':Membership.objects.filter(user=request.user,site=site,role='coach').exists()})
+        'can_validate':Membership.objects.filter(user=request.user,site=site,role='assessor').exists()})
 
 @login_required
 @require_POST
 def best_practice_validate(request,site_code,pk):
-    """Only a sensei validates; the decision records who, when, how it was achieved and what was checked."""
-    site=site_access(request,site_code,['coach'])
+    """Only a TCA auditor validates (user decision 19 Oct 2026); the record keeps who, when, how and what was checked."""
+    site=site_access(request,site_code,['assessor'])
     entry=get_object_or_404(LearningEntry,pk=pk,allowed_sites=site)
     how=request.POST.get('how_achieved','').strip();basis=request.POST.get('validation_basis','').strip()
     target=reverse('learning',args=[site.code])+f'?entry={entry.pk}'

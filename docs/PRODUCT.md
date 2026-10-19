@@ -36,6 +36,10 @@ Formal approval of the `advisory-v2` local calculation and its corporate impleme
 
 Target Django 5.2 LTS, PostgreSQL 14+, server-rendered pages and HTMX. Local file storage behind a private access interface. Development login only on loopback. No public API, external upload, or corporate identity connection in the local pilot. Use synthetic data for demonstrations.
 
+## User decisions 19 October 2026
+
+CAT confirmation is out of scope for the demo; local figures still never claim CAT standing. Only the TCA auditor validates a learning as best practice. CEVA logo and Barlow typography are approved for the demo. A3 and A4 reports follow the Global Kaizen template LANDSCAPE and PORTRAIT tabs.
+
 ## Upgrade interpretation
 
 The 12 October upgrade has three bounded milestones described in PLAN.md. Governance interpretation is in GOVERNANCE_DELTA.md. CAT controls official standing and recognition; local section readiness is separate. Site-specific assessments will be governed immutable configurations in U2, retaining canonical IDs and approved historical records. U1 changes interface/location metadata only: organization is separate from site, Benelux is a grouping, countries are NL/BE/LU/GB with blank metadata allowed. No applicability, frequency, standing or publication rule is inferred from the UI changes. Technical administrators have no implicit program approval authority.
