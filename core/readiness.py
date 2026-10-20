@@ -77,3 +77,20 @@ def assessment_snapshot(site, assessment):
                 for link in all_references],
             'unverified_yes':unverified,'categories':categories,'configuration':assessment.configuration_snapshot,
             'preparation':assessment.preparation_snapshot}
+
+def level_blockers(site, assessment, requirements=None):
+    """The next level above the lowest section and the requirements that block it, from accepted answers only."""
+    from .models import Requirement
+    from .scoring import LEVELS
+    codes,_=accepted_codes(site,assessment)
+    policy=assessment.policy_version if assessment else 'draft-v1'
+    passing=pass_codes(policy)
+    if requirements is None: requirements=list(Requirement.objects.select_related('category'))
+    by_section={}
+    for r in requirements: by_section.setdefault(r.category_id,{})[r.position]=codes.get(r.code,'')
+    ranking={None:0,'Certified':1,'Advanced':2,'Showcase':3}
+    earned=[category_result(answers,policy)['earned'] for answers in by_section.values()]
+    lowest=min(earned,key=lambda v:ranking[v]) if earned else None
+    level=next(((name,limit) for limit,name in LEVELS if ranking[name]>ranking[lowest]),None)
+    blockers=[r for r in requirements if level and r.position<=level[1] and codes.get(r.code) not in passing]
+    return {'level':level[0] if level else None,'limit':level[1] if level else 0,'blockers':blockers,'codes':codes,'passing':passing}

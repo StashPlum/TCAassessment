@@ -1,7 +1,7 @@
 name: Verify synthetic local domain
 on:
   push:
-    branches: ['codex/**']
+    branches: ['codex/**', 'TCA-progress-v3-redesign']
   pull_request:
 permissions:
   contents: read

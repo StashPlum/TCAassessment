@@ -157,3 +157,35 @@ class V32AssessmentTests(TestCase):
         read_only = self.client.get(url, {'view': 'all'})
         self.assertNotContains(read_only, 'data-assessment-autosave')
         self.assertEqual(self.client.post(reverse('respond', args=[self.site.code, self.req.code]), {'code': 'Y', 'revision': 0}).status_code, 404)
+
+    def test_matrix_marks_next_level_blockers_and_picks_version_by_role(self):
+        approved = Assessment.objects.create(site=self.site, version=1, created_by=self.auditor, policy_version='advisory-v2', status='approved', approved_at=timezone.now())
+        # Section 1 position 1: Y with evidence passes; position 2: Y without evidence is pending and still blocks.
+        self.accept_evidence(self.req)
+        for req in (self.req, self.req2):
+            Response.objects.create(assessment=approved, requirement=req, code='Y', conclusion='Synthetic conclusion', updated_by=self.auditor)
+        draft = Assessment.objects.create(site=self.site, version=2, created_by=self.auditor, policy_version='advisory-v2')
+        Response.objects.create(assessment=draft, requirement=self.req2, code='N', updated_by=self.auditor)
+        url = reverse('opportunities', args=[self.site.code])
+        self.client.force_login(self.manager)
+        page = self.client.get(url)
+        self.assertEqual((page.context['matrix_version'], page.context['matrix_assessment']), ('approved', approved))
+        cells = {c['requirement'].code: c for row in page.context['matrix']['rows'] for c in row['cells'] if c['requirement']}
+        self.assertFalse(cells['1.C.1']['blocker'])
+        self.assertTrue(cells['1.C.2']['pending'] and cells['1.C.2']['blocker'])
+        self.assertEqual(page.context['next_level'], 'Certified')
+        self.assertEqual(len(page.context['next_blockers']), 74)
+        self.assertContains(page, '74 requirements block Certified')
+        self.assertContains(page, '1 answer is waiting for evidence')
+        only = self.client.get(url, {'state': 'blocker', 'section': '1'})
+        self.assertEqual([row['category'].number for row in only.context['matrix']['rows']], [1])
+        pending = self.client.get(url, {'state': 'pending'})
+        self.assertEqual([row['category'].number for row in pending.context['matrix']['rows']], [1])
+        self.assertEqual(self.client.get(url, {'version': 'draft'}).context['matrix_assessment'], draft)
+        self.client.force_login(self.auditor)
+        page = self.client.get(url)
+        self.assertEqual(page.context['matrix_assessment'], draft)
+        self.assertContains(page, 'they count only after approval')
+        # The manager start page uses the same rule as the matrix.
+        self.client.force_login(self.manager)
+        self.assertContains(self.client.get(reverse('home')), '74 requirements block Certified')

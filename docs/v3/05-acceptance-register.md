@@ -20,7 +20,7 @@ Status vocabulary: Not started / Implemented-unverified / Verified / Failed / Bl
 | AC-14 | Evidence | P5, O1 | Durability blocked by decision O1 (free plan); linkage/access to be verified in P5 | |
 | AC-15 | Autosave | P2.5 | Implemented-unverified (refresh, logout/login, conflict verified; induced save failure in browser pending) | phase2/journey.json |
 | AC-16 | Advisory | P2.3 | Verified | test_v32 `new_draft_copies_nothing…`: no carry-over, prior Advisory shown, retest recorded, v1 snapshot unchanged |
-| AC-17 | Matrix | P2.6 | Not started | |
+| AC-17 | Matrix | P2.6 | Verified | test_v32 `matrix_marks_next_level_blockers…` (blockers from accepted answers, evidence-pending marker, blocker/pending filters, approved version for managers and draft for auditors, same count on the manager start page); phase3/manager_demo-matrix-{1440,1024,768,390}.png, no horizontal page overflow |
 | AC-18 | Maturity | scoring tests | Implemented-unverified (existing tests) | |
 | AC-19 – AC-21 | Guided tools, diagrams, PDCA | P4 | Not started | |
 | AC-22 | Efficiency | 03 §2 | Baseline measured | 03-screens-and-journeys.md |

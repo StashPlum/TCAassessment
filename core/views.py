@@ -75,17 +75,9 @@ def next_action_context(user,site,latest,codes):
     scope=scope_for(draft).get('requirements',[]) if draft else []
     answered=set(draft.responses.filter(code__in=('Y','A','N')).values_list('requirement_id',flat=True)) if draft else set()
     # Blockers describe the verified position: the latest approved record, never an unfinished draft.
-    latest=site.assessments.filter(status='approved').first()
-    codes,_=accepted_codes(site,latest)
-    passing=pass_codes(latest.policy_version if latest else 'draft-v1')
-    levels=(('Certified',5),('Advanced',8),('Showcase',10))
-    ranking={None:0,'Certified':1,'Advanced':2,'Showcase':3}
-    lowest=None
-    if latest:
-        results=[category_result({r.position:codes.get(r.code,'') for r in c.requirements.all()},latest.policy_version)['earned'] for c in Category.objects.prefetch_related('requirements')]
-        lowest=min(results,key=lambda v:ranking[v]) if results else None
-    next_level=next(((name,limit) for name,limit in levels if ranking[name]>ranking[lowest]),None)
-    next_blockers=list(Requirement.objects.filter(position__lte=next_level[1]).exclude(code__in=[k for k,v in codes.items() if v in passing]).select_related('category')) if next_level else []
+    from .readiness import level_blockers
+    position=level_blockers(site,site.assessments.filter(status='approved').first())
+    next_blockers=position['blockers']
     overdue_actions=list(Opportunity.objects.filter(site=site,status='open',due_date__lt=today).order_by('due_date')[:5])
     overdue_tasks=list(KaizenAction.objects.filter(event__site=site,end_date__lt=today).exclude(progress=100).select_related('event').order_by('end_date')[:5])
     events=list(Kaizen.objects.filter(site=site).exclude(status='reassessment_accepted').prefetch_related('review_notes'))
@@ -93,7 +85,7 @@ def next_action_context(user,site,latest,codes):
     returned=[e for e in events if review_state(e)=='returned' and (e.created_by_id==user.pk or e.participants.filter(user=user).exists())]
     return {'today':today,'draft':draft,'draft_answered':len(answered&set(scope)),'draft_total':len(scope),
             'draft_next':next((code for code in scope if code not in answered),None),
-            'next_level':next_level[0] if next_level else None,'next_blockers':next_blockers,
+            'next_level':position['level'],'next_blockers':next_blockers,
             'next_blocker_sections':sorted({r.category for r in next_blockers},key=lambda c:c.number),
             'overdue_actions':overdue_actions,'overdue_tasks':overdue_tasks,
             'sessions_to_confirm':AssessmentSession.objects.filter(site=site,availability='proposed',date__gte=today).order_by('date')[:3],
@@ -349,36 +341,56 @@ def opportunities(request,site_code):
             messages.success(request,'Opportunity saved. A Kaizen requires separate acceptance.')
             return redirect('opportunities',site_code=site.code)
     items=list(Opportunity.objects.filter(site=site).select_related('requirement'))
-    current=site.assessments.first()
-    codes,_=accepted_codes(site,current)
+    approved=site.assessments.filter(status='approved').first()
+    draft=site.assessments.filter(status='draft').first()
+    # Auditors work in the open draft; everyone else reads the last approved record unless they ask for the draft.
+    version=request.GET.get('version','')
+    if version not in ('draft','approved'):
+        version='draft' if draft and (Membership.objects.filter(user=request.user,site=site,role='assessor').exists() or not approved) else 'approved'
+    current=draft if version=='draft' and draft else approved or draft
+    version='draft' if current is not None and current==draft else 'approved'
+    from .readiness import level_blockers
+    from .matrix import assessment_matrix
+    matrix=assessment_matrix(current)
+    in_scope=[cell['requirement'] for row in matrix['rows'] for cell in row['cells'] if cell['requirement']]
+    position=level_blockers(site,current,in_scope)
+    blocking={r.code for r in position['blockers']}
+    for row in matrix['rows']:
+        for cell in row['cells']:
+            req=cell['requirement']
+            cell['blocker']=bool(req) and req.code in blocking
+            cell['pending']=bool(req) and cell['code'] in position['passing'] and position['codes'].get(req.code)!=cell['code']
+    codes=position['codes']
     limit={'C':5,'B':8,'A':10}[site.target_level]
     for item in items:
-        item.target_blocker=bool(item.requirement and item.requirement.position<=limit and codes.get(item.requirement_id) not in pass_codes(current.policy_version if current else 'draft-v1'))
+        item.target_blocker=bool(item.requirement and item.requirement.position<=limit and codes.get(item.requirement_id) not in position['passing'])
         item.sequence_reason=('Immediate corrective need' if item.immediate_corrective else
                               'Blocker for target level' if item.target_blocker else
                               'Prerequisite' if item.prerequisite else 'Other opportunity')
     items.sort(key=lambda x:(x.priority_override if x.priority_override is not None else 100,
                              0 if x.immediate_corrective else 1,0 if x.target_blocker else 1,
                              0 if x.prerequisite else 1,x.due_date or date.max,x.id))
-    from .matrix import assessment_matrix
-    matrix=assessment_matrix(current)
     matrix_section=request.GET.get('section','')
     if not matrix_section.isdigit() or int(matrix_section) not in {category.number for category in matrix['categories']}:
         matrix_section=''
     matrix_state=request.GET.get('state','')
-    if matrix_state not in ('yes','advisory','no','unanswered'):
+    if matrix_state not in ('yes','advisory','no','unanswered','blocker','pending'):
         matrix_state=''
     matrix_query=request.GET.get('q','').strip()[:200]
     if matrix_section.isdigit():
         matrix['rows']=[row for row in matrix['rows'] if row['category'].number==int(matrix_section)]
-    if matrix_state in ('yes','advisory','no','unanswered') or matrix_query:
+    if matrix_state or matrix_query:
         matrix['rows']=[row for row in matrix['rows'] if any(cell['requirement'] and
-            (not matrix_state or cell['state']==matrix_state) and
+            (not matrix_state or cell['state']==matrix_state or cell.get(matrix_state)) and
             (not matrix_query or matrix_query.casefold() in cell['requirement'].code.casefold() or
              matrix_query.casefold() in cell['requirement'].detail_text.casefold()) for cell in row['cells'])]
     return render(request,'opportunities.html',{'site':site,'items':items,'form':form,'matrix':matrix,
         'matrix_section':matrix_section,'matrix_state':matrix_state,'matrix_query':matrix_query,
-        'matrix_filters_active':bool(matrix_section or matrix_state or matrix_query)})
+        'matrix_filters_active':bool(matrix_section or matrix_state or matrix_query),
+        'matrix_assessment':current,'matrix_version':version,'has_draft':bool(draft),'has_approved':bool(approved),
+        'next_level':position['level'],'next_blockers':position['blockers'],
+        'blocker_sections':len({r.category_id for r in position['blockers']}),
+        'pending_count':sum(1 for row in matrix['rows'] for cell in row['cells'] if cell['pending'])})
 
 @login_required
 def sessions(request,site_code):
