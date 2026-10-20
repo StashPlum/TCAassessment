@@ -41,9 +41,7 @@
 </article>
 {% if section_map %}<aside class="rail" aria-label="Progress by section">
 <div class="rail-head"><h2>Progress</h2><p class="rail-counts"><span class="k k-yes">{{ section_map.counts.yes }} Y</span><span class="k k-advisory">{{ section_map.counts.advisory }} A</span><span class="k k-no">{{ section_map.counts.no }} N</span><span class="k k-unanswered">{{ section_map.counts.unanswered }} open</span></p></div>
-<div class="rail-bands" aria-hidden="true"><span></span><span class="b-c">Certified</span><span class="b-b">Adv.</span><span class="b-a">Show.</span></div>
-<ol class="rail-map">{% for row in section_map.rows %}<li><span class="rail-sec" title="{{ row.title }}">{{ row.number }}</span><span class="rail-cells">{% for c in row.cells %}<a class="cell s-{{ c.state }} l-{{ c.level }}{% if c.current %} is-current{% endif %}" href="?assessment={{ assessment.pk }}&amp;view=single&amp;page={{ c.page }}" aria-label="{{ c.requirement.label }} {{ c.code|answer_label }}{% if c.current %} (open now){% endif %}" {% if c.current %}aria-current="true"{% endif %}>{% if c.code == 'Y' %}✓{% elif c.code == 'A' %}!{% elif c.code == 'N' %}✕{% endif %}</a>{% endfor %}</span></li>{% endfor %}</ol>
-<p class="rail-legend small"><span class="cell s-yes">✓</span> Yes <span class="cell s-advisory">!</span> Advisory <span class="cell s-no">✕</span> No <span class="cell s-unanswered"></span> open</p>
+{% include '_section_map.html' with map=section_map map_assessment=assessment %}
 </aside>{% endif %}
 </div>
 {% empty %}<p class="empty-row">No matching questions. Reset filters or choose another section.</p>{% endfor %}

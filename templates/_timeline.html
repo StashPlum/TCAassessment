@@ -1,0 +1,9 @@
+<section class="viz timeline" aria-labelledby="timeline-title">
+<div class="viz-head"><div><h2 id="timeline-title">{% if mine %}When is my work due?{% else %}What is due, and what is late?{% endif %}</h2><p class="viz-sub">Open {% if mine %}tasks and actions assigned to you{% else %}actions and Kaizen tasks{% endif %} with a due date · {{ timeline.today|date:'d M Y' }} marked.</p></div>
+{% if timeline.items %}<p class="viz-kpi"><span class="viz-kpi-num{% if timeline.overdue %} is-late{% endif %}">{{ timeline.overdue }}</span><span>overdue · {{ timeline.soon }} due within 2 weeks</span></p>{% endif %}</div>
+{% if timeline.items %}
+<div class="tl" aria-hidden="true"><div class="tl-axis">{% for t in timeline.ticks %}<span class="tl-tick" style="left:{{ t.x }}%">{{ t.date|date:'d M' }}</span>{% endfor %}<span class="tl-today" style="left:{{ timeline.today_x }}%">Today</span></div>
+{% for i in timeline.items|slice:':12' %}<div class="tl-row"><span class="tl-name">{{ i.title|truncatechars:48 }}</span><span class="tl-track"><span class="tl-now" style="left:{{ timeline.today_x }}%"></span><span class="tl-mark {% if i.overdue %}is-late{% elif i.soon %}is-soon{% endif %}" style="left:{{ i.x }}%"></span></span></div>{% endfor %}</div>
+<ol class="tl-list">{% for i in timeline.items|slice:':12' %}<li class="{% if i.overdue %}is-late{% elif i.soon %}is-soon{% endif %}"><a href="{{ i.url }}">{{ i.title|truncatechars:80 }}</a><span class="small muted">{{ i.kind }}{% if i.label %} · {{ i.label|truncatechars:40 }}{% endif %} · {{ i.owner }}{% if i.progress != None %} · {{ i.progress }}% done{% endif %}</span><span class="tl-due">{% if i.overdue %}<span class="status-chip status-late">{{ i.days|cut:'-' }} day{{ i.days|cut:'-'|pluralize }} late</span>{% else %}due {{ i.due|date:'d M' }}{% endif %}</span></li>{% endfor %}</ol>
+{% else %}<p class="empty">No open dated work. Actions and Kaizen tasks appear here once they have a due date.</p>{% endif %}
+</section>

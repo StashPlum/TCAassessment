@@ -1,0 +1,10 @@
+<section class="viz ladder" aria-labelledby="ladder-title">
+<div class="viz-head"><div><h2 id="ladder-title">Which section holds the site back?</h2><p class="viz-sub">Cumulative gates per section from {% if ladder.assessment.status == 'approved' %}approved assessment v{{ ladder.assessment.version }}{% else %}assessment v{{ ladder.assessment.version }} in progress (not yet approved){% endif %} · a section reaches a level only when every requirement up to that level passes with accepted evidence · local rule, not CAT standing.</p></div>
+<p class="viz-kpi"><span class="viz-kpi-num">{{ ladder.blocking_sections }}</span><span>of {{ ladder.rows|length }} section{{ ladder.rows|length|pluralize }} below {{ ladder.next_level|default:'—' }}</span></p></div>
+<table class="ladder-table"><caption class="visually-hidden">Passes per band and level reached for each section</caption>
+<thead><tr><th scope="col">Section</th><th scope="col">Certified <span class="muted">1–5</span></th><th scope="col">Advanced <span class="muted">6–8</span></th><th scope="col">Showcase <span class="muted">9–10</span></th><th scope="col">Reached</th></tr></thead>
+<tbody>{% for row in ladder.rows %}<tr class="{% if row.lowest %}is-lowest{% endif %}">
+<th scope="row"><a href="{% url 'opportunities' site.code %}?section={{ row.number }}&amp;version=approved">{{ row.number }}. {{ row.title }}</a>{% if row.lowest %} <span class="flag">lowest</span>{% endif %}</th>
+{% for band in row.bands %}<td><span class="gate{% if band.met %} is-met{% elif band.passed %} is-partial{% endif %}" style="--fill:{% widthratio band.passed band.total 100 %}%" aria-label="{{ band.passed }} of {{ band.total }} pass{% if band.pending %}, {{ band.pending }} waiting for evidence{% endif %}"><span class="gate-bar"></span><span class="gate-num">{{ band.passed }}/{{ band.total }}{% if band.met %} ✓{% endif %}</span></span>{% if band.pending %}<span class="pending-note">+{{ band.pending }} evidence pending</span>{% endif %}</td>{% endfor %}
+<td class="reached">{{ row.earned|default:'None yet' }}</td></tr>{% endfor %}</tbody></table>
+</section>

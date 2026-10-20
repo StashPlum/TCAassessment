@@ -68,6 +68,30 @@ def home(request):
         context['review_improvements']=Kaizen.objects.filter(site=site).order_by('-updated_at')[:5]
         context['advisory_followups']=Response.objects.filter(assessment=latest,code='A').select_related('requirement')[:5] if latest else []
         context.update(next_action_context(request.user,site,latest,codes))
+        from . import insights
+        role=context.get('primary_role')
+        approved=site.assessments.filter(status='approved').first()
+        if role=='assessor':
+            from .catalogue import section_map, setup_blocker
+            from .journey import assessment_journey
+            working=context['draft'] or latest
+            if working is not None:
+                from .catalogue import assessment_requirements
+                context['section_map']=section_map(working,list(assessment_requirements(working).order_by('category_id','position')))
+                context['map_assessment']=working
+            context['journey']=assessment_journey(site,context['draft'] or latest)
+            context['setup_blocker']='' if context['draft'] else setup_blocker(site)
+        elif role in ('manager','admin'):
+            context['ladder']=insights.maturity_ladder(site,approved or latest)
+            context['timeline']=insights.action_timeline(site)
+        elif role=='coach':
+            context['pipeline']=insights.review_pipeline(site)
+            context['outcomes']=insights.outcome_checks(site)
+        elif role=='staff':
+            context['timeline']=insights.action_timeline(site,user=request.user)
+            from .kaizen import pdca_segments
+            focus=next(iter(context['my_returned']),None) or (context['my_kaizen_actions'][0].event if context['my_kaizen_actions'] else None) or next(iter(context['my_improvements']),None)
+            if focus is not None: context['focus_event']=focus;context['focus_pdca']=pdca_segments(focus)
     return render(request,'home.html',context)
 
 def next_action_context(user,site,latest,codes):

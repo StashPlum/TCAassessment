@@ -1,11 +1,11 @@
-{% extends 'base.html' %}{% block content %}
+{% extends 'base.html' %}{% load tca %}{% block content %}
 <div class="page-head"><div><span class="kicker">Kaizen · {{ site.name }}</span><h1>Kaizen events</h1><p>Start with a title. The team completes Plan, Do, Check and Act in the shared workspace.</p></div>
 <div class="filter-actions" style="border:0;margin:0;padding:0">{% if can_create and not show_form %}<a class="button" href="?new=1#new-kaizen">New Kaizen</a>{% endif %}{% if can_sensei %}<a class="button secondary" href="{% url 'review_queue' site.code %}">Sensei review queue</a>{% endif %}</div></div>
 
 {% if can_create and show_form %}
 <section class="blueprint" id="new-kaizen" aria-labelledby="new-kaizen-title"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
 <span class="kicker">New Kaizen as draft</span><h2 id="new-kaizen-title" style="margin:4px 0 4px">Only a title is needed</h2>
-<p class="kz-note" style="margin:0 0 16px">The title also becomes the overall problem; complete the rest in the PDCA workspace.{% if linked_requirement %} Linked requirement: <a class="chip" href="{% url 'respond' site.code linked_requirement.code %}">TCA {{ linked_requirement.code }}</a>{% endif %}</p>
+<p class="kz-note" style="margin:0 0 16px">The title also becomes the overall problem; complete the rest in the PDCA workspace.{% if linked_requirement %} Linked requirement: <a class="chip" href="{% url 'respond' site.code linked_requirement.code %}">TCA {{ linked_requirement.label }}</a>{% endif %}</p>
 <form method="post" novalidate>{% csrf_token %}{{ form.requirement }}
 {% if form.errors %}<div class="alert-list" role="alert"><strong>Check the highlighted fields.</strong><ul>{% for field in form %}{% for error in field.errors %}<li><a href="#{{ field.auto_id }}">{{ field.label }}: {{ error }}</a></li>{% endfor %}{% endfor %}{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul></div>{% endif %}
 <div class="field field-wide"><label for="{{ form.title.auto_id }}">Title <span class="muted">required</span></label>{{ form.title }}<span class="counter" data-counter-for="{{ form.title.auto_id }}" aria-live="polite">{{ form.title.value|default:''|length }} / 75</span><span class="field-help">{{ form.title.help_text }}</span>{{ form.title.errors }}</div>

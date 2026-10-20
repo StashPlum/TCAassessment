@@ -10,6 +10,8 @@ def assessment_matrix(assessment):
         codes=[]
     requirements=list(Requirement.objects.filter(code__in=codes).select_related('category').order_by('category_id','position'))
     in_scope={r.code for r in requirements}
+    from .catalogue import section_titles
+    titles=section_titles(requirements)
     positions=sorted({r.position for r in requirements})
     responses={r.requirement_id:r for r in assessment.responses.select_related('requirement')} if assessment else {}
     groups=[]
@@ -28,7 +30,7 @@ def assessment_matrix(assessment):
             cells.append({'requirement':req,'position':position,'code':code,
                           'label':{'Y':'Y · Yes','A':'A · Advisory','N':'N · No','':'Unanswered'}[code] if req else 'Outside scope',
                           'state':{'Y':'yes','A':'advisory','N':'no','':'unanswered'}[code] if req else 'outside'})
-        rows.append({'category':category,'cells':cells})
+        rows.append({'category':category,'cells':cells,'title':titles.get(category.pk,category.name)})
     return {'rows':rows,'categories':[row['category'] for row in rows],
             'positions':positions,'groups':groups,'scope':scope,
             'requirements_count':len(in_scope),'sections_count':len(rows),
