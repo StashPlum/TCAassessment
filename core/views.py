@@ -540,7 +540,8 @@ def kaizen_detail(request,site_code,pk):
                             from .a3 import ensure_reports
                             ensure_reports(obj,request.user)
                         messages.success(request,'Kaizen saved. Linked TCA responses were not changed.')
-                        return redirect(request.path+'?stage='+request.POST.get('workspace_stage','Plan') if request.POST.get('workspace_stage') in ('Plan','Do','Check','Act') else request.path)
+                        stage=request.POST.get('goto') if request.POST.get('goto') in ('Plan','Do','Check','Act') else request.POST.get('workspace_stage')
+                        return redirect(request.path+'?stage='+stage if stage in ('Plan','Do','Check','Act') else request.path)
     else: form=KaizenStageForm(initial={**obj.data,'revision':obj.revision})
     return render_kaizen(request,site,obj,form)
 
@@ -591,7 +592,8 @@ def render_kaizen(request,site,obj,form,child_forms=None):
         'review_form':children.get('bound_review_form') or ReviewNoteForm(initial={'stage':active_phase,'revision':obj.revision},auto_id='id_review_%s'),
         'review_checks':review_checks(obj),'previous_review':previous,'review_changes':changes,
         'measurement_warnings':measurement_warnings(obj),'can_edit':can_edit,'can_manage_team':can_manage_team(request.user,obj),
-        'gates':gates,'next_gate':missing[0] if missing else None,'state':state,'state_label':REVIEW_STATE_LABELS[state],
+        'gates':gates,'next_gate':missing[0] if missing else None,'review_missing':len(missing),
+        'next_phase':{'Plan':'Do','Do':'Check','Check':'Act'}.get(active_phase),'state':state,'state_label':REVIEW_STATE_LABELS[state],
         'segments':pdca_segments(obj),'method_rules':rules_for(obj.profile),'created':request.GET.get('created')=='1',
         'open_returns':obj.review_notes.filter(kind='return',resolved=False).select_related('actor'),
         'team':[{'record':p,'name':team_display(p),'initials':initials(team_display(p)),'role':p.kaizen_role,'is_me':p.user_id==request.user.pk} for p in participants],

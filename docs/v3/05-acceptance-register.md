@@ -22,7 +22,7 @@ Status vocabulary: Not started / Implemented-unverified / Verified / Failed / Bl
 | AC-16 | Advisory | P2.3 | Verified | test_v32 `new_draft_copies_nothing…`: no carry-over, prior Advisory shown, retest recorded, v1 snapshot unchanged |
 | AC-17 | Matrix | P2.6 | Verified | test_v32 `matrix_marks_next_level_blockers…` (blockers from accepted answers, evidence-pending marker, blocker/pending filters, approved version for managers and draft for auditors, same count on the manager start page); phase3/manager_demo-matrix-{1440,1024,768,390}.png, no horizontal page overflow |
 | AC-18 | Maturity | scoring tests | Implemented-unverified (existing tests) | |
-| AC-19 – AC-21 | Guided tools, diagrams, PDCA | P4 | Not started | |
+| AC-19 – AC-21 | Guided tools, diagrams, PDCA | P4 | AC-19 Implemented-verified for the chooser: 8 plain-language questions lead to 2–3 methods in order (`core/lean_guide.py`), on the site toolbox and the event toolbox; Kaizen workspace shows one primary action per stage and explains why sensei submission and local closure are not yet available. AC-20/21: existing diagrams and PDCA gates kept (stage 4 tests) | test_v32_roles `kaizen_offers_one_primary_action…`; phase4/*.png, kaizen_toolbox.json (no overflow at 390) |
 | AC-22 | Efficiency | 03 §2 | Baseline measured | 03-screens-and-journeys.md |
 | AC-23 – AC-24 | Visual system, responsive | P3.4 | Partly verified: every menu target of 6 roles is 390 px wide at 390 (D12 fixed); in-page navs visible on mobile (D16); 1024/768 checks and visual regression pending | phase3/crawl.json |
 | AC-25 – AC-26 | Exports, history | P5 | Not started | |

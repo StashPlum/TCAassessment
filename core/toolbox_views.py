@@ -59,7 +59,10 @@ def toolbox(request,site_code,pk):
                  'Do':[('impact-effort','Compare practical changes.'),('fmea','Review failure risks before changing work.'),('5s','Make a workplace standard visible.')],
                  'Check':[('pareto','Prioritize measured categories.'),('run-chart','Inspect a measure over time.'),('takt','Compare cycle times with period demand.')],
                  'Act':[('control-plan','Assign sustain checks and reaction.'),('standard-work','Retain the proven work sequence.'),('kata','Plan the next evidence-based experiment.')]}.get(stage,[])
-    return render(request,'toolbox.html',{'site':site,'event':event,'stage':stage,'specs':specs,'suggestions':[(REGISTRY[k],reason) for k,reason in suggestions],
+    from .lean_guide import needs
+    guide=needs(REGISTRY);need=next((n for n in guide if n['key']==request.GET.get('need')),None)
+    if need: specs=need['methods']
+    return render(request,'toolbox.html',{'site':site,'event':event,'stage':stage,'specs':specs,'guide':guide,'need':need,'suggestions':[(REGISTRY[k],reason) for k,reason in suggestions],
         'filters':[(name,sorted({s[name] for s in REGISTRY.values()}),request.GET.get(name,'')) for name in ('goal','stage','data_need','difficulty')],
         'query':request.GET.get('q',''),'can_edit':bool(site.membership_set.filter(user=request.user,role__in=EDIT_ROLES))})
 

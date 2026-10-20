@@ -161,7 +161,10 @@ def toolbox_library(request,site_code):
     if kind not in kinds: kind=''
     shown=[spec for spec in specs if (not stage or spec['stage']==stage) and (not kind or spec['kind']==kind)
            and q.casefold() in (spec['name']+' '+spec['purpose']).casefold()]
+    from .lean_guide import needs
+    guide=needs(REGISTRY);need=next((n for n in guide if n['key']==request.GET.get('need')),None)
+    if need: shown=need['methods']
     selected=REGISTRY.get(request.GET.get('method','')) or (shown[0] if shown else None)
     query=request.GET.copy();query.pop('method',None)
     return render(request,'toolbox_library.html',{'site':site,'specs':shown,'total':len(specs),'selected':selected,'stage':stage,'kind':kind,'kinds':kinds,
-        'query':q,'counts':counts,'filter_query':query.urlencode(),'filters_active':bool(stage or kind or q)})
+        'query':q,'counts':counts,'filter_query':query.urlencode(),'filters_active':bool(stage or kind or q or need),'guide':guide,'need':need})
