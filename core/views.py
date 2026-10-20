@@ -36,9 +36,7 @@ def active_assessment(site, user):
     if draft: return draft
     previous = site.assessments.first()
     if previous: return previous
-    if not Membership.objects.filter(site=site,user=user,role__in=['assessor','manager','admin']).exists():
-        raise Http404('No assessment is available for this site.')
-    return Assessment.objects.create(site=site, version=1, created_by=user,configuration_snapshot=frozen_configuration(site))
+    raise Http404('No assessment is available for this site.')
 
 def log(site, user, action, obj, detail=None):
     AuditEvent.objects.create(site=site, actor=user, action=action, object_type=type(obj).__name__, object_id=str(obj.pk), detail=detail or {})
@@ -111,11 +109,16 @@ def site_progress(request, site_code):
 @login_required
 def assessment(request, site_code):
     site = site_access(request, site_code)
+    can_respond=Membership.objects.filter(user=request.user,site=site,role__in=['assessor','manager','admin']).exists()
     selected_id=request.GET.get('assessment','')
     if selected_id:
         if not selected_id.isdigit():raise Http404
         obj=get_object_or_404(Assessment,site=site,pk=int(selected_id))
-    else:obj = active_assessment(site, request.user)
+    else:
+        obj=site.assessments.filter(status='draft').first() or site.assessments.first()
+        if obj is None:
+            # Reading never creates a record; responders get a one-click start instead.
+            return render(request,'assessment_start.html',{'site':site,'can_respond':can_respond,'sessions':AssessmentSession.objects.filter(site=site,availability='confirmed').order_by('-date')[:3]})
     query = request.GET.get('q','').strip()[:200]
     category = request.GET.get('category','')
     if category and (not category.isdigit() or not Category.objects.filter(number=int(category)).exists()):category=''
@@ -123,7 +126,8 @@ def assessment(request, site_code):
     if answer not in ('Y','A','N','unanswered'): answer=''
     evidence_type=request.GET.get('evidence_type','')
     if evidence_type not in ('document','observation','interview','audit'):evidence_type=''
-    view=request.GET.get('view','all')
+    editable=obj.status=='draft' and can_respond
+    view=request.GET.get('view','single' if editable else 'all')
     if view not in ('all','section','single'):view='all'
     from .progress import scope_for
     scope=scope_for(obj)
@@ -138,18 +142,42 @@ def assessment(request, site_code):
     if answer:
         answered_ids=obj.responses.filter(code__in=('Y','A','N')).values_list('requirement_id',flat=True)
         reqs=reqs.exclude(code__in=answered_ids) if answer=='unanswered' else reqs.filter(code__in=obj.responses.filter(code=answer).values_list('requirement_id',flat=True))
-    page = Paginator(reqs,1 if view=='single' else 20).get_page(request.GET.get('page'))
-    codes = {r.requirement_id:r.code for r in obj.responses.filter(requirement__in=page.object_list)}
+    paginator=Paginator(reqs,1 if view=='single' else 10 if view=='section' else 20)
+    page_number=request.GET.get('page')
+    answered=set(obj.responses.filter(code__in=('Y','A','N')).values_list('requirement_id',flat=True))
+    if view=='single' and not page_number and editable:
+        # Resume at the first unanswered question in the current filter.
+        ordered=list(reqs.values_list('code',flat=True))
+        first_open=next((i for i,code in enumerate(ordered) if code not in answered),0)
+        page_number=first_open+1
+    page = paginator.get_page(page_number)
+    rows = {r.requirement_id:r for r in obj.responses.filter(requirement__in=page.object_list)}
     pending=set(obj.responses.filter(advisory_retest_status='pending').values_list('requirement_id',flat=True))
+    prior=site.assessments.filter(status='approved',version__lt=obj.version).order_by('-version').first()
+    prior_rows={r.requirement_id:r for r in prior.responses.filter(requirement__in=page.object_list)} if prior else {}
+    from .readiness import evidence_state
+    evidence=evidence_state(site,[req for req in page.object_list])
     for req in page.object_list:
-        req.response_code = codes.get(req.code,'')
+        row=rows.get(req.code)
+        req.response=row
+        req.response_code = row.code if row else ''
         req.local_question=question_for_assessment(obj,req)
         req.needs_retest=req.code in pending
+        req.prior=prior_rows.get(req.code)
+        req.evidence=evidence.get(req.code)
+        req.level_label={'C':'Certified','B':'Advanced','A':'Showcase'}.get(req.level_code,'')
+    scope_codes=scope.get('requirements',[])
+    context_extra={'editable':editable,'can_respond':can_respond,'prior':prior,
+                   'answered_count':len(answered&set(scope_codes)),'scope_count':len(scope_codes),
+                   'next_open':next((code for code in scope_codes if code not in answered),None)}
     context={'site':site,'assessment':obj,'page':page,'query':query,'category':category,'answer':answer,
              'evidence_type':evidence_type,'view':view,'scope':scope,
-             'filters_active':bool(query or category or answer or evidence_type),
+             'filters_active':bool(query or (category and view!='section') or answer or evidence_type),
+             'section':Category.objects.filter(number=int(category)).first() if view=='section' and category.isdigit() else None,
+             'section_prev':Category.objects.filter(number__lt=int(category)).order_by('-number').first() if view=='section' and category.isdigit() else None,
+             'section_next':Category.objects.filter(number__gt=int(category)).order_by('number').first() if view=='section' and category.isdigit() else None,
              'categories':Category.objects.all(),'assessments':site.assessments.all(),
-             'history':site.assessments.all()}
+             'history':site.assessments.all(),**context_extra}
     return render(request,'assessment_results.html' if request.headers.get('HX-Request')=='true' else 'assessment.html',context)
 
 @login_required
@@ -209,24 +237,18 @@ def respond(request, site_code, req_code):
                     code=form.cleaned_data['code']
                     if response_context['needs_retest'] and not form.cleaned_data['retest_confirm']:
                         form.add_error('retest_confirm','Record an explicit retest of the previous Advisory before changing this answer.')
-                    if code=='A' and obj.policy_version=='advisory-v2':
-                        if not form.cleaned_data['advisory_follow_up'].strip(): form.add_error('advisory_follow_up','Describe the open improvement and next check.')
-                    if code in pass_codes(obj.policy_version):
-                        if not form.cleaned_data['conclusion'].strip(): form.add_error('conclusion','Explain the evidence-based assessor conclusion for this pass.')
-                        valid_coverage=Coverage.objects.filter(evidence__site=site,clause__requirement=req,accepted=True,
-                            reviewed_by__isnull=False,reviewed_at__isnull=False).filter(~Q(evidence__evidence_type='audit')|Q(evidence__other_audit__isnull=False)).filter(Q(evidence__valid_until__isnull=True)|Q(evidence__valid_until__gte=timezone.localdate()))
-                        covered=set(valid_coverage.values_list('clause_id',flat=True))
-                        missing=[c.ordinal for c in req.clauses.all() if c.id not in covered]
-                        if missing: form.add_error('code',f'Cannot accept a pass. Clauses {missing} lack accepted, currently valid evidence coverage.')
                     if form.errors:
                         if request.POST.get('autosave')=='1':return JsonResponse({'saved':False,'errors':form.errors},status=409 if form.non_field_errors() else 422)
                         return render(request,'respond.html',{**response_context,'form':form})
+                    retested=response_context['needs_retest'] or response_context['previous_advisory'] is not None
                     retest_status=('due_next' if code=='A' and obj.policy_version=='advisory-v2' else
-                                   'retested' if response_context['needs_retest'] and code in ('Y','N') else 'not_due')
-                    Response.objects.update_or_create(assessment=obj,requirement=req,defaults={
-                        'code':code,'conclusion':form.cleaned_data['conclusion'],
-                        'advisory_follow_up':form.cleaned_data['advisory_follow_up'] if code=='A' else '',
-                        'advisory_retest_status':retest_status,'updated_by':request.user})
+                                   'retested' if retested and code in ('Y','N') else 'not_due')
+                    defaults={'code':code,'advisory_retest_status':retest_status,'updated_by':request.user}
+                    # A compact answer control posts only the code; keep text the auditor wrote elsewhere.
+                    if 'conclusion' in request.POST: defaults['conclusion']=form.cleaned_data['conclusion']
+                    if code!='A': defaults['advisory_follow_up']=''
+                    elif 'advisory_follow_up' in request.POST: defaults['advisory_follow_up']=form.cleaned_data['advisory_follow_up']
+                    Response.objects.update_or_create(assessment=obj,requirement=req,defaults=defaults)
                     obj.revision += 1; obj.save(update_fields=['revision'])
                     log(site,request.user,'response_saved',req,{'code':form.cleaned_data['code'],'assessment':obj.pk})
                     if request.POST.get('autosave')=='1':return JsonResponse({'saved':True,'revision':obj.revision,'message':f'{req.code} saved.'})
@@ -251,9 +273,11 @@ def approve(request,site_code):
     with transaction.atomic():
         obj=Assessment.objects.select_for_update().filter(site=site,status='draft').first()
         if not obj: raise Http404
-        if obj.policy_version=='advisory-v2' and obj.responses.filter(advisory_retest_status='pending').exists():
-            messages.error(request,'Retest every carried Advisory explicitly before approving this assessment.')
-            return redirect('assessment',site_code=site.code)
+        from .assessment_rules import approval_problems
+        problems=approval_problems(site,obj,allow_unanswered=request.POST.get('confirm_partial')=='on')
+        if problems:
+            for problem in problems: messages.error(request,problem)
+            return redirect(reverse('assessment',args=[site.code])+f'?assessment={obj.pk}')
         obj.status='approved'; obj.approved_by=request.user; obj.approved_at=timezone.now(); obj.rationale=request.POST.get('rationale',''); obj.save()
         obj.snapshot=assessment_snapshot(site,obj);obj.save(update_fields=['snapshot'])
         log(site,request.user,'local_snapshot_approved',obj,{'policy':obj.policy_version})
@@ -274,10 +298,6 @@ def new_draft(request,site_code):
             previous=site.assessments.first()
             obj=Assessment.objects.create(site=site,version=previous.version+1 if previous else 1,created_by=request.user,
                 planned_session=plan,rationale=request.POST.get('rationale',''),scope_snapshot=scope_for(previous),configuration_snapshot=frozen_configuration(site))
-            if previous:
-                Response.objects.bulk_create([Response(assessment=obj,requirement=r.requirement,code=r.code,conclusion=r.conclusion,
-                    advisory_follow_up=r.advisory_follow_up,advisory_retest_status='pending' if r.code=='A' else r.advisory_retest_status,
-                    updated_by=request.user) for r in previous.responses.all()])
             log(site,request.user,'new_draft',obj,{'from':previous.pk if previous else None})
         else: messages.info(request,'An editable draft already exists with its own frozen snapshot; open it before scheduling a new version.')
     return redirect('assessment',site_code=site.code)

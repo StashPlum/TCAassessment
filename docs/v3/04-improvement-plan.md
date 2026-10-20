@@ -39,3 +39,13 @@
 | 5 | Remaining modules P5.x | Export checks |
 | 6 | Quality P6 | Acceptance register complete |
 | 7 | Isolated deployment P7 | AC-27, AC-31…AC-34 verified |
+
+## Phase status
+
+| Phase | Status | Evidence |
+|---|---|---|
+| 0 | Done (with recorded deviation O7) | 00-isolation-baseline.md |
+| 1 | Done | 01–03, 05 |
+| 2 | P2.2–P2.5 done; P2.1 (official catalogue on Render) waits for the owner's secret file; P2.6 (matrix) unchanged from baseline, reworked in phase 3 | `core/test_v32_assessment.py` (6 tests); source-free CI 56/56; `tools/v3_auditor_journey.py` → `docs/v3/phase2/` |
+
+Phase 2 journey 1 measured in the browser: menu → Start new assessment → Y = **3 deliberate clicks**, 0 mandatory inputs, 2 screens (baseline: 5 clicks, 1 mandatory input, 4 screens plus an evidence detour).

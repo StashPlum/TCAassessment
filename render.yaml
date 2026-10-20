@@ -1,13 +1,14 @@
-# Render Blueprint for the TCA Progress feedback demo (free plan, fictional data).
+# Render Blueprint for TCA Progress 3.2 (isolated redesign; free plan, fictional data).
+# Distinct names so a Blueprint from this branch can never attach to the old tca-progress-demo service or database.
 # Secrets (TCA_DEMO_PASSWORD, TCA_TESTERS and the optional private source files) are entered in the
 # Render dashboard and are never committed.
 services:
   - type: web
-    name: tca-progress-demo
+    name: tca-progress-v32
     runtime: python
     plan: free
     region: frankfurt
-    branch: TCA_Demo
+    branch: TCA-progress-v3-redesign
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
     startCommand: python manage.py migrate --noinput && python manage.py prepare_demo && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
     healthCheckPath: /healthz/
@@ -26,9 +27,9 @@ services:
         sync: false
       - key: DATABASE_URL
         fromDatabase:
-          name: tca-progress-demo-db
+          name: tca-progress-v32-db
           property: connectionString
 databases:
-  - name: tca-progress-demo-db
+  - name: tca-progress-v32-db
     plan: free
     region: frankfurt

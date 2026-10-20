@@ -1,0 +1,15 @@
+{% extends 'base.html' %}{% block content %}
+<div class="page-heading"><div><span class="eyebrow">{{ site.name }}</span><h1>Assessment</h1></div></div>
+<section class="next-action">
+{% if can_respond %}
+<h2>No assessment has been started for this site</h2>
+<p>Starting creates a draft with every question for this site, frozen at today's approved wording. You can stop at any time; answers save as you go.</p>
+<form method="post" action="{% url 'new_draft' site.code %}">{% csrf_token %}
+{% if sessions %}<div class="field"><label for="start-session">Planned session (optional)</label><select id="start-session" name="session_id"><option value="">Not linked to a planned session</option>{% for plan in sessions %}<option value="{{ plan.pk }}">{{ plan.date|date:'d M Y' }} · {{ plan.purpose|default:'Planned assessment' }}</option>{% endfor %}</select></div>{% endif %}
+<button class="primary-action">Start assessment</button></form>
+{% else %}
+<h2>No assessment yet</h2>
+<p>A TCA auditor starts the assessment for this site. Results appear here once answers are recorded.</p>
+{% endif %}
+</section>
+{% endblock %}

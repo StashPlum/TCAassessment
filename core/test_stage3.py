@@ -144,7 +144,7 @@ class StageThreeTests(TestCase):
             conclusion='Historical partial control',advisory_follow_up='Review revised checklist',
             advisory_retest_status='due_next',updated_by=self.auditor)
         self.client.force_login(self.manager)
-        self.client.post(reverse('approve',args=[self.site.code]),{'rationale':'Dated local record'})
+        self.client.post(reverse('approve',args=[self.site.code]),{'rationale':'Dated local record','confirm_partial':'on'})
         first.refresh_from_db();historical=deepcopy(first.snapshot)
         SiteQuestionVersion.objects.create(site=self.site,requirement=self.req,version=1,
             kind='local_guidance',question_text='Revised question for new assessment only',
@@ -162,12 +162,9 @@ class StageThreeTests(TestCase):
         self.assertEqual(self.client.get(list_url,{'assessment':second.pk,'evidence_type':'document'}).context['page'].paginator.count,1)
         detail=reverse('respond',args=[self.site.code,self.req.code])
         self.assertContains(self.client.get(detail,{'assessment':second.pk}),'Review revised checklist')
-        failed=self.client.post(detail,{'assessment_id':second.pk,'autosave':'1','code':'Y',
-            'conclusion':'New check','revision':'0'})
-        self.assertEqual(failed.status_code,422)
-        self.assertFalse(failed.json()['saved'])
+        self.assertFalse(Response.objects.filter(assessment=second).exists())  # nothing copied from v1
         saved=self.client.post(detail,{'assessment_id':second.pk,'autosave':'1','code':'Y',
-            'conclusion':'New check','retest_confirm':'on','revision':'0'})
+            'conclusion':'New check','revision':'0'})
         self.assertEqual(saved.status_code,200)
         self.assertTrue(saved.json()['saved'])
         self.assertEqual(saved.json()['revision'],1)
@@ -215,7 +212,7 @@ class StageThreeTests(TestCase):
         assessment=Assessment.objects.create(site=self.site,version=1,created_by=self.auditor)
         Response.objects.create(assessment=assessment,requirement=self.req,code='N',updated_by=self.auditor)
         self.client.force_login(self.manager)
-        self.client.post(reverse('approve',args=[self.site.code]),{'rationale':'Dated record'})
+        self.client.post(reverse('approve',args=[self.site.code]),{'rationale':'Dated record','confirm_partial':'on'})
         url=reverse('assessment_history_export',args=[self.site.code,'xlsx'])
         self.client.force_login(staff)
         sheet=self._xlsx(self.client.post(url,{'assessment_ids':[assessment.pk]}))

@@ -26,6 +26,7 @@ Functional inventory (status per capability in 03-screens-and-journeys.md §Feat
 | D12 | Evidence library overflows at 390 px for auditor/manager (document 587 px wide). | [L] crawl | P2 |
 | D13 | Landing pages lead with a percentage/progress block rather than "what do I do next"; the auditor's next action ("Conduct assessment") lands on a locked record (see D4). | [L] screenshots | P1 |
 | D14 | Prepare evidence screen shows ~1,060 words and 30 inputs at once; Lean toolbox ~700 words; matrix page ~565 words with 157 links. | [L] crawl metrics | P2 |
+| D16 | **Every in-page `<nav>` is hidden below 760 px** (pagination, view tabs) by a leftover rule `body.js nav:not(.expanded){display:none}` written for the old top menu. Found while testing the 390 px Focus view. | [L] | P1 — fixed in phase 2 |
 | D15 | Ordinary screens show technical metadata the master prompt asks to hide: "advisory-v2", "Assessment v1", "Baseline Not imported", "Code:" label, 64-character zero hash on the respond page. | [L] | P2 |
 
 ## 3. What works and must be preserved

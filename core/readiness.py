@@ -26,6 +26,25 @@ def accepted_codes(site, assessment, as_of=None):
         else: codes[row.requirement_id]=row.code if eligible or row.code not in pass_codes(assessment.policy_version) else ''
     return codes,unverified
 
+def evidence_state(site, requirements, as_of=None):
+    """Per requirement: clause count, clauses with accepted current evidence and linked evidence count."""
+    as_of=as_of or timezone.localdate()
+    codes=[r.code for r in requirements]
+    clauses={}
+    for req_id,clause_id in Clause.objects.filter(requirement_id__in=codes).values_list('requirement_id','id'):
+        clauses.setdefault(req_id,set()).add(clause_id)
+    links=Coverage.objects.filter(evidence__site=site,clause__requirement_id__in=codes)
+    accepted=set(links.filter(accepted=True,reviewed_by__isnull=False,reviewed_at__isnull=False)
+                 .filter(~Q(evidence__evidence_type='audit')|Q(evidence__other_audit__isnull=False))
+                 .filter(Q(evidence__valid_until__isnull=True)|Q(evidence__valid_until__gte=as_of))
+                 .values_list('clause_id',flat=True))
+    linked={}
+    for req_id,evidence_id in links.values_list('clause__requirement_id','evidence_id'):
+        linked.setdefault(req_id,set()).add(evidence_id)
+    return {code:{'clauses':len(clauses.get(code,())),'accepted':len(clauses.get(code,set())&accepted),
+                  'linked':len(linked.get(code,())),
+                  'complete':bool(clauses.get(code)) and clauses[code].issubset(accepted)} for code in codes}
+
 def assessment_snapshot(site, assessment):
     from .models import Category
     codes,unverified=accepted_codes(site,assessment)
