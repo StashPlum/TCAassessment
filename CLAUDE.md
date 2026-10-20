@@ -13,14 +13,17 @@ Place this file in the repository root (next to `AGENTS.md`). Claude Code reads 
 
 ## Working agreement
 - Read `docs/PRODUCT.md`, `docs/CHANGESET_2026-10-19.md`, `docs/STATUS.md` and `docs/DESIGN_SYSTEM.md` before a stage. Read only what the current task needs.
-- Stages 1–3 of `TCA_Verbeterplan_5_Etappes.md` are done. Continue with stage 4, then stage 5, as described in `CLAUDE_CODE_MASTER_PROMPT.md`.
+- Stages 1–5 of `TCA_Verbeterplan_5_Etappes.md` are done (baseline `ab50e7f`). Current work follows the TCA Progress 3.2 master prompt; the phase plan is in `docs/v3/04-improvement-plan.md`.
 - Use additive migrations. Use fictional fixtures only.
 - Run `manage.py test core` and `tools/run_source_free_ci.py` after meaningful changes. Record only checks that actually ran in `docs/STATUS.md`.
 - Visual reference: `design_handoff_tca_progress/prototype/TCA Progress Preview v3.dc.html`. Recreate it in the existing Django templates and HTMX. Do not ship the prototype HTML.
 
-## Authorization boundaries
-- Allowed: local code edits, pinned dependency installs, disposable migrations, tests, loopback demo, commits and a normal push to a feature branch of `StashPlum/TCAassessment` (for example `claude/stage-4-5`, branched from `codex/kaizen-toolbox`).
-- Not allowed: force push, merge to `main`, deployment, publication, external messages, production data or credentials, committing originals, databases, uploads or secrets.
+## Authorization boundaries (TCA Progress 3.2 — isolated redesign)
+- This repository is the NEW private repository for TCA Progress 3.2. Work on branch `development` (or feature branches from it) and push only to this repository's `origin`.
+- The old repository `StashPlum/TCAassessment` and the old Render service `tca-progress-demo` are a read-only reference. Never push to, open PRs against, change settings of, deploy, restart or reconfigure them, and never connect to the old database or file storage.
+- Allowed: local code edits, pinned dependency installs, disposable migrations, tests, loopback demo, commits and normal pushes to this repository.
+- Not allowed without separate explicit owner approval: force push, DNS/domain changes, any cutover, production data or credentials, committing originals, databases, uploads or secrets.
+- Stage memory for 3.2 is `docs/v3/` (start with `docs/v3/README.md`). `docs/STATUS.md` keeps the history up to the baseline.
 
 ## Commands (from README)
 ```
