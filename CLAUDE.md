@@ -19,8 +19,8 @@ Place this file in the repository root (next to `AGENTS.md`). Claude Code reads 
 - Visual reference: `design_handoff_tca_progress/prototype/TCA Progress Preview v3.dc.html`. Recreate it in the existing Django templates and HTMX. Do not ship the prototype HTML.
 
 ## Authorization boundaries (TCA Progress 3.2 — isolated redesign)
-- This repository is the NEW private repository for TCA Progress 3.2. Work on branch `development` (or feature branches from it) and push only to this repository's `origin`.
-- The old repository `StashPlum/TCAassessment` and the old Render service `tca-progress-demo` are a read-only reference. Never push to, open PRs against, change settings of, deploy, restart or reconfigure them, and never connect to the old database or file storage.
+- TCA Progress 3.2 lives on branch `TCA-progress-v3-redesign` of `StashPlum/TCAassessment` (owner decision, recorded as deviation O7 in `docs/v3/00-isolation-baseline.md`). Push only to that branch; the local push refspec is restricted to it.
+- Every other branch of this repository (`main`, `TCA_Demo`, `codex/*`) and the old Render service `tca-progress-demo` are a read-only reference. Never push to, merge into, open PRs against, change settings of, deploy, restart or reconfigure them, and never connect to the old database or file storage. Check with `git ls-remote` after each push that `TCA_Demo` and `main` are unchanged.
 - Allowed: local code edits, pinned dependency installs, disposable migrations, tests, loopback demo, commits and normal pushes to this repository.
 - Not allowed without separate explicit owner approval: force push, DNS/domain changes, any cutover, production data or credentials, committing originals, databases, uploads or secrets.
 - Stage memory for 3.2 is `docs/v3/` (start with `docs/v3/README.md`). `docs/STATUS.md` keeps the history up to the baseline.
