@@ -1,0 +1,75 @@
+{
+ "autosave": [
+  {
+   "question": "1.B.6 \u00b7 Advanced",
+   "offline_message": "Not saved \u2014 no connection. Your entry stays on screen and will be sent when you change it again.",
+   "answer_kept_on_screen": true
+  },
+  {
+   "after_reconnect": "Saved",
+   "saved_answer_after_reload": "Y"
+  }
+ ],
+ "widths": {
+  "auditor_demo@1024": {
+   "pages": 12,
+   "overflow": []
+  },
+  "auditor_demo@768": {
+   "pages": 12,
+   "overflow": []
+  },
+  "auditor_demo@390": {
+   "pages": 12,
+   "overflow": []
+  },
+  "manager_demo@1024": {
+   "pages": 13,
+   "overflow": []
+  },
+  "manager_demo@768": {
+   "pages": 13,
+   "overflow": []
+  },
+  "manager_demo@390": {
+   "pages": 13,
+   "overflow": []
+  },
+  "sensei_demo@1024": {
+   "pages": 7,
+   "overflow": []
+  },
+  "sensei_demo@768": {
+   "pages": 7,
+   "overflow": []
+  },
+  "sensei_demo@390": {
+   "pages": 7,
+   "overflow": []
+  },
+  "team_demo@1024": {
+   "pages": 6,
+   "overflow": []
+  },
+  "team_demo@768": {
+   "pages": 6,
+   "overflow": []
+  },
+  "team_demo@390": {
+   "pages": 6,
+   "overflow": []
+  },
+  "admin_demo@1024": {
+   "pages": 11,
+   "overflow": []
+  },
+  "admin_demo@768": {
+   "pages": 11,
+   "overflow": []
+  },
+  "admin_demo@390": {
+   "pages": 11,
+   "overflow": []
+  }
+ }
+}

@@ -15,3 +15,4 @@ This folder is the stage memory for the isolated 3.2 redesign. Read it before an
 | `baseline/` | Baseline screenshots and raw crawl/probe output |
 
 Re-run the baseline evidence: start the app locally with `TCA_DEMO_PASSWORD` set and `manage.py prepare_demo`, then `python tools/v3_role_crawl.py` and `python tools/v3_rbac_probe.py`.
+- `08-quality-report.md`: phase 6 authorization, recovery, responsive and efficiency results.
