@@ -1,0 +1,82 @@
+from django.contrib.auth import views as auth_views
+from django.urls import path
+from core import views
+from core import toolbox_views as tv
+from core import claim_views as cv
+from core import attachment_views as av
+from core import report_views as rv
+from core import config_views as qv
+from core import journey_views as jv
+from core import kaizen_views as kv
+from core import library_views as lv
+from core import demo_views as dv
+
+urlpatterns = [
+    path('feedback/', dv.feedback_add, name='feedback_add'),
+    path('feedback/list/', dv.feedback_list, name='feedback_list'),
+    path('sites/<slug:site_code>/kaizen/review/export/<str:fmt>/', kv.review_export, name='review_export'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/review/', kv.review_detail, name='kaizen_review_detail'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/tasks/<int:action_pk>/progress/', kv.task_progress, name='task_progress'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/export/<str:fmt>/', kv.event_export, name='event_export'),
+    path('sites/<slug:site_code>/toolbox/', kv.toolbox_library, name='toolbox_library'),
+    path('sites/<slug:site_code>/learning/<int:pk>/best-practice/', lv.best_practice_validate, name='best_practice_validate'),
+    path('sites/<slug:site_code>/evidence/<int:pk>/link-requirement/', lv.evidence_link_requirement, name='evidence_link_requirement'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/attachments/<int:attachment_pk>/preview/', av.attachment_preview, name='attachment_preview'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/a3/', rv.a3_preview, name='a3_preview'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/a3/finalize/', rv.a3_finalize, name='a3_finalize'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/a3/<int:report_pk>/', rv.a3_download, name='a3_download'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/complete-archive/', rv.event_archive_zip, name='event_archive_zip'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/learning/publish/', rv.learning_publish, name='learning_publish'),
+    path('sites/<slug:site_code>/learning/', lv.learning, name='learning'),
+    path('sites/<slug:site_code>/learning/<int:pk>/adapt/', rv.learning_adapt, name='learning_adapt'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/attachments/add/', av.attachment_add, name='attachment_add'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/attachments/<int:attachment_pk>/download/', av.attachment_download, name='attachment_download'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/import/', av.import_preview, name='import_preview'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/import/<int:preview_pk>/', av.import_confirm, name='import_confirm'),
+    path('sites/<slug:site_code>/verification/', cv.claims, name='claims'),
+    path('sites/<slug:site_code>/verification/<int:pk>/', cv.claim_review, name='claim_review'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/toolbox/', tv.toolbox, name='toolbox'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/worksheets/<int:worksheet_pk>/', tv.worksheet, name='worksheet'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/worksheets/<int:worksheet_pk>/export/<str:fmt>/', tv.worksheet_export, name='worksheet_export'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/input-profile/', tv.input_profile, name='input_profile'),
+    path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('', views.home, name='home'),
+    path('location/', views.switch_site, name='switch_site'),
+    path('locations/', views.locations, name='locations'),
+    path('administration/', views.administration, name='administration'),
+    path('sites/<slug:site_code>/resources/', lv.resources, name='resources'),
+    path('sites/<slug:site_code>/', views.site_progress, name='site'),
+    path('sites/<slug:site_code>/assessment/', views.assessment, name='assessment'),
+    path('sites/<slug:site_code>/assessment/configuration/', qv.configuration, name='assessment_configuration'),
+    path('sites/<slug:site_code>/assessment/configuration/<str:req_code>/', qv.question_configuration, name='question_configuration'),
+    path('sites/<slug:site_code>/assessment/respond/<str:req_code>/', views.respond, name='respond'),
+    path('sites/<slug:site_code>/assessment/approve/', views.approve, name='approve'),
+    path('sites/<slug:site_code>/assessment/new/', views.new_draft, name='new_draft'),
+    path('sites/<slug:site_code>/assessment/archive/', views.assessment_archive, name='assessment_archive'),
+    path('sites/<slug:site_code>/assessment/history/', jv.assessment_history, name='assessment_history'),
+    path('sites/<slug:site_code>/assessment/history/export/<str:fmt>/', jv.assessment_history_export, name='assessment_history_export'),
+    path('sites/<slug:site_code>/sessions/', views.sessions, name='sessions'),
+    path('sites/<slug:site_code>/sessions/<int:pk>/', jv.session_detail, name='session_detail'),
+    path('sites/<slug:site_code>/opportunities/', views.opportunities, name='opportunities'),
+    path('sites/<slug:site_code>/kaizen/', views.kaizens, name='kaizens'),
+    path('sites/<slug:site_code>/kaizen/review/', views.review_queue, name='review_queue'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/autosave/', views.kaizen_autosave, name='kaizen_autosave'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/review-note/', views.review_note, name='review_note'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/', views.kaizen_detail, name='kaizen_detail'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/add/<str:kind>/', views.kaizen_add, name='kaizen_add'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/actions/<int:action_pk>/', views.kaizen_action_edit, name='kaizen_action_edit'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/template-details/', views.kaizen_template_details, name='kaizen_template_details'),
+    path('sites/<slug:site_code>/benefit/<int:pk>/validate/', views.validate_benefit, name='validate_benefit'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/archive/', views.kaizen_archive, name='kaizen_archive'),
+    path('sites/<slug:site_code>/kaizen/<int:pk>/excel/', views.kaizen_excel, name='kaizen_excel'),
+    path('sites/<slug:site_code>/evidence/', lv.evidence_library, name='evidence'),
+    path('sites/<slug:site_code>/evidence/preparation/', views.preparation, name='preparation'),
+    path('sites/<slug:site_code>/evidence/preparation/export/<str:fmt>/', jv.preparation_export, name='preparation_export'),
+    path('sites/<slug:site_code>/evidence/preparation/<str:req_code>/', jv.preparation_need, name='preparation_need'),
+    path('sites/<slug:site_code>/evidence/<int:pk>/other-audit/', views.other_audit, name='other_audit'),
+    path('sites/<slug:site_code>/evidence/<int:pk>/link/', views.link_evidence, name='link_evidence'),
+    path('sites/<slug:site_code>/evidence/<int:pk>/download/', views.download, name='download'),
+    path('sites/<slug:site_code>/coverage/<int:pk>/review/', views.review_coverage, name='review_coverage'),
+    path('sites/<slug:site_code>/report/', views.report, name='report'),
+]

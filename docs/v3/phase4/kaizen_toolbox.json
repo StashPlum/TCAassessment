@@ -1,0 +1,32 @@
+{
+ "detail-1440": {
+  "primary": [
+   "Save and go to Do"
+  ],
+  "hint": [
+   "Submit for sensei review opens when the 9 items under \u201cStill needed for review\u201d are done. Next:\nCause analysis (required for A3 and Business Process)"
+  ],
+  "docWidth": 1440
+ },
+ "toolbox-1440": {
+  "url": "http://127.0.0.1:8000/sites/fictional-stage-one/toolbox/?need=cause",
+  "tip": "We do not know why it happens. Collect possible causes first, then test the most likely one with data. Start with Ishikawa / fishbone. Show all methods",
+  "cards": 3,
+  "docWidth": 1440
+ },
+ "detail-390": {
+  "primary": [
+   "Save and go to Do"
+  ],
+  "hint": [
+   "Submit for sensei review opens when the 9 items under \u201cStill needed for review\u201d are done. Next:\nCause analysis (required for A3 and Business Process)"
+  ],
+  "docWidth": 390
+ },
+ "toolbox-390": {
+  "url": "http://127.0.0.1:8000/sites/fictional-stage-one/toolbox/?need=cause",
+  "tip": "We do not know why it happens. Collect possible causes first, then test the most likely one with data. Start with Ishikawa / fishbone. Show all methods",
+  "cards": 3,
+  "docWidth": 390
+ }
+}

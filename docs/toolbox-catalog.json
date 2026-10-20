@@ -1,0 +1,3478 @@
+{
+  "verified_on": "2026-10-14",
+  "methods": [
+    {
+      "key": "5w2h",
+      "name": "5W2H",
+      "version": 1,
+      "goal": "Define",
+      "stage": "Plan",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "question",
+          "label": "Question",
+          "type": "select",
+          "choices": [
+            "Who",
+            "What",
+            "When",
+            "Where",
+            "Why",
+            "How",
+            "How much"
+          ]
+        },
+        {
+          "key": "answer",
+          "label": "Observed answer",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "source",
+          "label": "Basis / source",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/problem-solving",
+      "purpose": "Clarify an insufficiently defined problem.",
+      "when": "Clarify an insufficiently defined problem.",
+      "steps": [
+        "State the issue",
+        "Answer each question from facts",
+        "List remaining uncertainties"
+      ],
+      "pitfall": "An answer is not a verified cause.",
+      "example": "Fictional logistics example: Clarify where picking errors occur.",
+      "visual": "cards",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "is-not",
+      "name": "Is / Is Not",
+      "version": 1,
+      "goal": "Define",
+      "stage": "Plan",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "dimension",
+          "label": "Dimension",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "is",
+          "label": "Observed IS",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "is_not",
+          "label": "Observed IS NOT",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "difference",
+          "label": "Relevant difference",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "test",
+          "label": "Testable explanation",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/problem-solving",
+      "purpose": "Compare affected and unaffected situations.",
+      "when": "Compare affected and unaffected situations.",
+      "steps": [
+        "Set boundaries",
+        "Compare like conditions",
+        "Test a distinguishing factor"
+      ],
+      "pitfall": "Differences suggest tests, not causality.",
+      "example": "Fictional logistics example: Compare errors on two pick lanes.",
+      "visual": "cards",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "gemba",
+      "name": "Gemba observation",
+      "version": 1,
+      "goal": "Define",
+      "stage": "Plan",
+      "kind": "practice",
+      "fields": [
+        {
+          "key": "location",
+          "label": "Process / place",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "time",
+          "label": "Observed at",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "standard",
+          "label": "Expected standard",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "observed",
+          "label": "Actual observation",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "question",
+          "label": "Question for team",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "follow_up",
+          "label": "Follow-up",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/lexicon-terms/gemba/",
+      "purpose": "Understand work at the place it happens.",
+      "when": "Understand work at the place it happens.",
+      "steps": [
+        "Observe respectfully",
+        "Compare actual work with standard",
+        "Agree a follow-up"
+      ],
+      "pitfall": "Do not turn observation into blame.",
+      "example": "Fictional logistics example: Observe a pallet handoff.",
+      "visual": "cards",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "voc",
+      "name": "Voice of Customer / CTQ",
+      "version": 1,
+      "goal": "Define",
+      "stage": "Plan",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "voice",
+          "label": "Customer statement",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "context",
+          "label": "Source / context",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "need",
+          "label": "Underlying need",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "ctq",
+          "label": "Observable CTQ",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "criterion",
+          "label": "Acceptance criterion",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Unit",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/voice-of-the-customer",
+      "purpose": "Translate customer needs into checkable conditions.",
+      "when": "Translate customer needs into checkable conditions.",
+      "steps": [
+        "Capture the voice",
+        "Clarify the need",
+        "Agree an operational criterion"
+      ],
+      "pitfall": "Confirm the translation with the customer.",
+      "example": "Fictional logistics example: Translate on-time delivery into a defined cut-off measure.",
+      "visual": "cards",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "sipoc",
+      "name": "SIPOC",
+      "version": 1,
+      "goal": "Define",
+      "stage": "Plan",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "supplier",
+          "label": "Supplier",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "input",
+          "label": "Input",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "process",
+          "label": "Process step",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "output",
+          "label": "Output",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "customer",
+          "label": "Customer",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "requirement",
+          "label": "Output requirement",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/sipoc",
+      "purpose": "Set high-level process boundaries and handoffs.",
+      "when": "Set high-level process boundaries and handoffs.",
+      "steps": [
+        "Define start and end",
+        "Map inputs and outputs",
+        "Confirm requirements with customers"
+      ],
+      "pitfall": "A high-level map omits operational detail.",
+      "example": "Fictional logistics example: Map receipt-to-putaway.",
+      "visual": "flow",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "ishikawa",
+      "name": "Ishikawa / fishbone",
+      "version": 1,
+      "goal": "Causes",
+      "stage": "Plan",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "cause",
+          "label": "Possible cause",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "parent",
+          "label": "Parent row ID (subcause)",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "state",
+          "label": "Cause status",
+          "type": "select",
+          "choices": [
+            "hypothesis",
+            "validated"
+          ]
+        },
+        {
+          "key": "evidence_id",
+          "label": "Evidence ID",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "test",
+          "label": "Validation / uncertainty",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "effect",
+          "label": "Problem / effect",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "categories",
+          "label": "Categories (one per line)",
+          "type": "textarea",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/fishbone",
+      "purpose": "Organize possible causes of a defined effect.",
+      "when": "Organize possible causes of a defined effect.",
+      "steps": [
+        "Agree the effect",
+        "Add categories, causes and subcauses",
+        "Test hypotheses against evidence"
+      ],
+      "pitfall": "The diagram does not prove root causes.",
+      "example": "Fictional logistics example: Explore damage during outbound handling.",
+      "visual": "fishbone",
+      "difficulty": "basic",
+      "data_need": "hypotheses",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "5whys",
+      "name": "5 Whys",
+      "version": 1,
+      "goal": "Causes",
+      "stage": "Plan",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "branch",
+          "label": "Chain / branch",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "parent",
+          "label": "Parent row ID",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "question",
+          "label": "Why question",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "answer",
+          "label": "Answer / hypothesis",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "uncertainty",
+          "label": "Uncertainty",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "countermeasure",
+          "label": "Proposed countermeasure",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "state",
+          "label": "Cause status",
+          "type": "select",
+          "choices": [
+            "hypothesis",
+            "validated"
+          ]
+        },
+        {
+          "key": "evidence_id",
+          "label": "Evidence ID",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/lexicon-terms/5-whys/",
+      "purpose": "Trace a gap beyond its immediate symptom.",
+      "when": "Trace a gap beyond its immediate symptom.",
+      "steps": [
+        "Ask why from facts",
+        "Branch where explanations differ",
+        "Test the answer before acting"
+      ],
+      "pitfall": "Five is a starting aid, not a required endpoint.",
+      "example": "Fictional logistics example: Trace recurring label reprints.",
+      "visual": "tree",
+      "difficulty": "basic",
+      "data_need": "hypotheses",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "brainstorm",
+      "name": "Brainstorming",
+      "version": 1,
+      "goal": "Ideas",
+      "stage": "Plan",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "idea",
+          "label": "Idea",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "contributor",
+          "label": "Contributor / team alias",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "origin",
+          "label": "Observation / origin",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "test",
+          "label": "Possible test",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/brainstorming",
+      "purpose": "Generate options before selecting a solution.",
+      "when": "Generate options before selecting a solution.",
+      "steps": [
+        "Frame the question",
+        "Record ideas without judging",
+        "Evaluate separately"
+      ],
+      "pitfall": "Popularity is not evidence.",
+      "example": "Fictional logistics example: Collect ideas to reduce scanner searching.",
+      "visual": "cards",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "affinity",
+      "name": "Affinity diagram",
+      "version": 1,
+      "goal": "Ideas",
+      "stage": "Plan",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "card",
+          "label": "Idea / observation",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "group",
+          "label": "Group (blank = ungrouped)",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "origin",
+          "label": "Origin",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "groups",
+          "label": "Named groups (one per line)",
+          "type": "textarea",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/affinity",
+      "purpose": "Group many observations by related themes.",
+      "when": "Group many observations by related themes.",
+      "steps": [
+        "Capture separate cards",
+        "Name groups",
+        "Move cards and discuss differences"
+      ],
+      "pitfall": "Grouping demonstrates similarity, not causality.",
+      "example": "Fictional logistics example: Group picking feedback by theme.",
+      "visual": "affinity",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "relations",
+      "name": "Relations diagram",
+      "version": 1,
+      "goal": "Causes",
+      "stage": "Plan",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "from",
+          "label": "From factor",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "to",
+          "label": "To factor",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "relationship",
+          "label": "Proposed influence",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "evidence_id",
+          "label": "Evidence ID",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "uncertainty",
+          "label": "Uncertainty",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/relations-diagram",
+      "purpose": "Explore dependencies between interacting factors.",
+      "when": "Explore dependencies between interacting factors.",
+      "steps": [
+        "List factors",
+        "Draw directed relationships",
+        "Check high-influence hypotheses"
+      ],
+      "pitfall": "An arrow alone does not establish cause.",
+      "example": "Fictional logistics example: Explore workload and rework dependencies.",
+      "visual": "relations",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "tree",
+      "name": "Tree diagram",
+      "version": 1,
+      "goal": "Ideas",
+      "stage": "Plan",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "node",
+          "label": "Node / objective",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "parent",
+          "label": "Parent row ID",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "type",
+          "label": "Node type",
+          "type": "select",
+          "choices": [
+            "objective",
+            "means",
+            "test"
+          ]
+        },
+        {
+          "key": "criterion",
+          "label": "Completion criterion",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "owner",
+          "label": "Owner",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/tree-diagram",
+      "purpose": "Break a broad objective into workable parts.",
+      "when": "Break a broad objective into workable parts.",
+      "steps": [
+        "State the objective",
+        "Decompose means",
+        "Check coverage and assign owners"
+      ],
+      "pitfall": "Hierarchy is a planning structure.",
+      "example": "Fictional logistics example: Break damage reduction into tests.",
+      "visual": "tree",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "flowchart",
+      "name": "Flowchart / swimlane",
+      "version": 1,
+      "goal": "Process",
+      "stage": "Plan",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "step",
+          "label": "Step / decision",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "lane",
+          "label": "Lane / owner",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "next",
+          "label": "Next row IDs (comma-separated)",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "state",
+          "label": "Process state",
+          "type": "select",
+          "choices": [
+            "current",
+            "future"
+          ]
+        },
+        {
+          "key": "type",
+          "label": "Shape",
+          "type": "select",
+          "choices": [
+            "process",
+            "decision",
+            "start",
+            "end"
+          ]
+        },
+        {
+          "key": "time",
+          "label": "Duration",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Time unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "source",
+          "label": "Measure source",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/flowchart",
+      "purpose": "Understand sequence, decisions and responsibility.",
+      "when": "Understand sequence, decisions and responsibility.",
+      "steps": [
+        "Observe the process",
+        "Map steps and decision branches",
+        "Compare a proposed future flow"
+      ],
+      "pitfall": "Measure times; a map is not a simulation.",
+      "example": "Fictional logistics example: Map goods receipt across roles.",
+      "visual": "flow",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "vsm",
+      "name": "Current / future value-stream map",
+      "version": 1,
+      "goal": "Process",
+      "stage": "Plan",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "step",
+          "label": "Process step",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "select",
+          "choices": [
+            "current",
+            "future"
+          ]
+        },
+        {
+          "key": "cycle",
+          "label": "Cycle time",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "wait",
+          "label": "Waiting time",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "wip",
+          "label": "Work in process",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "information",
+          "label": "Information / pull signal",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Time unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "source",
+          "label": "Measure source",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/lexicon-terms/value-stream-mapping/",
+      "purpose": "See material and information flow across a stream.",
+      "when": "See material and information flow across a stream.",
+      "steps": [
+        "Record current flow and delays",
+        "Design a future state",
+        "Plan tests of the changes"
+      ],
+      "pitfall": "Same-unit sums are descriptive; do not imply a validated future state.",
+      "example": "Fictional logistics example: Map inbound pallets to available stock.",
+      "visual": "vsm",
+      "difficulty": "intermediate",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "spaghetti",
+      "name": "Spaghetti diagram",
+      "version": 1,
+      "goal": "Process",
+      "stage": "Plan",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "route",
+          "label": "Route / operator alias",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "select",
+          "choices": [
+            "current",
+            "future"
+          ]
+        },
+        {
+          "key": "point",
+          "label": "Location",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "x",
+          "label": "X coordinate",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "y",
+          "label": "Y coordinate",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Distance unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "source",
+          "label": "Measurement source",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/spaghetti-diagram",
+      "purpose": "Expose walking or movement paths.",
+      "when": "Expose walking or movement paths.",
+      "steps": [
+        "Define a measured coordinate scale",
+        "Record successive points",
+        "Compare actual and proposed routes"
+      ],
+      "pitfall": "Straight segments approximate distance; obstacles and routes need observation.",
+      "example": "Fictional logistics example: Trace a picker collecting packaging.",
+      "visual": "spaghetti",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "waste",
+      "name": "Waste analysis",
+      "version": 1,
+      "goal": "Process",
+      "stage": "Plan",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "category",
+          "label": "Waste category",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "observation",
+          "label": "Observed waste",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "time",
+          "label": "Measured duration",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "source",
+          "label": "Source",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "action",
+          "label": "Proposed change",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "owner",
+          "label": "Owner",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "categories",
+          "label": "Local waste categories (one per line)",
+          "type": "textarea",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/lexicon-terms/waste/",
+      "purpose": "Identify activities consuming resources without customer value.",
+      "when": "Identify activities consuming resources without customer value.",
+      "steps": [
+        "Define local categories",
+        "Observe work",
+        "Select a change to test"
+      ],
+      "pitfall": "Required safety or compliance work cannot be removed by labeling it waste.",
+      "example": "Fictional logistics example: Record waiting at a loading dock.",
+      "visual": "cards",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "check-sheet",
+      "name": "Check sheet / tally",
+      "version": 1,
+      "goal": "Data",
+      "stage": "Check",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "category",
+          "label": "Operationally defined category",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "period",
+          "label": "Date / interval",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "count",
+          "label": "Count",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "location",
+          "label": "Location / population",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "source",
+          "label": "Observer / source",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/check-sheet",
+      "purpose": "Collect repeatable event counts.",
+      "when": "Collect repeatable event counts.",
+      "steps": [
+        "Define each category",
+        "Trial the sheet",
+        "Record observations consistently"
+      ],
+      "pitfall": "Changing definitions invalidates comparisons.",
+      "example": "Fictional logistics example: Count damaged cartons by shift.",
+      "visual": "bars",
+      "difficulty": "basic",
+      "data_need": "counts",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "pareto",
+      "name": "Pareto",
+      "version": 1,
+      "goal": "Data",
+      "stage": "Check",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "value",
+          "label": "Frequency / cost / time",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "source",
+          "label": "Data source",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "metric",
+          "label": "Metric",
+          "type": "select",
+          "choices": [
+            "frequency",
+            "cost",
+            "time"
+          ]
+        },
+        {
+          "key": "unit",
+          "label": "Selected unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "aggregation",
+          "label": "Aggregation",
+          "type": "select",
+          "choices": [
+            "sum"
+          ]
+        }
+      ],
+      "source": "https://asq.org/quality-resources/pareto",
+      "purpose": "Prioritize measured categories by contribution.",
+      "when": "Prioritize measured categories by contribution.",
+      "steps": [
+        "Choose one metric and unit",
+        "Aggregate categories and sort descending",
+        "Inspect cumulative shares"
+      ],
+      "pitfall": "The 80% line is a reference, not a guaranteed 80/20 law.",
+      "example": "Fictional logistics example: Compare picking error counts by type.",
+      "visual": "pareto",
+      "difficulty": "basic",
+      "data_need": "counts",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "stratification",
+      "name": "Stratification",
+      "version": 1,
+      "goal": "Data",
+      "stage": "Check",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "stratum",
+          "label": "Group / source",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "value",
+          "label": "Observed value",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "period",
+          "label": "Measurement period",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "population",
+          "label": "Population",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "source",
+          "label": "Source",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/stratification",
+      "purpose": "Compare data from distinct operational groups.",
+      "when": "Compare data from distinct operational groups.",
+      "steps": [
+        "Define groups before analysis",
+        "Use comparable observations",
+        "Compare group distributions"
+      ],
+      "pitfall": "Group differences do not explain their cause.",
+      "example": "Fictional logistics example: Compare pick duration by zone.",
+      "visual": "bars",
+      "difficulty": "basic",
+      "data_need": "numeric",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "histogram",
+      "name": "Histogram",
+      "version": 1,
+      "goal": "Data",
+      "stage": "Check",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "value",
+          "label": "Numeric observation",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "period",
+          "label": "Measurement period",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "source",
+          "label": "Source",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "bins",
+          "label": "Number of equal-width bins",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Selected unit",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/histogram",
+      "purpose": "Inspect the distribution of numeric data.",
+      "when": "Inspect the distribution of numeric data.",
+      "steps": [
+        "Collect representative measurements",
+        "Choose equal-width bins",
+        "Inspect shape and sample size"
+      ],
+      "pitfall": "Small samples and chosen bins can mislead; no normality claim.",
+      "example": "Fictional logistics example: Inspect loading duration.",
+      "visual": "histogram",
+      "difficulty": "basic",
+      "data_need": "numeric",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "scatter",
+      "name": "Scatterplot",
+      "version": 1,
+      "goal": "Data",
+      "stage": "Check",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "x",
+          "label": "X observation",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "y",
+          "label": "Y observation",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "x_unit",
+          "label": "X unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "y_unit",
+          "label": "Y unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "period",
+          "label": "Paired observation period",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "source",
+          "label": "Source",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/scatter-diagram",
+      "purpose": "Explore association between paired numeric measures.",
+      "when": "Explore association between paired numeric measures.",
+      "steps": [
+        "Pair observations correctly",
+        "Plot both measures",
+        "Investigate alternative explanations"
+      ],
+      "pitfall": "Correlation does not establish causality.",
+      "example": "Fictional logistics example: Compare queue length and waiting time.",
+      "visual": "scatter",
+      "difficulty": "basic",
+      "data_need": "paired numeric",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "run-chart",
+      "name": "Run chart",
+      "version": 1,
+      "goal": "Data",
+      "stage": "Check",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "period",
+          "label": "Ordered measurement time",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "source",
+          "label": "Source",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/seven-basic-quality-tools",
+      "purpose": "See how a measure changes over time.",
+      "when": "See how a measure changes over time.",
+      "steps": [
+        "Record observations in time order",
+        "Plot values and median",
+        "Investigate visible changes"
+      ],
+      "pitfall": "This plot makes no automatic special-cause significance claim.",
+      "example": "Fictional logistics example: Track daily dispatch delays.",
+      "visual": "run",
+      "difficulty": "basic",
+      "data_need": "time series",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "control-chart",
+      "name": "Control chart (I–MR)",
+      "version": 1,
+      "goal": "Data",
+      "stage": "Check",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "period",
+          "label": "Ordered measurement time",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "value",
+          "label": "Individual continuous observation",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "source",
+          "label": "Source",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/control-chart",
+      "purpose": "Explore continuous individual observations using I–MR limits.",
+      "when": "Explore continuous individual observations using I–MR limits.",
+      "steps": [
+        "Collect a stable consecutive baseline",
+        "Estimate moving-range limits",
+        "Investigate out-of-limit points"
+      ],
+      "pitfall": "Limits are estimated process variation, not targets/specifications. Only I–MR is implemented; no attribute/subgroup charts.",
+      "example": "Fictional logistics example: Inspect consecutive carton-weight observations.",
+      "visual": "control",
+      "difficulty": "advanced",
+      "data_need": "time series",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "boxplot",
+      "name": "Boxplot",
+      "version": 1,
+      "goal": "Data",
+      "stage": "Check",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "group",
+          "label": "Comparable group",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "value",
+          "label": "Observation",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "period",
+          "label": "Measurement period",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "source",
+          "label": "Source",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/box-whisker-plot",
+      "purpose": "Compare median, quartiles and spread across groups.",
+      "when": "Compare median, quartiles and spread across groups.",
+      "steps": [
+        "Define comparable groups",
+        "Collect numeric values",
+        "Inspect quartiles and outliers"
+      ],
+      "pitfall": "Tukey whiskers and linear-interpolation quartiles are descriptive.",
+      "example": "Fictional logistics example: Compare unloading duration across shifts.",
+      "visual": "boxplot",
+      "difficulty": "basic",
+      "data_need": "numeric",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "impact-effort",
+      "name": "Impact / effort matrix",
+      "version": 1,
+      "goal": "Choose",
+      "stage": "Do",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "option",
+          "label": "Option",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "impact",
+          "label": "Local impact 1–5",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "effort",
+          "label": "Local effort 1–5",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "basis",
+          "label": "Scoring basis",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "risk",
+          "label": "Risk / condition",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "scale",
+          "label": "Local scoring anchors",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/impact-effort-matrix",
+      "purpose": "Discuss practical options against impact and effort.",
+      "when": "Discuss practical options against impact and effort.",
+      "steps": [
+        "Define the local 1–5 anchors",
+        "Score options",
+        "Discuss risks before selection"
+      ],
+      "pitfall": "Local scores are subjective and not CEVA policy.",
+      "example": "Fictional logistics example: Compare scanner placement options.",
+      "visual": "matrix",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "decision-matrix",
+      "name": "Weighted decision matrix",
+      "version": 1,
+      "goal": "Choose",
+      "stage": "Do",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "option",
+          "label": "Option",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "criterion",
+          "label": "Criterion",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "weight",
+          "label": "Nonnegative weight",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "score",
+          "label": "Score on defined local scale",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "basis",
+          "label": "Score basis",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "scale",
+          "label": "Local score definition",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/decision-matrix",
+      "purpose": "Compare options using explicit weighted criteria.",
+      "when": "Compare options using explicit weighted criteria.",
+      "steps": [
+        "Agree criteria, weights and scale",
+        "Score every option consistently",
+        "Inspect sensitivity and assumptions"
+      ],
+      "pitfall": "Weights and scores require judgment; missing criteria block ranking.",
+      "example": "Fictional logistics example: Compare two packaging systems.",
+      "visual": "bars",
+      "difficulty": "intermediate",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "fmea",
+      "name": "FMEA",
+      "version": 1,
+      "goal": "Risk",
+      "stage": "Do",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "process",
+          "label": "Process / function",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "failure",
+          "label": "Failure mode",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "effect",
+          "label": "Effect",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "cause",
+          "label": "Potential cause",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "control",
+          "label": "Current control",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "severity",
+          "label": "Severity 1–10",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "occurrence",
+          "label": "Occurrence 1–10",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "detection",
+          "label": "Detection 1–10",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "action",
+          "label": "Action",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "owner",
+          "label": "Owner",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "scale",
+          "label": "Local severity / occurrence / detection anchors",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/fmea",
+      "purpose": "Examine failure modes and planned controls.",
+      "when": "Examine failure modes and planned controls.",
+      "steps": [
+        "Define the local rating anchors",
+        "Assess effects and controls",
+        "Assign mitigation and reassess"
+      ],
+      "pitfall": "RPN is only a local screening aid; high severity needs attention regardless of RPN.",
+      "example": "Fictional logistics example: Review wrong-item shipment failure modes.",
+      "visual": "bars",
+      "difficulty": "advanced",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "poka-yoke",
+      "name": "Poka-Yoke",
+      "version": 1,
+      "goal": "Risk",
+      "stage": "Do",
+      "kind": "practice",
+      "fields": [
+        {
+          "key": "error",
+          "label": "Potential error",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "mechanism",
+          "label": "Prevention / detection mechanism",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "test",
+          "label": "Challenge test",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "failure_response",
+          "label": "Response when test fails",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "owner",
+          "label": "Owner",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "result",
+          "label": "Observed test result",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/lexicon-terms/poka-yoke/",
+      "purpose": "Prevent errors or make them immediately detectable.",
+      "when": "Prevent errors or make them immediately detectable.",
+      "steps": [
+        "Define the error",
+        "Design a prevention or detection test",
+        "Check failure response and maintenance"
+      ],
+      "pitfall": "A reminder alone is not proven error prevention.",
+      "example": "Fictional logistics example: Test a barcode mismatch interlock.",
+      "visual": "cards",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "5s",
+      "name": "5S",
+      "version": 1,
+      "goal": "Workplace",
+      "stage": "Do",
+      "kind": "practice",
+      "fields": [
+        {
+          "key": "pillar",
+          "label": "5S component",
+          "type": "select",
+          "choices": [
+            "Sort",
+            "Set in order",
+            "Shine",
+            "Standardize",
+            "Sustain"
+          ]
+        },
+        {
+          "key": "observation",
+          "label": "Observation",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "before_attachment",
+          "label": "Before photo attachment ID",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "after_attachment",
+          "label": "After photo attachment ID",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "action",
+          "label": "Action",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "owner",
+          "label": "Owner",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "follow_up",
+          "label": "Follow-up date",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "score",
+          "label": "Local score 0–2",
+          "type": "number",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/lexicon-terms/five-s/",
+      "purpose": "Build a workplace standard that makes problems visible.",
+      "when": "Build a workplace standard that makes problems visible.",
+      "steps": [
+        "Observe each of the five components",
+        "Agree changes and photo evidence",
+        "Schedule sustain checks"
+      ],
+      "pitfall": "Local 0 = absent, 1 = partly demonstrated, 2 = demonstrated; not a TCA classification.",
+      "example": "Fictional logistics example: Organize the packing station and check sustain.",
+      "visual": "5s",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "red-tag",
+      "name": "Red-tag register",
+      "version": 1,
+      "goal": "Workplace",
+      "stage": "Do",
+      "kind": "practice",
+      "fields": [
+        {
+          "key": "item",
+          "label": "Tagged item",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "location",
+          "label": "Location",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "tag_date",
+          "label": "Tag date",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "owner",
+          "label": "Decision owner",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "disposition",
+          "label": "Decision / disposition",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "follow_up",
+          "label": "Follow-up",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/lexicon-terms/five-s/",
+      "purpose": "Track decisions on unnecessary workplace items.",
+      "when": "Track decisions on unnecessary workplace items.",
+      "steps": [
+        "Tag with context",
+        "Agree a disposition",
+        "Record the outcome"
+      ],
+      "pitfall": "Do not dispose of safety/compliance assets without authority.",
+      "example": "Fictional logistics example: Review unused packaging fixtures.",
+      "visual": "cards",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "visual-management",
+      "name": "Visual-management standard",
+      "version": 1,
+      "goal": "Workplace",
+      "stage": "Act",
+      "kind": "practice",
+      "fields": [
+        {
+          "key": "location",
+          "label": "Point of use",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "standard",
+          "label": "Normal condition",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "signal",
+          "label": "Abnormal signal",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "response",
+          "label": "Required response",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "owner",
+          "label": "Owner",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "frequency",
+          "label": "Review frequency",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "check",
+          "label": "Latest check",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/the-lean-post/articles/reinforcing-lean-behavior-through-visual-management/",
+      "purpose": "Make normal and abnormal conditions actionable.",
+      "when": "Make normal and abnormal conditions actionable.",
+      "steps": [
+        "Define the standard",
+        "Place a visible signal",
+        "Test the response"
+      ],
+      "pitfall": "A board without a response routine does not improve performance.",
+      "example": "Fictional logistics example: Show the dock queue and escalation owner.",
+      "visual": "cards",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "kanban",
+      "name": "Kanban / pull / WIP",
+      "version": 1,
+      "goal": "Flow",
+      "stage": "Do",
+      "kind": "practice",
+      "fields": [
+        {
+          "key": "lane",
+          "label": "Process / lane",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "signal",
+          "label": "Replenishment signal",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "wip",
+          "label": "Current WIP",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "limit",
+          "label": "Local WIP limit",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Item unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "replenishment",
+          "label": "Replenishment response",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "owner",
+          "label": "Owner",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/lexicon-terms/kanban/",
+      "purpose": "Control work release through explicit downstream demand.",
+      "when": "Control work release through explicit downstream demand.",
+      "steps": [
+        "Define the pull signal",
+        "Set and test local WIP limits",
+        "Respond to blocked flow"
+      ],
+      "pitfall": "A board alone does not create pull; limits are local experiments.",
+      "example": "Fictional logistics example: Test replenishment signals for cartons.",
+      "visual": "bars",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "takt",
+      "name": "Takt / cycle-time analysis",
+      "version": 1,
+      "goal": "Flow",
+      "stage": "Check",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "process",
+          "label": "Process",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "cycle",
+          "label": "Observed cycle time",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Time unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "source",
+          "label": "Measurement source",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "period",
+          "label": "Period",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "available",
+          "label": "Net available time",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "demand",
+          "label": "Customer demand units",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Time unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "period",
+          "label": "Demand period",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/lexicon-terms/takt-time/",
+      "purpose": "Compare actual cycle times with customer demand pace.",
+      "when": "Compare actual cycle times with customer demand pace.",
+      "steps": [
+        "Define net available time and demand for the same period",
+        "Measure cycle time",
+        "Inspect the gap"
+      ],
+      "pitfall": "Demand must be positive; all times must share the selected unit.",
+      "example": "Fictional logistics example: Compare packing cycles with shift demand.",
+      "visual": "takt",
+      "difficulty": "basic",
+      "data_need": "operational numeric",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "yamazumi",
+      "name": "Yamazumi / work balancing",
+      "version": 1,
+      "goal": "Flow",
+      "stage": "Do",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "operator",
+          "label": "Station / operator alias",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "element",
+          "label": "Work element",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "time",
+          "label": "Duration",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "kind",
+          "label": "Work kind",
+          "type": "select",
+          "choices": [
+            "manual",
+            "walk",
+            "machine"
+          ]
+        },
+        {
+          "key": "unit",
+          "label": "Time unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "source",
+          "label": "Measure source",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "takt",
+          "label": "Reference takt",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Time unit",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/lexicon-terms/operator-balance-chart/",
+      "purpose": "Balance work elements relative to takt.",
+      "when": "Balance work elements relative to takt.",
+      "steps": [
+        "Observe elements",
+        "Stack times per station",
+        "Test a safe redistribution"
+      ],
+      "pitfall": "Summed elements assume sequential work; overlap requires separate analysis.",
+      "example": "Fictional logistics example: Balance tasks across two pack stations.",
+      "visual": "yamazumi",
+      "difficulty": "basic",
+      "data_need": "operational numeric",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "smed",
+      "name": "SMED",
+      "version": 1,
+      "goal": "Flow",
+      "stage": "Do",
+      "kind": "practice",
+      "fields": [
+        {
+          "key": "element",
+          "label": "Changeover element",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "kind",
+          "label": "Current classification",
+          "type": "select",
+          "choices": [
+            "internal",
+            "external"
+          ]
+        },
+        {
+          "key": "future_kind",
+          "label": "Proposed classification",
+          "type": "select",
+          "choices": [
+            "internal",
+            "external"
+          ]
+        },
+        {
+          "key": "before",
+          "label": "Current duration",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "after",
+          "label": "Proposed duration",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Time unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "test",
+          "label": "Conversion test",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "owner",
+          "label": "Owner",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/lexicon-terms/single-minute-exchange-of-die/",
+      "purpose": "Reduce changeover by separating internal and external work.",
+      "when": "Reduce changeover by separating internal and external work.",
+      "steps": [
+        "Observe the changeover",
+        "Separate work needing a stop",
+        "Test safe conversion and simplify"
+      ],
+      "pitfall": "A proposed duration is not a realized saving.",
+      "example": "Fictional logistics example: Move label preparation outside a line stop.",
+      "visual": "bars",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "heijunka",
+      "name": "Heijunka worksheet",
+      "version": 1,
+      "goal": "Flow",
+      "stage": "Do",
+      "kind": "practice",
+      "fields": [
+        {
+          "key": "slot",
+          "label": "Time slot",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "product",
+          "label": "Product / service family",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "quantity",
+          "label": "Planned quantity",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "demand",
+          "label": "Demand basis",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "capacity",
+          "label": "Capacity constraint",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/lexicon-terms/heijunka/",
+      "purpose": "Plan a leveled mix and volume over time.",
+      "when": "Plan a leveled mix and volume over time.",
+      "steps": [
+        "Define demand and capacity",
+        "Allocate a repeatable mix",
+        "Test stability and adjust"
+      ],
+      "pitfall": "A level plan needs stable capability and cannot erase demand variability.",
+      "example": "Fictional logistics example: Plan a repeatable outbound service mix.",
+      "visual": "heijunka",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "standard-work",
+      "name": "Standard work",
+      "version": 1,
+      "goal": "Sustain",
+      "stage": "Act",
+      "kind": "practice",
+      "fields": [
+        {
+          "key": "step",
+          "label": "Sequence step",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "time",
+          "label": "Observed duration",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Time unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "wip",
+          "label": "Standard WIP",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "key_point",
+          "label": "Safety / quality key point",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "check",
+          "label": "Verification",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "owner",
+          "label": "Owner",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "takt",
+          "label": "Reference takt",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "version",
+          "label": "Local standard version",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/lexicon-terms/standardized-work/",
+      "purpose": "Describe the best current agreed work sequence.",
+      "when": "Describe the best current agreed work sequence.",
+      "steps": [
+        "Observe work and takt",
+        "Agree sequence and WIP",
+        "Train, verify and improve"
+      ],
+      "pitfall": "A document alone does not demonstrate adoption.",
+      "example": "Fictional logistics example: Agree a repeatable label-check sequence.",
+      "visual": "flow",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "twi",
+      "name": "TWI job instruction",
+      "version": 1,
+      "goal": "Sustain",
+      "stage": "Act",
+      "kind": "practice",
+      "fields": [
+        {
+          "key": "step",
+          "label": "Important step",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "key_point",
+          "label": "Key point",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "reason",
+          "label": "Reason for key point",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "trainer",
+          "label": "Trainer alias",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "practice",
+          "label": "Try-out result",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "follow_up",
+          "label": "Follow-up",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/lexicon-terms/training-within-industry-twi/",
+      "purpose": "Teach a job consistently and safely.",
+      "when": "Teach a job consistently and safely.",
+      "steps": [
+        "Prepare the learner",
+        "Demonstrate and practice steps with key points and reasons",
+        "Follow up until competence is shown"
+      ],
+      "pitfall": "Attendance alone is not competence.",
+      "example": "Fictional logistics example: Teach pallet wrapping at point of use.",
+      "visual": "flow",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "control-plan",
+      "name": "Control / sustain plan",
+      "version": 1,
+      "goal": "Sustain",
+      "stage": "Act",
+      "kind": "practice",
+      "fields": [
+        {
+          "key": "characteristic",
+          "label": "Controlled characteristic",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "standard",
+          "label": "Expected standard",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "method",
+          "label": "Check method",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "frequency",
+          "label": "Frequency",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "owner",
+          "label": "Owner",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "reaction",
+          "label": "Reaction plan",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "next_check",
+          "label": "Next check date",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "result",
+          "label": "Observed check result",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/control-chart",
+      "purpose": "Keep a proven change effective over time.",
+      "when": "Keep a proven change effective over time.",
+      "steps": [
+        "Define the standard and check",
+        "Assign owner and frequency",
+        "Test the reaction plan"
+      ],
+      "pitfall": "This is an operational plan, not a statistical control-limit calculation.",
+      "example": "Fictional logistics example: Check barcode scan adherence.",
+      "visual": "cards",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "leader-work",
+      "name": "Leader standard work",
+      "version": 1,
+      "goal": "Sustain",
+      "stage": "Act",
+      "kind": "practice",
+      "fields": [
+        {
+          "key": "routine",
+          "label": "Routine",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "location",
+          "label": "Location",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "frequency",
+          "label": "Frequency",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "standard",
+          "label": "Expected behavior",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "owner",
+          "label": "Owner",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "finding",
+          "label": "Observed finding",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "follow_up",
+          "label": "Follow-up",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/lexicon-terms/leader-standard-work/",
+      "purpose": "Support improvement through a repeatable leadership routine.",
+      "when": "Support improvement through a repeatable leadership routine.",
+      "steps": [
+        "Agree purposeful observations",
+        "Coach at the workplace",
+        "Follow up learning and blockers"
+      ],
+      "pitfall": "Checking a box does not establish capability.",
+      "example": "Fictional logistics example: Review the daily dock handoff.",
+      "visual": "cards",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "kamishibai",
+      "name": "Kamishibai checks",
+      "version": 1,
+      "goal": "Sustain",
+      "stage": "Act",
+      "kind": "practice",
+      "fields": [
+        {
+          "key": "card",
+          "label": "Check card",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "standard",
+          "label": "Standard to observe",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "due",
+          "label": "Due date",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "owner",
+          "label": "Owner",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "status",
+          "label": "Result",
+          "type": "select",
+          "choices": [
+            "pending",
+            "met",
+            "gap"
+          ]
+        },
+        {
+          "key": "finding",
+          "label": "Observation",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "response",
+          "label": "Response",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/lexicon-terms/kamishibai-board/",
+      "purpose": "Rotate visible checks of agreed work standards.",
+      "when": "Rotate visible checks of agreed work standards.",
+      "steps": [
+        "Define cards and schedule",
+        "Observe the work",
+        "Respond to gaps"
+      ],
+      "pitfall": "A green card needs an actual observation.",
+      "example": "Fictional logistics example: Check a sample of dispatch handoffs.",
+      "visual": "affinity",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "kata",
+      "name": "Toyota Kata experiment",
+      "version": 1,
+      "goal": "Sustain",
+      "stage": "Act",
+      "kind": "approach",
+      "fields": [
+        {
+          "key": "target_condition",
+          "label": "Target condition",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "obstacle",
+          "label": "Current obstacle",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "experiment",
+          "label": "Next experiment",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "prediction",
+          "label": "Prediction",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "actual",
+          "label": "Observed outcome",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "learning",
+          "label": "Learning",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "next_step",
+          "label": "Next step",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "check_date",
+          "label": "Check date",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/the-lean-post/articles/three-faces-of-lean-management/",
+      "purpose": "Learn toward a target condition through small experiments.",
+      "when": "Learn toward a target condition through small experiments.",
+      "steps": [
+        "Choose one obstacle",
+        "State a prediction and test",
+        "Compare outcome and decide the next step"
+      ],
+      "pitfall": "Do not rewrite a prediction after seeing the result.",
+      "example": "Fictional logistics example: Test a different pick-route sequence.",
+      "visual": "cards",
+      "difficulty": "basic",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "oee",
+      "name": "TPM / OEE",
+      "version": 1,
+      "goal": "Flow",
+      "stage": "Check",
+      "kind": "practice",
+      "fields": [
+        {
+          "key": "asset",
+          "label": "Asset",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "planned",
+          "label": "Planned production time",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "run",
+          "label": "Run time",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "ideal_cycle",
+          "label": "Ideal cycle time per unit",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "total",
+          "label": "Total units",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "good",
+          "label": "Good units",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "unit",
+          "label": "Time unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "period",
+          "label": "Measurement period",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "source",
+          "label": "Source",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "maintenance",
+          "label": "Maintenance / loss action",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://www.lean.org/lexicon-terms/overall-equipment-effectiveness/",
+      "purpose": "Separate availability, performance and quality losses.",
+      "when": "Separate availability, performance and quality losses.",
+      "steps": [
+        "Define scheduled time and ideal cycle",
+        "Measure downtime and output",
+        "Use loss evidence to plan TPM work"
+      ],
+      "pitfall": "Use the same time unit; invalid speed/output relationships are flagged, not capped.",
+      "example": "Fictional logistics example: Measure conveyor availability and defects.",
+      "visual": "oee",
+      "difficulty": "basic",
+      "data_need": "operational numeric",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "dmaic",
+      "name": "DMAIC guidance",
+      "version": 1,
+      "goal": "Approach",
+      "stage": "Plan",
+      "kind": "approach",
+      "fields": [
+        {
+          "key": "step",
+          "label": "DMAIC phase",
+          "type": "select",
+          "choices": [
+            "Define",
+            "Measure",
+            "Analyze",
+            "Improve",
+            "Control"
+          ]
+        },
+        {
+          "key": "decision",
+          "label": "Decision / question",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "event_field",
+          "label": "Existing PDCA field reference",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "worksheet_id",
+          "label": "Existing worksheet ID",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "next",
+          "label": "Next check",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/dmaic",
+      "purpose": "Guide a data-based improvement within this PDCA event.",
+      "when": "Guide a data-based improvement within this PDCA event.",
+      "steps": [
+        "Map phases to existing event data",
+        "Check the evidence at each decision",
+        "Keep one dossier"
+      ],
+      "pitfall": "Guidance references the same event; it does not certify Six Sigma completion.",
+      "example": "Fictional logistics example: Guide a recurring dispatch-delay investigation.",
+      "visual": "flow",
+      "difficulty": "advanced",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "8d",
+      "name": "8D guidance",
+      "version": 1,
+      "goal": "Approach",
+      "stage": "Plan",
+      "kind": "approach",
+      "fields": [
+        {
+          "key": "step",
+          "label": "Discipline",
+          "type": "select",
+          "choices": [
+            "D1 Team",
+            "D2 Problem",
+            "D3 Containment",
+            "D4 Causes",
+            "D5 Corrective action",
+            "D6 Validate",
+            "D7 Prevent recurrence",
+            "D8 Recognize"
+          ]
+        },
+        {
+          "key": "decision",
+          "label": "Decision / record",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "event_field",
+          "label": "Existing PDCA field reference",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "worksheet_id",
+          "label": "Existing worksheet ID",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "check",
+          "label": "Evidence / follow-up",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "",
+          "label": "",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/eight-disciplines-8d",
+      "purpose": "Guide containment and corrective action in the existing event.",
+      "when": "Guide containment and corrective action in the existing event.",
+      "steps": [
+        "Map disciplines to current records",
+        "Validate corrective action",
+        "Check recurrence controls"
+      ],
+      "pitfall": "Containment and permanent correction differ; no duplicate event dossier.",
+      "example": "Fictional logistics example: Guide an incorrect-shipment corrective action.",
+      "visual": "flow",
+      "difficulty": "advanced",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    },
+    {
+      "key": "doe",
+      "name": "DOE experiment planning",
+      "version": 1,
+      "goal": "Approach",
+      "stage": "Plan",
+      "kind": "analysis",
+      "fields": [
+        {
+          "key": "run",
+          "label": "Planned run / random order",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "factor_a",
+          "label": "Factor A setting",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "factor_b",
+          "label": "Factor B setting",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "block",
+          "label": "Block / nuisance condition",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "replicate",
+          "label": "Replicate",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "response",
+          "label": "Response measure / unit",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "result",
+          "label": "Observed response",
+          "type": "number",
+          "choices": []
+        },
+        {
+          "key": "safety",
+          "label": "Safety / stopping rule",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "meta": [
+        {
+          "key": "objective",
+          "label": "Trial objective",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "randomization",
+          "label": "Randomization plan",
+          "type": "text",
+          "choices": []
+        },
+        {
+          "key": "period",
+          "label": "Trial period",
+          "type": "text",
+          "choices": []
+        }
+      ],
+      "source": "https://asq.org/quality-resources/design-of-experiments",
+      "purpose": "Plan controlled trials of factors and interactions.",
+      "when": "Plan controlled trials of factors and interactions.",
+      "steps": [
+        "Define factors, ranges and safety",
+        "Plan randomization, blocks and repeats",
+        "Record responses for qualified analysis"
+      ],
+      "pitfall": "Planning only: no automatic significance, causal or optimum conclusion.",
+      "example": "Fictional logistics example: Plan safe packaging trials with two controlled factors.",
+      "visual": "cards",
+      "difficulty": "advanced",
+      "data_need": "observations",
+      "exports": [
+        "JSON",
+        "CSV",
+        "SVG",
+        "A3"
+      ]
+    }
+  ],
+  "calculation_reference": "https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc322.htm"
+}

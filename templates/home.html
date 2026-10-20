@@ -1,0 +1,46 @@
+{% extends 'base.html' %}{% block content %}
+{% if site %}
+<div class="page-heading"><div><span class="eyebrow">{{ role_label }} · {{ site.name }}</span><h1>{% if primary_role == 'assessor' %}Assessment work{% elif primary_role == 'manager' %}Site results and blockers{% elif primary_role == 'coach' %}Sensei coaching{% elif primary_role == 'staff' %}My Kaizen work{% else %}Site workspace{% endif %}</h1></div></div>
+
+{% if primary_role == 'assessor' %}
+<section class="next-action" aria-labelledby="next-title"><span class="eyebrow">Next step</span>
+{% if draft %}<h2 id="next-title">Continue the assessment</h2><p>{{ draft_answered }} of {{ draft_total }} questions answered.{% if draft_next %} The next open question is {{ draft_next }}.{% else %} Every question has an answer; review and approve when ready.{% endif %}</p><a class="button primary-action" href="{% url 'assessment' site.code %}?assessment={{ draft.pk }}&amp;view=single">{% if draft_next %}Continue at {{ draft_next }}{% else %}Review and approve{% endif %}</a>
+{% else %}<h2 id="next-title">{% if progress.assessed.count %}Start the next assessment{% else %}Start the first assessment{% endif %}</h2><p>Questions are frozen at today's site wording. Earlier answers are shown for reference, never copied.</p><form method="post" action="{% url 'new_draft' site.code %}">{% csrf_token %}<button class="primary-action">Start assessment</button></form>{% endif %}
+</section>
+<div class="workspace-columns"><section class="workspace-section"><h2>Advisory to revisit</h2><ul class="task-list">{% for row in advisory_followups %}<li><a href="{% url 'respond' site.code row.requirement_id %}">{{ row.requirement_id }}</a><small>{{ row.advisory_follow_up|default:row.conclusion|truncatechars:100 }} · {{ row.get_advisory_retest_status_display }}</small></li>{% empty %}<li>No open Advisory.</li>{% endfor %}</ul></section>
+<section class="workspace-section"><h2>Coming up</h2><ul class="task-list">{% for session in upcoming_sessions %}<li><a href="{% url 'session_detail' site.code session.pk %}">{{ session.date|date:'d M Y' }} · {{ session.method }}</a><small>{{ session.get_availability_display }}</small></li>{% empty %}<li>No planned sessions.</li>{% endfor %}</ul><p class="small"><a href="{% url 'sessions' site.code %}">Plan a session</a> · <a href="{% url 'preparation' site.code %}">Prepare evidence</a></p></section></div>
+{% include 'progress_panel.html' %}
+
+{% elif primary_role == 'manager' %}
+<section class="next-action" aria-labelledby="next-title"><span class="eyebrow">Next step</span>
+{% if next_level %}<h2 id="next-title">{{ next_blockers|length }} requirement{{ next_blockers|length|pluralize }} block{{ next_blockers|length|pluralize:"s," }} {{ next_level }}</h2><p class="small muted">Based on the last approved assessment{% if draft %}; a new assessment is in progress{% endif %}.</p><p>Spread over {{ next_blocker_sections|length }} section{{ next_blocker_sections|length|pluralize }}: {% for c in next_blocker_sections|slice:":6" %}{{ c.number }}. {{ c.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% if next_blocker_sections|length > 6 %} and more{% endif %}.</p><a class="button primary-action" href="{% url 'opportunities' site.code %}">See blockers in the matrix</a>
+{% else %}<h2 id="next-title">Every section meets Showcase under the local rule</h2><p>Official standing still requires CAT confirmation.</p><a class="button primary-action" href="{% url 'opportunities' site.code %}">Open the matrix</a>{% endif %}
+</section>
+<div class="workspace-columns"><section class="workspace-section"><h2>Overdue</h2><ul class="task-list">{% for item in overdue_actions %}<li><a href="{% url 'opportunities' site.code %}#work-list">{{ item.problem|truncatechars:90 }}</a><small><span class="status-chip status-late">Overdue</span> due {{ item.due_date|date:'d M Y' }} · {{ item.owner|default:'Owner not set' }}</small></li>{% endfor %}{% for task in overdue_tasks %}<li><a href="{% url 'kaizen_detail' site.code task.event_id %}">{{ task.description|truncatechars:90 }}</a><small><span class="status-chip status-late">Overdue</span> due {{ task.end_date|date:'d M Y' }} · {{ task.event.title|truncatechars:40 }} · {{ task.progress }}%</small></li>{% endfor %}{% if not overdue_actions and not overdue_tasks %}<li>Nothing overdue.</li>{% endif %}</ul></section>
+<section class="workspace-section"><h2>Your decisions</h2><ul class="task-list">{% for session in sessions_to_confirm %}<li><a href="{% url 'session_detail' site.code session.pk %}">Confirm availability for {{ session.date|date:'d M Y' }}</a><small>{{ session.method }} · {{ session.purpose|default:'Planned assessment'|truncatechars:60 }}</small></li>{% endfor %}{% for event in review_waiting|slice:":3" %}<li><a href="{% url 'kaizen_review_detail' site.code event.pk %}">Review Kaizen: {{ event.title|truncatechars:60 }}</a><small>Submitted {{ event.submitted_at|date:'d M Y' }}</small></li>{% endfor %}{% if not sessions_to_confirm and not review_waiting %}<li>No decisions waiting.</li>{% endif %}</ul></section></div>
+{% include 'progress_panel.html' %}
+
+{% elif primary_role == 'coach' %}
+<section class="next-action" aria-labelledby="next-title"><span class="eyebrow">Next step</span>
+{% with first=review_waiting.0 %}{% if first %}<h2 id="next-title">Review “{{ first.title }}”</h2><p>Waiting since {{ first.submitted_at|date:'d M Y' }}.{% if review_waiting|length > 1 %} {{ review_waiting|length|add:-1 }} more submission{{ review_waiting|length|add:-1|pluralize }} waiting.{% endif %}</p><a class="button primary-action" href="{% url 'kaizen_review_detail' site.code first.pk %}">Open review</a>
+{% else %}<h2 id="next-title">No submissions waiting</h2><p>New submissions appear here first. Recently changed Kaizens are listed below.</p><a class="button primary-action" href="{% url 'review_queue' site.code %}">Open review queue</a>{% endif %}{% endwith %}
+</section>
+<div class="workspace-columns"><section class="workspace-section"><h2>Waiting for review</h2><ul class="task-list">{% for event in review_waiting %}<li><a href="{% url 'kaizen_review_detail' site.code event.pk %}">{{ event.title }}</a><small>Submitted {{ event.submitted_at|date:'d M Y H:i' }}</small></li>{% empty %}<li>Nothing waiting.</li>{% endfor %}</ul></section>
+<section class="workspace-section"><h2>Recently changed</h2><ul class="task-list">{% for event in review_improvements %}<li><a href="{% url 'kaizen_detail' site.code event.pk %}">{{ event.title }}</a><small>{{ event.status }} · updated {{ event.updated_at|date:'d M Y H:i' }}</small></li>{% empty %}<li>No events at this site.</li>{% endfor %}</ul><p class="small muted">Coach review and TCA answers are separate decisions.</p></section></div>
+
+{% elif primary_role == 'staff' %}
+<section class="next-action" aria-labelledby="next-title"><span class="eyebrow">Next step</span>
+{% with returned=my_returned.0 task=my_kaizen_actions.0 latest=my_improvements.0 %}
+{% if returned %}<h2 id="next-title">The sensei left feedback on “{{ returned.title }}”</h2><p>Read the feedback, update the Kaizen and submit it again.</p><a class="button primary-action" href="{% url 'kaizen_detail' site.code returned.pk %}">Open feedback</a>
+{% elif task %}<h2 id="next-title">{{ task.description|truncatechars:90 }}</h2><p>{{ task.event.title }}{% if task.end_date %} · due {{ task.end_date|date:'d M Y' }}{% if task.end_date < today %} <span class="status-chip status-late">Overdue</span>{% endif %}{% endif %} · {{ task.progress }}% done</p><a class="button primary-action" href="{% url 'kaizen_detail' site.code task.event_id %}">Open task</a>
+{% elif latest %}<h2 id="next-title">Continue “{{ latest.title }}”</h2><p>Last changed {{ latest.updated_at|date:'d M Y' }}.</p><a class="button primary-action" href="{% url 'kaizen_detail' site.code latest.pk %}">Continue</a>
+{% else %}<h2 id="next-title">Start an improvement</h2><p>A title is enough to start. You can add the problem, team and tools later.</p><a class="button primary-action" href="{% url 'kaizens' site.code %}#new-kaizen">Start a Kaizen</a>{% endif %}
+{% endwith %}
+</section>
+<div class="workspace-columns"><section class="workspace-section" id="my-tasks"><h2>My tasks</h2>{% include 'my_tasks.html' %}</section><section class="workspace-section"><h2>My Kaizens</h2><ul class="task-list">{% for event in my_improvements %}<li><a href="{% url 'kaizen_detail' site.code event.pk %}">{{ event.title }}</a><small>{{ event.status }} · {{ event.local_status }}</small></li>{% empty %}<li>No Kaizens started by you yet.</li>{% endfor %}</ul><p class="small"><a href="{% url 'kaizens' site.code %}#new-kaizen">Start a Kaizen</a> · <a href="{% url 'learning' site.code %}">Find lessons learned</a></p></section></div>
+<p class="small muted">Site status: {{ ready_sections }} of {{ progress.sections|length }} sections reach Certified or above (local rule; CAT confirmation pending).</p>
+{% else %}
+{% include 'progress_panel.html' %}
+{% endif %}
+{% else %}<div class="panel"><h1>No site access assigned</h1><p>Your account has no authorized location. Ask your local access owner for a site assignment.</p></div>{% endif %}
+{% endblock %}

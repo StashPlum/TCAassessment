@@ -1,0 +1,3 @@
+phase,measure,value,unit,population,date,source
+before,Repeat checks,10,count,Synthetic shifts,2026-10-01,Fictional CSV
+after,Repeat checks,8,count,Synthetic shifts,2026-10-14,Fictional CSV
