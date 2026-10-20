@@ -1,0 +1,1362 @@
+{
+ "auditor_demo": {
+  "landing": "/",
+  "landing_metrics": {
+   "title": "My work \u00b7 TCA Progress",
+   "h1": "Assessment work",
+   "buttons": 2,
+   "links": 19,
+   "inputs": 0,
+   "forms": 0,
+   "words": 115,
+   "tables": 0,
+   "details": 2,
+   "docWidth": 1440,
+   "primary": 0
+  },
+  "nav": [
+   {
+    "title": "My work \u00b7 TCA Progress",
+    "h1": "Assessment work",
+    "buttons": 2,
+    "links": 19,
+    "inputs": 0,
+    "forms": 0,
+    "words": 115,
+    "tables": 0,
+    "details": 2,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "TCA Progress",
+    "href": "/",
+    "status": 200
+   },
+   {
+    "title": "Site progress \u00b7 TCA Progress",
+    "h1": "Fictional Advisory Pilot progress",
+    "buttons": 2,
+    "links": 145,
+    "inputs": 0,
+    "forms": 0,
+    "words": 579,
+    "tables": 1,
+    "details": 31,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Site progress",
+    "href": "/sites/fictional-stage-one/",
+    "status": 200
+   },
+   {
+    "title": "TCA matrix \u00b7 TCA Progress",
+    "h1": "TCA matrix",
+    "buttons": 5,
+    "links": 157,
+    "inputs": 12,
+    "forms": 2,
+    "words": 565,
+    "tables": 2,
+    "details": 2,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "TCA matrix",
+    "href": "/sites/fictional-stage-one/opportunities/",
+    "status": 200
+   },
+   {
+    "title": "Prepare evidence \u00b7 TCA Progress",
+    "h1": "Prepare evidence",
+    "buttons": 8,
+    "links": 56,
+    "inputs": 30,
+    "forms": 2,
+    "words": 1062,
+    "tables": 1,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Prepare evidence",
+    "href": "/sites/fictional-stage-one/evidence/preparation/",
+    "status": 200
+   },
+   {
+    "title": "Plan assessment \u00b7 TCA Progress",
+    "h1": "Plan assessment",
+    "buttons": 3,
+    "links": 5,
+    "inputs": 9,
+    "forms": 1,
+    "words": 81,
+    "tables": 1,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Plan assessment",
+    "href": "/sites/fictional-stage-one/sessions/",
+    "status": 200
+   },
+   {
+    "title": "Conduct assessment \u00b7 TCA Progress",
+    "h1": "Conduct assessment",
+    "buttons": 6,
+    "links": 33,
+    "inputs": 6,
+    "forms": 3,
+    "words": 607,
+    "tables": 1,
+    "details": 22,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Conduct assessment",
+    "href": "/sites/fictional-stage-one/assessment/",
+    "status": 200
+   },
+   {
+    "title": "Assessment history \u00b7 TCA Progress",
+    "h1": "Assessment history",
+    "buttons": 6,
+    "links": 4,
+    "inputs": 5,
+    "forms": 2,
+    "words": 128,
+    "tables": 1,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Assessment history",
+    "href": "/sites/fictional-stage-one/assessment/history/",
+    "status": 200
+   },
+   {
+    "title": "Site question guidance \u00b7 TCA Progress",
+    "h1": "Questions and evidence",
+    "buttons": 4,
+    "links": 33,
+    "inputs": 1,
+    "forms": 1,
+    "words": 589,
+    "tables": 1,
+    "details": 0,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Site question versions",
+    "href": "/sites/fictional-stage-one/assessment/configuration/",
+    "status": 200
+   },
+   {
+    "title": "Kaizen events \u00b7 TCA Progress",
+    "h1": "Kaizen events",
+    "buttons": 1,
+    "links": 11,
+    "inputs": 0,
+    "forms": 0,
+    "words": 171,
+    "tables": 0,
+    "details": 0,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Kaizen events",
+    "href": "/sites/fictional-stage-one/kaizen/",
+    "status": 200
+   },
+   {
+    "title": "Learning repository \u00b7 TCA Progress",
+    "h1": "Learning repository",
+    "buttons": 4,
+    "links": 6,
+    "inputs": 6,
+    "forms": 2,
+    "words": 283,
+    "tables": 0,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Learning repository",
+    "href": "/sites/fictional-stage-one/learning/",
+    "status": 200
+   },
+   {
+    "title": "Evidence library \u00b7 TCA Progress",
+    "h1": "Evidence library",
+    "buttons": 7,
+    "links": 14,
+    "inputs": 21,
+    "forms": 4,
+    "words": 176,
+    "tables": 1,
+    "details": 4,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Evidence library",
+    "href": "/sites/fictional-stage-one/evidence/",
+    "status": 200
+   },
+   {
+    "title": "Lean toolbox \u00b7 TCA Progress",
+    "h1": "Lean toolbox",
+    "buttons": 3,
+    "links": 53,
+    "inputs": 2,
+    "forms": 1,
+    "words": 702,
+    "tables": 0,
+    "details": 0,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Lean toolbox",
+    "href": "/sites/fictional-stage-one/toolbox/",
+    "status": 200
+   },
+   {
+    "title": "Reports and guidance \u00b7 TCA Progress",
+    "h1": "Reports and guidance",
+    "buttons": 4,
+    "links": 10,
+    "inputs": 5,
+    "forms": 1,
+    "words": 184,
+    "tables": 1,
+    "details": 2,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Reports and guidance",
+    "href": "/sites/fictional-stage-one/resources/",
+    "status": 200
+   }
+  ],
+  "mobile": [
+   {
+    "href": "/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/opportunities/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/evidence/preparation/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/sessions/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/assessment/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/assessment/history/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/assessment/configuration/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/kaizen/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/learning/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/evidence/",
+    "docWidth": 587
+   },
+   {
+    "href": "/sites/fictional-stage-one/toolbox/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/resources/",
+    "docWidth": 390
+   }
+  ]
+ },
+ "manager_demo": {
+  "landing": "/",
+  "landing_metrics": {
+   "title": "My work \u00b7 TCA Progress",
+   "h1": "Site results and blockers",
+   "buttons": 2,
+   "links": 15,
+   "inputs": 0,
+   "forms": 0,
+   "words": 97,
+   "tables": 0,
+   "details": 2,
+   "docWidth": 1440,
+   "primary": 0
+  },
+  "nav": [
+   {
+    "title": "My work \u00b7 TCA Progress",
+    "h1": "Site results and blockers",
+    "buttons": 2,
+    "links": 15,
+    "inputs": 0,
+    "forms": 0,
+    "words": 97,
+    "tables": 0,
+    "details": 2,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "TCA Progress",
+    "href": "/",
+    "status": 200
+   },
+   {
+    "title": "Site progress \u00b7 TCA Progress",
+    "h1": "Fictional Advisory Pilot progress",
+    "buttons": 2,
+    "links": 145,
+    "inputs": 0,
+    "forms": 0,
+    "words": 579,
+    "tables": 1,
+    "details": 31,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Site progress",
+    "href": "/sites/fictional-stage-one/",
+    "status": 200
+   },
+   {
+    "title": "TCA matrix \u00b7 TCA Progress",
+    "h1": "TCA matrix",
+    "buttons": 5,
+    "links": 157,
+    "inputs": 12,
+    "forms": 2,
+    "words": 565,
+    "tables": 2,
+    "details": 2,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "TCA matrix",
+    "href": "/sites/fictional-stage-one/opportunities/",
+    "status": 200
+   },
+   {
+    "title": "Prepare evidence \u00b7 TCA Progress",
+    "h1": "Prepare evidence",
+    "buttons": 8,
+    "links": 56,
+    "inputs": 30,
+    "forms": 2,
+    "words": 1062,
+    "tables": 1,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Prepare evidence",
+    "href": "/sites/fictional-stage-one/evidence/preparation/",
+    "status": 200
+   },
+   {
+    "title": "Plan assessment \u00b7 TCA Progress",
+    "h1": "Plan assessment",
+    "buttons": 3,
+    "links": 5,
+    "inputs": 9,
+    "forms": 1,
+    "words": 81,
+    "tables": 1,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Plan assessment",
+    "href": "/sites/fictional-stage-one/sessions/",
+    "status": 200
+   },
+   {
+    "title": "Conduct assessment \u00b7 TCA Progress",
+    "h1": "Conduct assessment",
+    "buttons": 6,
+    "links": 33,
+    "inputs": 6,
+    "forms": 3,
+    "words": 607,
+    "tables": 1,
+    "details": 22,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Conduct assessment",
+    "href": "/sites/fictional-stage-one/assessment/",
+    "status": 200
+   },
+   {
+    "title": "Assessment history \u00b7 TCA Progress",
+    "h1": "Assessment history",
+    "buttons": 6,
+    "links": 4,
+    "inputs": 5,
+    "forms": 2,
+    "words": 128,
+    "tables": 1,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Assessment history",
+    "href": "/sites/fictional-stage-one/assessment/history/",
+    "status": 200
+   },
+   {
+    "title": "Kaizen events \u00b7 TCA Progress",
+    "h1": "Kaizen events",
+    "buttons": 3,
+    "links": 13,
+    "inputs": 0,
+    "forms": 0,
+    "words": 176,
+    "tables": 0,
+    "details": 0,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Kaizen events",
+    "href": "/sites/fictional-stage-one/kaizen/",
+    "status": 200
+   },
+   {
+    "title": "Sensei review \u00b7 TCA Progress",
+    "h1": "Sensei review queue",
+    "buttons": 6,
+    "links": 8,
+    "inputs": 4,
+    "forms": 2,
+    "words": 112,
+    "tables": 0,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Sensei review",
+    "href": "/sites/fictional-stage-one/kaizen/review/",
+    "status": 200
+   },
+   {
+    "title": "Learning repository \u00b7 TCA Progress",
+    "h1": "Learning repository",
+    "buttons": 4,
+    "links": 6,
+    "inputs": 6,
+    "forms": 2,
+    "words": 283,
+    "tables": 0,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Learning repository",
+    "href": "/sites/fictional-stage-one/learning/",
+    "status": 200
+   },
+   {
+    "title": "Evidence library \u00b7 TCA Progress",
+    "h1": "Evidence library",
+    "buttons": 7,
+    "links": 14,
+    "inputs": 21,
+    "forms": 4,
+    "words": 176,
+    "tables": 1,
+    "details": 4,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Evidence library",
+    "href": "/sites/fictional-stage-one/evidence/",
+    "status": 200
+   },
+   {
+    "title": "Lean toolbox \u00b7 TCA Progress",
+    "h1": "Lean toolbox",
+    "buttons": 3,
+    "links": 53,
+    "inputs": 2,
+    "forms": 1,
+    "words": 702,
+    "tables": 0,
+    "details": 0,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Lean toolbox",
+    "href": "/sites/fictional-stage-one/toolbox/",
+    "status": 200
+   },
+   {
+    "title": "Reports and guidance \u00b7 TCA Progress",
+    "h1": "Reports and guidance",
+    "buttons": 4,
+    "links": 10,
+    "inputs": 5,
+    "forms": 1,
+    "words": 184,
+    "tables": 1,
+    "details": 2,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Reports and guidance",
+    "href": "/sites/fictional-stage-one/resources/",
+    "status": 200
+   }
+  ],
+  "mobile": [
+   {
+    "href": "/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/opportunities/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/evidence/preparation/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/sessions/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/assessment/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/assessment/history/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/kaizen/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/kaizen/review/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/learning/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/evidence/",
+    "docWidth": 587
+   },
+   {
+    "href": "/sites/fictional-stage-one/toolbox/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/resources/",
+    "docWidth": 390
+   }
+  ]
+ },
+ "sensei_demo": {
+  "landing": "/",
+  "landing_metrics": {
+   "title": "My work \u00b7 TCA Progress",
+   "h1": "Sensei coaching",
+   "buttons": 2,
+   "links": 20,
+   "inputs": 0,
+   "forms": 0,
+   "words": 148,
+   "tables": 0,
+   "details": 2,
+   "docWidth": 1440,
+   "primary": 0
+  },
+  "nav": [
+   {
+    "title": "My work \u00b7 TCA Progress",
+    "h1": "Sensei coaching",
+    "buttons": 2,
+    "links": 20,
+    "inputs": 0,
+    "forms": 0,
+    "words": 148,
+    "tables": 0,
+    "details": 2,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "TCA Progress",
+    "href": "/",
+    "status": 200
+   },
+   {
+    "title": "Site progress \u00b7 TCA Progress",
+    "h1": "Fictional Advisory Pilot progress",
+    "buttons": 2,
+    "links": 145,
+    "inputs": 0,
+    "forms": 0,
+    "words": 579,
+    "tables": 1,
+    "details": 31,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Site progress",
+    "href": "/sites/fictional-stage-one/",
+    "status": 200
+   },
+   {
+    "title": "TCA matrix \u00b7 TCA Progress",
+    "h1": "TCA matrix",
+    "buttons": 5,
+    "links": 157,
+    "inputs": 12,
+    "forms": 2,
+    "words": 565,
+    "tables": 2,
+    "details": 2,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "TCA matrix",
+    "href": "/sites/fictional-stage-one/opportunities/",
+    "status": 200
+   },
+   {
+    "title": "Prepare evidence \u00b7 TCA Progress",
+    "h1": "Prepare evidence",
+    "buttons": 8,
+    "links": 56,
+    "inputs": 30,
+    "forms": 2,
+    "words": 1062,
+    "tables": 1,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Prepare evidence",
+    "href": "/sites/fictional-stage-one/evidence/preparation/",
+    "status": 200
+   },
+   {
+    "title": "Plan assessment \u00b7 TCA Progress",
+    "h1": "Plan assessment",
+    "buttons": 2,
+    "links": 5,
+    "inputs": 0,
+    "forms": 0,
+    "words": 78,
+    "tables": 1,
+    "details": 0,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Plan assessment",
+    "href": "/sites/fictional-stage-one/sessions/",
+    "status": 200
+   },
+   {
+    "title": "Conduct assessment \u00b7 TCA Progress",
+    "h1": "Conduct assessment",
+    "buttons": 6,
+    "links": 33,
+    "inputs": 6,
+    "forms": 3,
+    "words": 607,
+    "tables": 1,
+    "details": 22,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Conduct assessment",
+    "href": "/sites/fictional-stage-one/assessment/",
+    "status": 200
+   },
+   {
+    "title": "Assessment history \u00b7 TCA Progress",
+    "h1": "Assessment history",
+    "buttons": 6,
+    "links": 4,
+    "inputs": 5,
+    "forms": 2,
+    "words": 128,
+    "tables": 1,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Assessment history",
+    "href": "/sites/fictional-stage-one/assessment/history/",
+    "status": 200
+   },
+   {
+    "title": "Kaizen events \u00b7 TCA Progress",
+    "h1": "Kaizen events",
+    "buttons": 3,
+    "links": 13,
+    "inputs": 0,
+    "forms": 0,
+    "words": 176,
+    "tables": 0,
+    "details": 0,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Kaizen events",
+    "href": "/sites/fictional-stage-one/kaizen/",
+    "status": 200
+   },
+   {
+    "title": "Sensei review \u00b7 TCA Progress",
+    "h1": "Sensei review queue",
+    "buttons": 6,
+    "links": 8,
+    "inputs": 4,
+    "forms": 2,
+    "words": 112,
+    "tables": 0,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Sensei review",
+    "href": "/sites/fictional-stage-one/kaizen/review/",
+    "status": 200
+   },
+   {
+    "title": "Learning repository \u00b7 TCA Progress",
+    "h1": "Learning repository",
+    "buttons": 4,
+    "links": 6,
+    "inputs": 6,
+    "forms": 2,
+    "words": 283,
+    "tables": 0,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Learning repository",
+    "href": "/sites/fictional-stage-one/learning/",
+    "status": 200
+   },
+   {
+    "title": "Evidence library \u00b7 TCA Progress",
+    "h1": "Evidence library",
+    "buttons": 5,
+    "links": 14,
+    "inputs": 19,
+    "forms": 2,
+    "words": 164,
+    "tables": 1,
+    "details": 2,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Evidence library",
+    "href": "/sites/fictional-stage-one/evidence/",
+    "status": 200
+   },
+   {
+    "title": "Lean toolbox \u00b7 TCA Progress",
+    "h1": "Lean toolbox",
+    "buttons": 3,
+    "links": 53,
+    "inputs": 2,
+    "forms": 1,
+    "words": 702,
+    "tables": 0,
+    "details": 0,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Lean toolbox",
+    "href": "/sites/fictional-stage-one/toolbox/",
+    "status": 200
+   },
+   {
+    "title": "Reports and guidance \u00b7 TCA Progress",
+    "h1": "Reports and guidance",
+    "buttons": 4,
+    "links": 10,
+    "inputs": 5,
+    "forms": 1,
+    "words": 184,
+    "tables": 1,
+    "details": 2,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Reports and guidance",
+    "href": "/sites/fictional-stage-one/resources/",
+    "status": 200
+   }
+  ],
+  "mobile": [
+   {
+    "href": "/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/opportunities/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/evidence/preparation/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/sessions/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/assessment/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/assessment/history/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/kaizen/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/kaizen/review/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/learning/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/evidence/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/toolbox/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/resources/",
+    "docWidth": 390
+   }
+  ]
+ },
+ "team_demo": {
+  "landing": "/",
+  "landing_metrics": {
+   "title": "My work \u00b7 TCA Progress",
+   "h1": "My Kaizen work",
+   "buttons": 2,
+   "links": 21,
+   "inputs": 4,
+   "forms": 4,
+   "words": 234,
+   "tables": 0,
+   "details": 2,
+   "docWidth": 1440,
+   "primary": 0
+  },
+  "nav": [
+   {
+    "title": "My work \u00b7 TCA Progress",
+    "h1": "My Kaizen work",
+    "buttons": 2,
+    "links": 21,
+    "inputs": 4,
+    "forms": 4,
+    "words": 234,
+    "tables": 0,
+    "details": 2,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "TCA Progress",
+    "href": "/",
+    "status": 200
+   },
+   {
+    "title": "Site progress \u00b7 TCA Progress",
+    "h1": "Fictional Advisory Pilot progress",
+    "buttons": 2,
+    "links": 145,
+    "inputs": 0,
+    "forms": 0,
+    "words": 579,
+    "tables": 1,
+    "details": 31,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Site progress",
+    "href": "/sites/fictional-stage-one/",
+    "status": 200
+   },
+   {
+    "title": "TCA matrix \u00b7 TCA Progress",
+    "h1": "TCA matrix",
+    "buttons": 5,
+    "links": 157,
+    "inputs": 12,
+    "forms": 2,
+    "words": 565,
+    "tables": 2,
+    "details": 2,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "TCA matrix",
+    "href": "/sites/fictional-stage-one/opportunities/",
+    "status": 200
+   },
+   {
+    "title": "Prepare evidence \u00b7 TCA Progress",
+    "h1": "Prepare evidence",
+    "buttons": 8,
+    "links": 56,
+    "inputs": 30,
+    "forms": 2,
+    "words": 1062,
+    "tables": 1,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Prepare evidence",
+    "href": "/sites/fictional-stage-one/evidence/preparation/",
+    "status": 200
+   },
+   {
+    "title": "Plan assessment \u00b7 TCA Progress",
+    "h1": "Plan assessment",
+    "buttons": 2,
+    "links": 5,
+    "inputs": 0,
+    "forms": 0,
+    "words": 78,
+    "tables": 1,
+    "details": 0,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Plan assessment",
+    "href": "/sites/fictional-stage-one/sessions/",
+    "status": 200
+   },
+   {
+    "title": "Conduct assessment \u00b7 TCA Progress",
+    "h1": "Conduct assessment",
+    "buttons": 6,
+    "links": 33,
+    "inputs": 6,
+    "forms": 3,
+    "words": 607,
+    "tables": 1,
+    "details": 22,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Conduct assessment",
+    "href": "/sites/fictional-stage-one/assessment/",
+    "status": 200
+   },
+   {
+    "title": "Assessment history \u00b7 TCA Progress",
+    "h1": "Assessment history",
+    "buttons": 6,
+    "links": 4,
+    "inputs": 5,
+    "forms": 2,
+    "words": 128,
+    "tables": 1,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Assessment history",
+    "href": "/sites/fictional-stage-one/assessment/history/",
+    "status": 200
+   },
+   {
+    "title": "Kaizen events \u00b7 TCA Progress",
+    "h1": "Kaizen events",
+    "buttons": 2,
+    "links": 12,
+    "inputs": 0,
+    "forms": 0,
+    "words": 173,
+    "tables": 0,
+    "details": 0,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Kaizen events",
+    "href": "/sites/fictional-stage-one/kaizen/",
+    "status": 200
+   },
+   {
+    "title": "Learning repository \u00b7 TCA Progress",
+    "h1": "Learning repository",
+    "buttons": 4,
+    "links": 6,
+    "inputs": 6,
+    "forms": 2,
+    "words": 283,
+    "tables": 0,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Learning repository",
+    "href": "/sites/fictional-stage-one/learning/",
+    "status": 200
+   },
+   {
+    "title": "Evidence library \u00b7 TCA Progress",
+    "h1": "Evidence library",
+    "buttons": 4,
+    "links": 14,
+    "inputs": 7,
+    "forms": 1,
+    "words": 162,
+    "tables": 1,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Evidence library",
+    "href": "/sites/fictional-stage-one/evidence/",
+    "status": 200
+   },
+   {
+    "title": "Lean toolbox \u00b7 TCA Progress",
+    "h1": "Lean toolbox",
+    "buttons": 3,
+    "links": 53,
+    "inputs": 2,
+    "forms": 1,
+    "words": 702,
+    "tables": 0,
+    "details": 0,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Lean toolbox",
+    "href": "/sites/fictional-stage-one/toolbox/",
+    "status": 200
+   },
+   {
+    "title": "Reports and guidance \u00b7 TCA Progress",
+    "h1": "Reports and guidance",
+    "buttons": 4,
+    "links": 10,
+    "inputs": 5,
+    "forms": 1,
+    "words": 184,
+    "tables": 1,
+    "details": 2,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Reports and guidance",
+    "href": "/sites/fictional-stage-one/resources/",
+    "status": 200
+   }
+  ],
+  "mobile": [
+   {
+    "href": "/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/opportunities/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/evidence/preparation/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/sessions/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/assessment/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/assessment/history/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/kaizen/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/learning/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/evidence/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/toolbox/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/resources/",
+    "docWidth": 390
+   }
+  ]
+ },
+ "team_demo2": {
+  "landing": "/",
+  "landing_metrics": {
+   "title": "My work \u00b7 TCA Progress",
+   "h1": "My Kaizen work",
+   "buttons": 2,
+   "links": 16,
+   "inputs": 1,
+   "forms": 1,
+   "words": 129,
+   "tables": 0,
+   "details": 2,
+   "docWidth": 1440,
+   "primary": 0
+  },
+  "nav": [
+   {
+    "title": "My work \u00b7 TCA Progress",
+    "h1": "My Kaizen work",
+    "buttons": 2,
+    "links": 16,
+    "inputs": 1,
+    "forms": 1,
+    "words": 129,
+    "tables": 0,
+    "details": 2,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "TCA Progress",
+    "href": "/",
+    "status": 200
+   },
+   {
+    "title": "Site progress \u00b7 TCA Progress",
+    "h1": "Fictional Advisory Pilot progress",
+    "buttons": 2,
+    "links": 145,
+    "inputs": 0,
+    "forms": 0,
+    "words": 579,
+    "tables": 1,
+    "details": 31,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Site progress",
+    "href": "/sites/fictional-stage-one/",
+    "status": 200
+   },
+   {
+    "title": "TCA matrix \u00b7 TCA Progress",
+    "h1": "TCA matrix",
+    "buttons": 5,
+    "links": 157,
+    "inputs": 12,
+    "forms": 2,
+    "words": 565,
+    "tables": 2,
+    "details": 2,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "TCA matrix",
+    "href": "/sites/fictional-stage-one/opportunities/",
+    "status": 200
+   },
+   {
+    "title": "Prepare evidence \u00b7 TCA Progress",
+    "h1": "Prepare evidence",
+    "buttons": 8,
+    "links": 56,
+    "inputs": 30,
+    "forms": 2,
+    "words": 1062,
+    "tables": 1,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Prepare evidence",
+    "href": "/sites/fictional-stage-one/evidence/preparation/",
+    "status": 200
+   },
+   {
+    "title": "Plan assessment \u00b7 TCA Progress",
+    "h1": "Plan assessment",
+    "buttons": 2,
+    "links": 5,
+    "inputs": 0,
+    "forms": 0,
+    "words": 78,
+    "tables": 1,
+    "details": 0,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Plan assessment",
+    "href": "/sites/fictional-stage-one/sessions/",
+    "status": 200
+   },
+   {
+    "title": "Conduct assessment \u00b7 TCA Progress",
+    "h1": "Conduct assessment",
+    "buttons": 6,
+    "links": 33,
+    "inputs": 6,
+    "forms": 3,
+    "words": 607,
+    "tables": 1,
+    "details": 22,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Conduct assessment",
+    "href": "/sites/fictional-stage-one/assessment/",
+    "status": 200
+   },
+   {
+    "title": "Assessment history \u00b7 TCA Progress",
+    "h1": "Assessment history",
+    "buttons": 6,
+    "links": 4,
+    "inputs": 5,
+    "forms": 2,
+    "words": 125,
+    "tables": 1,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Assessment history",
+    "href": "/sites/fictional-stage-one/assessment/history/",
+    "status": 200
+   },
+   {
+    "title": "Kaizen events \u00b7 TCA Progress",
+    "h1": "Kaizen events",
+    "buttons": 2,
+    "links": 12,
+    "inputs": 0,
+    "forms": 0,
+    "words": 173,
+    "tables": 0,
+    "details": 0,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Kaizen events",
+    "href": "/sites/fictional-stage-one/kaizen/",
+    "status": 200
+   },
+   {
+    "title": "Learning repository \u00b7 TCA Progress",
+    "h1": "Learning repository",
+    "buttons": 4,
+    "links": 6,
+    "inputs": 6,
+    "forms": 2,
+    "words": 283,
+    "tables": 0,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Learning repository",
+    "href": "/sites/fictional-stage-one/learning/",
+    "status": 200
+   },
+   {
+    "title": "Evidence library \u00b7 TCA Progress",
+    "h1": "Evidence library",
+    "buttons": 4,
+    "links": 14,
+    "inputs": 7,
+    "forms": 1,
+    "words": 162,
+    "tables": 1,
+    "details": 1,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Evidence library",
+    "href": "/sites/fictional-stage-one/evidence/",
+    "status": 200
+   },
+   {
+    "title": "Lean toolbox \u00b7 TCA Progress",
+    "h1": "Lean toolbox",
+    "buttons": 3,
+    "links": 53,
+    "inputs": 2,
+    "forms": 1,
+    "words": 702,
+    "tables": 0,
+    "details": 0,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Lean toolbox",
+    "href": "/sites/fictional-stage-one/toolbox/",
+    "status": 200
+   },
+   {
+    "title": "Reports and guidance \u00b7 TCA Progress",
+    "h1": "Reports and guidance",
+    "buttons": 4,
+    "links": 10,
+    "inputs": 5,
+    "forms": 1,
+    "words": 184,
+    "tables": 1,
+    "details": 2,
+    "docWidth": 1440,
+    "primary": 0,
+    "label": "Reports and guidance",
+    "href": "/sites/fictional-stage-one/resources/",
+    "status": 200
+   }
+  ],
+  "mobile": [
+   {
+    "href": "/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/opportunities/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/evidence/preparation/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/sessions/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/assessment/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/assessment/history/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/kaizen/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/learning/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/evidence/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/toolbox/",
+    "docWidth": 390
+   },
+   {
+    "href": "/sites/fictional-stage-one/resources/",
+    "docWidth": 390
+   }
+  ]
+ }
+}

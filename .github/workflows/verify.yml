@@ -1,0 +1,27 @@
+name: Verify synthetic local domain
+on:
+  push:
+    branches: ['codex/**', 'TCA-progress-v3-redesign']
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  domain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python manage.py check
+      - run: python manage.py makemigrations --check --dry-run
+      - run: python tools/run_source_free_ci.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check core/static/core/worksheet.js
+      - run: node --check core/static/core/workspace.js
+      - run: node --check core/static/core/kaizen-autosave.js
+      - run: node --check core/static/core/assessment-autosave.js

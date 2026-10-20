@@ -1,0 +1,17 @@
+.vendor/
+.npm-tmp/
+.env
+*.sqlite3
+__pycache__/
+media/
+backups/
+sources/original/
+sources/extracted/
+docs/inventory_raw.txt
+docs/kaizen_labels.txt
+tmp/
+output/
+staticfiles/
+
+# Extracted workbook text from the design handoff (source-free repo)
+design_handoff_tca_progress/prototype/data/tca-catalog.json

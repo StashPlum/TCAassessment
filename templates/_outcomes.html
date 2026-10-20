@@ -1,0 +1,8 @@
+<section class="viz outcomes" aria-labelledby="outcomes-title">
+<div class="viz-head"><div><h2 id="outcomes-title">Did the measured result move?</h2><p class="viz-sub">Recorded before and after measurements with the same measure and unit. No target or trend is added; a missing “after” means the result is not yet verified.</p></div></div>
+{% if outcomes %}<ul class="dumbbells">{% for o in outcomes %}<li><div class="db-label"><a href="{% url 'kaizen_detail' site.code o.event.pk %}">{{ o.event.title|truncatechars:48 }}</a><span class="small muted">{{ o.measure }} ({{ o.unit }})</span></div>
+<div class="db-track" aria-hidden="true"><span class="db-dot before" style="left:{{ o.before_x }}%"></span>{% if o.after %}<span class="db-line" style="left:{% if o.before_x < o.after_x %}{{ o.before_x }}{% else %}{{ o.after_x }}{% endif %}%;right:calc(100% - {% if o.before_x > o.after_x %}{{ o.before_x }}{% else %}{{ o.after_x }}{% endif %}%)"></span><span class="db-dot after" style="left:{{ o.after_x }}%"></span>{% endif %}</div>
+<div class="db-values"><span>Before <b class="num">{{ o.before.value|floatformat:"-2" }}</b></span>{% if o.after %}<span>After <b class="num">{{ o.after.value|floatformat:"-2" }}</b></span>{% else %}<span class="status-chip">After not measured</span>{% endif %}</div></li>{% endfor %}</ul>
+<p class="db-legend small muted"><span class="db-dot before"></span> before <span class="db-dot after"></span> after</p>
+{% else %}<p class="empty">No measurements recorded yet. Teams add before/after measures in the Check step.</p>{% endif %}
+</section>

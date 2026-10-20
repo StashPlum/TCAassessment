@@ -1,0 +1,6 @@
+<div class="method-help-body"><p><strong>Purpose.</strong> {{ spec.purpose }}</p><p class="kz-note">{{ spec.stage }} · {{ spec.kind }} · {{ spec.difficulty }} · input: {{ spec.data_need }}</p>
+<h3>Steps</h3><ol>{% for step in spec.steps %}<li>{{ step }}</li>{% endfor %}</ol>
+<p class="pitfall"><strong>Pitfall.</strong> {{ spec.pitfall }}</p>
+<h3>Logistics example</h3><p>{{ spec.example }}</p>
+<h3>Fields you fill in</h3><ul>{% for field in spec.fields %}<li>{{ field.label }}{% if field.choices %} <span class="kz-note">({{ field.choices|join:', '|truncatechars:90 }})</span>{% endif %}</li>{% endfor %}</ul>
+<p class="kz-note">Source: <a href="{{ spec.source }}" target="_blank" rel="noopener">{{ spec.source }}</a>. Exports: {{ spec.exports|join:', ' }}.</p></div>

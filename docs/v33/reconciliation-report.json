@@ -1,0 +1,575 @@
+{
+ "release": "TCA v3_release date: Sept. 25, 2025",
+ "records": 164,
+ "questions": 150,
+ "sections": 15,
+ "groups": [
+  "TCA_v3_GROUP_02",
+  "TCA_v3_GROUP_03",
+  "TCA_v3_GROUP_04",
+  "TCA_v3_GROUP_05",
+  "TCA_v3_GROUP_07",
+  "TCA_v3_GROUP_08",
+  "TCA_v3_GROUP_09",
+  "TCA_v3_GROUP_10",
+  "TCA_v3_GROUP_11",
+  "TCA_v3_GROUP_12",
+  "TCA_v3_GROUP_13",
+  "TCA_v3_GROUP_14",
+  "TCA_v3_GROUP_15",
+  "TCA_v3_GROUP_16",
+  "TCA_v3_GROUP_17",
+  "TCA_v3_GROUP_18"
+ ],
+ "levels": {
+  "CERTIFIED": 85,
+  "ADVANCED": 47,
+  "SHOWCASE": 32
+ },
+ "languages": {
+  "English": 164
+ },
+ "product_lines": {
+  "Ground & Rail": 164
+ },
+ "variant_questions": {
+  "01.01.C": [
+   {
+    "master_order": 1,
+    "row": 4,
+    "groups": [
+     "TCA_v3_GROUP_02",
+     "TCA_v3_GROUP_04",
+     "TCA_v3_GROUP_05",
+     "TCA_v3_GROUP_07",
+     "TCA_v3_GROUP_09",
+     "TCA_v3_GROUP_10"
+    ]
+   },
+   {
+    "master_order": 2,
+    "row": 12,
+    "groups": [
+     "TCA_v3_GROUP_11",
+     "TCA_v3_GROUP_13",
+     "TCA_v3_GROUP_14",
+     "TCA_v3_GROUP_15",
+     "TCA_v3_GROUP_17",
+     "TCA_v3_GROUP_18"
+    ]
+   },
+   {
+    "master_order": 3,
+    "row": 21,
+    "groups": [
+     "TCA_v3_GROUP_03",
+     "TCA_v3_GROUP_08"
+    ]
+   },
+   {
+    "master_order": 4,
+    "row": 28,
+    "groups": [
+     "TCA_v3_GROUP_12",
+     "TCA_v3_GROUP_16"
+    ]
+   }
+  ],
+  "01.02.C": [
+   {
+    "master_order": 5,
+    "row": 36,
+    "groups": [
+     "TCA_v3_GROUP_02",
+     "TCA_v3_GROUP_04",
+     "TCA_v3_GROUP_05",
+     "TCA_v3_GROUP_07",
+     "TCA_v3_GROUP_09",
+     "TCA_v3_GROUP_10",
+     "TCA_v3_GROUP_11",
+     "TCA_v3_GROUP_13",
+     "TCA_v3_GROUP_14",
+     "TCA_v3_GROUP_15",
+     "TCA_v3_GROUP_17",
+     "TCA_v3_GROUP_18"
+    ]
+   },
+   {
+    "master_order": 6,
+    "row": 40,
+    "groups": [
+     "TCA_v3_GROUP_03",
+     "TCA_v3_GROUP_08",
+     "TCA_v3_GROUP_12",
+     "TCA_v3_GROUP_16"
+    ]
+   }
+  ],
+  "01.05.C": [
+   {
+    "master_order": 9,
+    "row": 51,
+    "groups": [
+     "TCA_v3_GROUP_02",
+     "TCA_v3_GROUP_03",
+     "TCA_v3_GROUP_04",
+     "TCA_v3_GROUP_05",
+     "TCA_v3_GROUP_07",
+     "TCA_v3_GROUP_08",
+     "TCA_v3_GROUP_09",
+     "TCA_v3_GROUP_10"
+    ]
+   },
+   {
+    "master_order": 10,
+    "row": 56,
+    "groups": [
+     "TCA_v3_GROUP_11",
+     "TCA_v3_GROUP_12",
+     "TCA_v3_GROUP_13",
+     "TCA_v3_GROUP_14",
+     "TCA_v3_GROUP_15",
+     "TCA_v3_GROUP_16",
+     "TCA_v3_GROUP_17",
+     "TCA_v3_GROUP_18"
+    ]
+   }
+  ],
+  "04.01.C": [
+   {
+    "master_order": 36,
+    "row": 196,
+    "groups": [
+     "TCA_v3_GROUP_02",
+     "TCA_v3_GROUP_03",
+     "TCA_v3_GROUP_04",
+     "TCA_v3_GROUP_05",
+     "TCA_v3_GROUP_07",
+     "TCA_v3_GROUP_08",
+     "TCA_v3_GROUP_09",
+     "TCA_v3_GROUP_10"
+    ]
+   },
+   {
+    "master_order": 37,
+    "row": 214,
+    "groups": [
+     "TCA_v3_GROUP_11",
+     "TCA_v3_GROUP_12",
+     "TCA_v3_GROUP_13",
+     "TCA_v3_GROUP_14",
+     "TCA_v3_GROUP_15",
+     "TCA_v3_GROUP_16",
+     "TCA_v3_GROUP_17",
+     "TCA_v3_GROUP_18"
+    ]
+   }
+  ],
+  "06.06.B": [
+   {
+    "master_order": 62,
+    "row": 399,
+    "groups": [
+     "TCA_v3_GROUP_02",
+     "TCA_v3_GROUP_03",
+     "TCA_v3_GROUP_04",
+     "TCA_v3_GROUP_05",
+     "TCA_v3_GROUP_07",
+     "TCA_v3_GROUP_08",
+     "TCA_v3_GROUP_09",
+     "TCA_v3_GROUP_10"
+    ]
+   },
+   {
+    "master_order": 63,
+    "row": 402,
+    "groups": [
+     "TCA_v3_GROUP_11",
+     "TCA_v3_GROUP_12",
+     "TCA_v3_GROUP_13",
+     "TCA_v3_GROUP_14",
+     "TCA_v3_GROUP_15",
+     "TCA_v3_GROUP_16",
+     "TCA_v3_GROUP_17",
+     "TCA_v3_GROUP_18"
+    ]
+   }
+  ],
+  "07.05.C": [
+   {
+    "master_order": 72,
+    "row": 435,
+    "groups": [
+     "TCA_v3_GROUP_07",
+     "TCA_v3_GROUP_08",
+     "TCA_v3_GROUP_09",
+     "TCA_v3_GROUP_10",
+     "TCA_v3_GROUP_15",
+     "TCA_v3_GROUP_16",
+     "TCA_v3_GROUP_17",
+     "TCA_v3_GROUP_18"
+    ]
+   },
+   {
+    "master_order": 73,
+    "row": 436,
+    "groups": [
+     "TCA_v3_GROUP_02",
+     "TCA_v3_GROUP_03",
+     "TCA_v3_GROUP_04",
+     "TCA_v3_GROUP_05",
+     "TCA_v3_GROUP_11",
+     "TCA_v3_GROUP_12",
+     "TCA_v3_GROUP_13",
+     "TCA_v3_GROUP_14"
+    ]
+   }
+  ],
+  "07.10.A": [
+   {
+    "master_order": 78,
+    "row": 453,
+    "groups": [
+     "TCA_v3_GROUP_07",
+     "TCA_v3_GROUP_08",
+     "TCA_v3_GROUP_09",
+     "TCA_v3_GROUP_10",
+     "TCA_v3_GROUP_15",
+     "TCA_v3_GROUP_16",
+     "TCA_v3_GROUP_17",
+     "TCA_v3_GROUP_18"
+    ]
+   },
+   {
+    "master_order": 79,
+    "row": 454,
+    "groups": [
+     "TCA_v3_GROUP_02",
+     "TCA_v3_GROUP_03",
+     "TCA_v3_GROUP_04",
+     "TCA_v3_GROUP_05",
+     "TCA_v3_GROUP_11",
+     "TCA_v3_GROUP_12",
+     "TCA_v3_GROUP_13",
+     "TCA_v3_GROUP_14"
+    ]
+   }
+  ],
+  "08.02.C": [
+   {
+    "master_order": 81,
+    "row": 461,
+    "groups": [
+     "TCA_v3_GROUP_02",
+     "TCA_v3_GROUP_03",
+     "TCA_v3_GROUP_04",
+     "TCA_v3_GROUP_05",
+     "TCA_v3_GROUP_11",
+     "TCA_v3_GROUP_12",
+     "TCA_v3_GROUP_13",
+     "TCA_v3_GROUP_14"
+    ]
+   },
+   {
+    "master_order": 82,
+    "row": 466,
+    "groups": [
+     "TCA_v3_GROUP_07",
+     "TCA_v3_GROUP_08",
+     "TCA_v3_GROUP_09",
+     "TCA_v3_GROUP_10",
+     "TCA_v3_GROUP_15",
+     "TCA_v3_GROUP_16",
+     "TCA_v3_GROUP_17",
+     "TCA_v3_GROUP_18"
+    ]
+   }
+  ],
+  "10.08.B": [
+   {
+    "master_order": 108,
+    "row": 630,
+    "groups": [
+     "TCA_v3_GROUP_07",
+     "TCA_v3_GROUP_08",
+     "TCA_v3_GROUP_09",
+     "TCA_v3_GROUP_10",
+     "TCA_v3_GROUP_15",
+     "TCA_v3_GROUP_16",
+     "TCA_v3_GROUP_17",
+     "TCA_v3_GROUP_18"
+    ]
+   },
+   {
+    "master_order": 109,
+    "row": 634,
+    "groups": [
+     "TCA_v3_GROUP_02",
+     "TCA_v3_GROUP_03",
+     "TCA_v3_GROUP_04",
+     "TCA_v3_GROUP_05",
+     "TCA_v3_GROUP_11",
+     "TCA_v3_GROUP_12",
+     "TCA_v3_GROUP_13",
+     "TCA_v3_GROUP_14"
+    ]
+   }
+  ],
+  "10.09.A": [
+   {
+    "master_order": 110,
+    "row": 638,
+    "groups": [
+     "TCA_v3_GROUP_07",
+     "TCA_v3_GROUP_08",
+     "TCA_v3_GROUP_09",
+     "TCA_v3_GROUP_10",
+     "TCA_v3_GROUP_15",
+     "TCA_v3_GROUP_16",
+     "TCA_v3_GROUP_17",
+     "TCA_v3_GROUP_18"
+    ]
+   },
+   {
+    "master_order": 111,
+    "row": 640,
+    "groups": [
+     "TCA_v3_GROUP_02",
+     "TCA_v3_GROUP_03",
+     "TCA_v3_GROUP_04",
+     "TCA_v3_GROUP_05",
+     "TCA_v3_GROUP_11",
+     "TCA_v3_GROUP_12",
+     "TCA_v3_GROUP_13",
+     "TCA_v3_GROUP_14"
+    ]
+   }
+  ],
+  "13.03.C": [
+   {
+    "master_order": 135,
+    "row": 745,
+    "groups": [
+     "TCA_v3_GROUP_02",
+     "TCA_v3_GROUP_03",
+     "TCA_v3_GROUP_04",
+     "TCA_v3_GROUP_05",
+     "TCA_v3_GROUP_07",
+     "TCA_v3_GROUP_08",
+     "TCA_v3_GROUP_09",
+     "TCA_v3_GROUP_10"
+    ]
+   },
+   {
+    "master_order": 136,
+    "row": 750,
+    "groups": [
+     "TCA_v3_GROUP_11",
+     "TCA_v3_GROUP_12",
+     "TCA_v3_GROUP_13",
+     "TCA_v3_GROUP_14",
+     "TCA_v3_GROUP_15",
+     "TCA_v3_GROUP_16",
+     "TCA_v3_GROUP_17",
+     "TCA_v3_GROUP_18"
+    ]
+   }
+  ],
+  "13.04.C": [
+   {
+    "master_order": 137,
+    "row": 755,
+    "groups": [
+     "TCA_v3_GROUP_02",
+     "TCA_v3_GROUP_03",
+     "TCA_v3_GROUP_04",
+     "TCA_v3_GROUP_05",
+     "TCA_v3_GROUP_07",
+     "TCA_v3_GROUP_08",
+     "TCA_v3_GROUP_09",
+     "TCA_v3_GROUP_10"
+    ]
+   },
+   {
+    "master_order": 138,
+    "row": 763,
+    "groups": [
+     "TCA_v3_GROUP_11",
+     "TCA_v3_GROUP_12",
+     "TCA_v3_GROUP_13",
+     "TCA_v3_GROUP_14",
+     "TCA_v3_GROUP_15",
+     "TCA_v3_GROUP_16",
+     "TCA_v3_GROUP_17",
+     "TCA_v3_GROUP_18"
+    ]
+   }
+  ]
+ },
+ "extra_variants": 14,
+ "per_group": {
+  "TCA_v3_GROUP_02": {
+   "records": 150,
+   "questions": 150,
+   "overlap": [],
+   "missing": [],
+   "incomplete_sections": []
+  },
+  "TCA_v3_GROUP_03": {
+   "records": 150,
+   "questions": 150,
+   "overlap": [],
+   "missing": [],
+   "incomplete_sections": []
+  },
+  "TCA_v3_GROUP_04": {
+   "records": 150,
+   "questions": 150,
+   "overlap": [],
+   "missing": [],
+   "incomplete_sections": []
+  },
+  "TCA_v3_GROUP_05": {
+   "records": 150,
+   "questions": 150,
+   "overlap": [],
+   "missing": [],
+   "incomplete_sections": []
+  },
+  "TCA_v3_GROUP_07": {
+   "records": 150,
+   "questions": 150,
+   "overlap": [],
+   "missing": [],
+   "incomplete_sections": []
+  },
+  "TCA_v3_GROUP_08": {
+   "records": 150,
+   "questions": 150,
+   "overlap": [],
+   "missing": [],
+   "incomplete_sections": []
+  },
+  "TCA_v3_GROUP_09": {
+   "records": 150,
+   "questions": 150,
+   "overlap": [],
+   "missing": [],
+   "incomplete_sections": []
+  },
+  "TCA_v3_GROUP_10": {
+   "records": 150,
+   "questions": 150,
+   "overlap": [],
+   "missing": [],
+   "incomplete_sections": []
+  },
+  "TCA_v3_GROUP_11": {
+   "records": 150,
+   "questions": 150,
+   "overlap": [],
+   "missing": [],
+   "incomplete_sections": []
+  },
+  "TCA_v3_GROUP_12": {
+   "records": 150,
+   "questions": 150,
+   "overlap": [],
+   "missing": [],
+   "incomplete_sections": []
+  },
+  "TCA_v3_GROUP_13": {
+   "records": 150,
+   "questions": 150,
+   "overlap": [],
+   "missing": [],
+   "incomplete_sections": []
+  },
+  "TCA_v3_GROUP_14": {
+   "records": 150,
+   "questions": 150,
+   "overlap": [],
+   "missing": [],
+   "incomplete_sections": []
+  },
+  "TCA_v3_GROUP_15": {
+   "records": 150,
+   "questions": 150,
+   "overlap": [],
+   "missing": [],
+   "incomplete_sections": []
+  },
+  "TCA_v3_GROUP_16": {
+   "records": 150,
+   "questions": 150,
+   "overlap": [],
+   "missing": [],
+   "incomplete_sections": []
+  },
+  "TCA_v3_GROUP_17": {
+   "records": 150,
+   "questions": 150,
+   "overlap": [],
+   "missing": [],
+   "incomplete_sections": []
+  },
+  "TCA_v3_GROUP_18": {
+   "records": 150,
+   "questions": 150,
+   "overlap": [],
+   "missing": [],
+   "incomplete_sections": []
+  }
+ },
+ "continuation": {
+  "multi_row_records": 134,
+  "with_evidence_continuation": 15,
+  "with_explanation_continuation": 11,
+  "lettered_records": 72
+ },
+ "lettering_observations": [
+  {
+   "master_order": 7,
+   "question_id": "01.03.C",
+   "row": 41,
+   "labels": "BCDE"
+  },
+  {
+   "master_order": 36,
+   "question_id": "04.01.C",
+   "row": 196,
+   "labels": "ABCABC"
+  },
+  {
+   "master_order": 37,
+   "question_id": "04.01.C",
+   "row": 214,
+   "labels": "ABCABC"
+  },
+  {
+   "master_order": 43,
+   "question_id": "04.07.B",
+   "row": 292,
+   "labels": "ABBC"
+  },
+  {
+   "master_order": 88,
+   "question_id": "08.08.B",
+   "row": 514,
+   "labels": "BCDE"
+  }
+ ],
+ "anomalies": [],
+ "errors": [],
+ "source_filename": "V3assessment .xlsx",
+ "sha256": "2f09c1217f052943c61b241a26c1cdb010d1c28c23be2285c48eb29cf5c04a1f",
+ "sheet": "Blad1",
+ "operator": "command line",
+ "checked_at": "2026-10-20T14:42:36.598660+00:00",
+ "counts": {
+  "records": 164,
+  "questions": 150,
+  "sections": 15,
+  "groups": 16
+ }
+}

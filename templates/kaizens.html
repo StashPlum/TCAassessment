@@ -1,0 +1,46 @@
+{% extends 'base.html' %}{% load tca %}{% block content %}
+<div class="page-head"><div><span class="kicker">Kaizen · {{ site.name }}</span><h1>Kaizen events</h1><p>Start with a title. The team completes Plan, Do, Check and Act in the shared workspace.</p></div>
+<div class="filter-actions" style="border:0;margin:0;padding:0">{% if can_create and not show_form %}<a class="button" href="?new=1#new-kaizen">New Kaizen</a>{% endif %}{% if can_sensei %}<a class="button secondary" href="{% url 'review_queue' site.code %}">Sensei review queue</a>{% endif %}</div></div>
+
+{% if can_create and show_form %}
+<section class="blueprint" id="new-kaizen" aria-labelledby="new-kaizen-title"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+<span class="kicker">New Kaizen as draft</span><h2 id="new-kaizen-title" style="margin:4px 0 4px">Only a title is needed</h2>
+<p class="kz-note" style="margin:0 0 16px">The title also becomes the overall problem; complete the rest in the PDCA workspace.{% if linked_requirement %} Linked requirement: <a class="chip" href="{% url 'respond' site.code linked_requirement.code %}">TCA {{ linked_requirement.label }}</a>{% endif %}</p>
+<form method="post" novalidate>{% csrf_token %}{{ form.requirement }}
+{% if form.errors %}<div class="alert-list" role="alert"><strong>Check the highlighted fields.</strong><ul>{% for field in form %}{% for error in field.errors %}<li><a href="#{{ field.auto_id }}">{{ field.label }}: {{ error }}</a></li>{% endfor %}{% endfor %}{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul></div>{% endif %}
+<div class="field field-wide"><label for="{{ form.title.auto_id }}">Title <span class="muted">required</span></label>{{ form.title }}<span class="counter" data-counter-for="{{ form.title.auto_id }}" aria-live="polite">{{ form.title.value|default:''|length }} / 75</span><span class="field-help">{{ form.title.help_text }}</span>{{ form.title.errors }}</div>
+<fieldset class="choice-cards" aria-describedby="size-note"><legend>Input view <span class="muted">optional · suggested from the questions below when left open</span></legend>
+{% for radio in form.input_profile %}<label for="{{ radio.id_for_label }}">{{ radio.tag }}<strong>{% if radio.data.value == 'small' %}Small{% elif radio.data.value == 'medium' %}Medium{% else %}Extensive{% endif %}</strong><span>{% if radio.data.value == 'small' %}Concise one-page PDCA{% elif radio.data.value == 'medium' %}Four guided PDCA steps{% else %}Full source fields, team, benefits, 5W2H and sensei review{% endif %}</span>{% if suggestion and suggestion.0 == radio.data.value %}<span class="suggested">Suggested</span>{% endif %}<span class="suggested" data-suggest-badge="{{ radio.data.value }}" hidden>Suggested</span></label>{% endfor %}</fieldset>
+<p class="kz-note" id="size-note">Advice uses process scope, recurrence and uncertainty, with no time or money threshold. A smaller view does not exempt global source rules; switching later keeps every field.</p>
+<details class="help-panel" {% if form.help_scope.value or form.help_recurrence.value or form.help_cause.value %}open{% endif %}><summary>Help me choose</summary>
+{% for field in form %}{% if field.name == 'help_scope' or field.name == 'help_recurrence' or field.name == 'help_cause' %}<fieldset><legend>{{ field.label }}</legend><div class="radio-row" data-help-question>{{ field }}</div></fieldset>{% endif %}{% endfor %}
+<p id="profile-advice" class="kz-note" aria-live="polite">{% if suggestion %}Suggested: {{ suggestion.0|title }}. {{ suggestion.1 }}{% else %}Answer the questions for a suggestion.{% endif %}</p></details>
+<div class="field-grid">
+<div class="field"><label for="{{ form.profile.auto_id }}">{{ form.profile.label }}</label>{{ form.profile }}<span class="field-help">{{ form.profile.help_text }}</span></div>
+<div class="field"><label for="{{ form.owner.auto_id }}">Owner</label>{{ form.owner }}<span class="field-help">Defaults to you; this is not an approval.</span></div>
+<div class="field field-wide"><label for="{{ form.specific_problem.auto_id }}">{{ form.specific_problem.label }} <span class="muted">optional</span></label>{{ form.specific_problem }}<span class="field-help">{{ form.specific_problem.help_text }}</span></div></div>
+<details><summary>More context (finding, process, target date)</summary><div class="field-grid">{% include 'field.html' with field=form.opportunity %}{% include 'field.html' with field=form.process_location %}{% include 'field.html' with field=form.due_date %}</div></details>
+<div class="filter-actions"><button>Save draft</button><a href="{% url 'kaizens' site.code %}">Cancel</a></div></form></section>
+{% endif %}
+
+<div class="state-chips" role="group" aria-label="Filter by status" style="margin-top:20px"><a href="{% url 'kaizens' site.code %}" {% if not state %}aria-current="true"{% endif %}>All</a>{% for key,label in states.items %}<a href="?state={{ key }}" {% if state == key %}aria-current="true"{% endif %}>{{ label }}</a>{% endfor %}</div>
+<div class="kz-cards">{% for card in cards %}<article class="kz-card">
+<div class="meta"><span>KZ-{{ card.event.pk }} · {{ card.event.get_profile_display }} · {{ card.event.get_input_profile_display }}</span><span class="tag {% if card.state == 'finalised' %}tag-ok{% elif card.state == 'returned' %}tag-bad{% elif card.state == 'submitted' %}tag-warn{% else %}tag-neu{% endif %}">{{ card.state_label }}</span></div>
+<h2><a href="{% url 'kaizen_detail' site.code card.event.pk %}">{{ card.event.title }}</a></h2>
+<p class="kz-note" style="margin:0">{% for r in card.event.linked_requirements.all %}TCA {{ r.code }}{% if not forloop.last %}, {% endif %}{% empty %}Not linked to a requirement{% endfor %} · {{ card.event.data.owner|default:card.event.created_by.username }}</p>
+<div class="pdca-bar" aria-label="PDCA progress: {% for s in card.segments %}{{ s.phase }} {{ s.state }}{% if not forloop.last %}, {% endif %}{% endfor %}">{% for s in card.segments %}<span class="seg-{{ s.state }}" title="{{ s.phase }}"></span>{% endfor %}</div>
+<div class="meta"><span>Plan · Do · Check · Act</span><span>{{ card.gates.done }} of {{ card.gates.total }} gates</span></div>
+</article>{% empty %}<div class="empty-state"><h2>No events{% if state %} with this status{% endif %}</h2><p>{% if state %}<a href="{% url 'kaizens' site.code %}">Show all events</a>{% else %}Start a draft when you have a problem to work on.{% endif %}</p></div>{% endfor %}</div>
+<script>
+(()=>{const title=document.querySelector('[data-counter]');const out=title&&document.querySelector('[data-counter-for="'+title.id+'"]');
+if(title&&out){const update=()=>{const n=title.value.length;out.textContent=n+' / 75'+(n>75?' · longer than the Excel template allows; the Excel export will ask you to shorten it':'');out.toggleAttribute('data-over',n>75);};title.addEventListener('input',update);update();}
+const advice=document.getElementById('profile-advice');if(!advice) return;
+const pick=name=>{const el=document.querySelector('input[name="'+name+'"]:checked');return el?el.value:'';};
+const suggest=()=>{const scope=pick('help_scope'),rec=pick('help_recurrence'),cause=pick('help_cause');if(!scope&&!rec&&!cause) return;
+ let size='small',why='A bounded test can use compact PDCA. Safety, quality and customer review still apply.';
+ if(scope==='several'||scope==='site'){size='extensive';why='Several processes are involved; use the guided full detail.';}
+ else if(rec==='recurring'||cause==='partly'||cause==='unknown'){size='medium';why='Recurrence or an unknown cause calls for investigation and comparable measures.';}
+ advice.textContent='Suggested: '+size.charAt(0).toUpperCase()+size.slice(1)+'. '+why;
+ document.querySelectorAll('[data-suggest-badge]').forEach(b=>b.hidden=b.dataset.suggestBadge!==size);};
+document.querySelectorAll('[data-help-question] input').forEach(el=>el.addEventListener('change',suggest));})();
+</script>{% endblock %}

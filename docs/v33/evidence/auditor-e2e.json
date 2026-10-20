@@ -1,0 +1,112 @@
+[
+ {
+  "check": "fictional-stage-one: 01.01.C shows the TCA_v3_GROUP_02 variant exactly",
+  "ok": true,
+  "detail": "source record 1"
+ },
+ {
+  "check": "fictional-stage-one: no other 01.01.C variant shown",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "fictional-stage-one: QuestionID shown without variant suffix",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "fictional-stage-one: evidence statement on demand",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "fictional-matrix-pilot: 01.01.C shows the TCA_v3_GROUP_12 variant exactly",
+  "ok": true,
+  "detail": "source record 4"
+ },
+ {
+  "check": "fictional-matrix-pilot: no other 01.01.C variant shown",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "fictional-matrix-pilot: QuestionID shown without variant suffix",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "fictional-matrix-pilot: evidence statement on demand",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "Y saved with one selection",
+  "ok": true,
+  "detail": "1 selection"
+ },
+ {
+  "check": "evidence attached without leaving the question",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "evidence shows as accepted",
+  "ok": true,
+  "detail": "\u2713 All 8 parts accepted"
+ },
+ {
+  "check": "answer kept after attaching",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "rail marks 01.01.C as Yes",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "next unanswered opens the next open question",
+  "ok": true,
+  "detail": "01.02.C"
+ },
+ {
+  "check": "Advisory shows its follow-up field",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "Section view shows the same Y",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "All questions view shows the same Advisory",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "resume after logout opens the next open question",
+  "ok": true,
+  "detail": "01.03.C"
+ },
+ {
+  "check": "progress survives logout",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "focus view has no page overflow at 1024px",
+  "ok": true,
+  "detail": "0px"
+ },
+ {
+  "check": "focus view has no page overflow at 768px",
+  "ok": true,
+  "detail": "0px"
+ },
+ {
+  "check": "focus view has no page overflow at 390px",
+  "ok": true,
+  "detail": "0px"
+ }
+]

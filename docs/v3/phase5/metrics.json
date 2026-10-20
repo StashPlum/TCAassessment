@@ -1,0 +1,162 @@
+{
+"auditor_demo-evidence/preparation-1440": {
+"h1": "Prepare evidence",
+"words": 780,
+"inputs": 6,
+"buttons": 5,
+"height": 2671,
+"docWidth": 1440
+},
+"auditor_demo-sessions-1440": {
+"h1": "Plan assessment",
+"words": 278,
+"inputs": 9,
+"buttons": 2,
+"height": 1682,
+"docWidth": 1440
+},
+"auditor_demo-assessment/history-1440": {
+"h1": "Assessment history",
+"words": 137,
+"inputs": 5,
+"buttons": 5,
+"height": 900,
+"docWidth": 1440
+},
+"auditor_demo-resources-1440": {
+"h1": "Reports and guidance",
+"words": 184,
+"inputs": 5,
+"buttons": 3,
+"height": 1314,
+"docWidth": 1440
+},
+"auditor_demo-learning-1440": {
+"h1": "Learning repository",
+"words": 283,
+"inputs": 6,
+"buttons": 3,
+"height": 1991,
+"docWidth": 1440
+},
+"auditor_demo-evidence/preparation-390": {
+"h1": "Prepare evidence",
+"words": 780,
+"inputs": 6,
+"buttons": 5,
+"height": 3322,
+"docWidth": 390
+},
+"auditor_demo-sessions-390": {
+"h1": "Plan assessment",
+"words": 278,
+"inputs": 9,
+"buttons": 2,
+"height": 1984,
+"docWidth": 390
+},
+"auditor_demo-assessment/history-390": {
+"h1": "Assessment history",
+"words": 137,
+"inputs": 5,
+"buttons": 5,
+"height": 1225,
+"docWidth": 390
+},
+"auditor_demo-resources-390": {
+"h1": "Reports and guidance",
+"words": 184,
+"inputs": 5,
+"buttons": 3,
+"height": 1758,
+"docWidth": 390
+},
+"auditor_demo-learning-390": {
+"h1": "Learning repository",
+"words": 283,
+"inputs": 6,
+"buttons": 3,
+"height": 2466,
+"docWidth": 390
+},
+"manager_demo-evidence/preparation-1440": {
+"h1": "Prepare evidence",
+"words": 780,
+"inputs": 6,
+"buttons": 5,
+"height": 2671,
+"docWidth": 1440
+},
+"manager_demo-sessions-1440": {
+"h1": "Plan assessment",
+"words": 278,
+"inputs": 9,
+"buttons": 2,
+"height": 1682,
+"docWidth": 1440
+},
+"manager_demo-assessment/history-1440": {
+"h1": "Assessment history",
+"words": 137,
+"inputs": 5,
+"buttons": 5,
+"height": 900,
+"docWidth": 1440
+},
+"manager_demo-resources-1440": {
+"h1": "Reports and guidance",
+"words": 184,
+"inputs": 5,
+"buttons": 3,
+"height": 1314,
+"docWidth": 1440
+},
+"manager_demo-learning-1440": {
+"h1": "Learning repository",
+"words": 283,
+"inputs": 6,
+"buttons": 3,
+"height": 1991,
+"docWidth": 1440
+},
+"manager_demo-evidence/preparation-390": {
+"h1": "Prepare evidence",
+"words": 780,
+"inputs": 6,
+"buttons": 5,
+"height": 3322,
+"docWidth": 390
+},
+"manager_demo-sessions-390": {
+"h1": "Plan assessment",
+"words": 278,
+"inputs": 9,
+"buttons": 2,
+"height": 1984,
+"docWidth": 390
+},
+"manager_demo-assessment/history-390": {
+"h1": "Assessment history",
+"words": 137,
+"inputs": 5,
+"buttons": 5,
+"height": 1225,
+"docWidth": 390
+},
+"manager_demo-resources-390": {
+"h1": "Reports and guidance",
+"words": 184,
+"inputs": 5,
+"buttons": 3,
+"height": 1758,
+"docWidth": 390
+},
+"manager_demo-learning-390": {
+"h1": "Learning repository",
+"words": 283,
+"inputs": 6,
+"buttons": 3,
+"height": 2466,
+"docWidth": 390
+}
+}

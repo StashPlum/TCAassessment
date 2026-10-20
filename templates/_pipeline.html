@@ -1,0 +1,6 @@
+<section class="viz pipeline" aria-labelledby="pipeline-title">
+<div class="viz-head"><div><h2 id="pipeline-title">Where are the site's Kaizens in review?</h2><p class="viz-sub">{{ pipeline.total }} Kaizen event{{ pipeline.total|pluralize }} by saved review state · oldest submission first.</p></div></div>
+{% if pipeline.total %}<ol class="flow">{% for col in pipeline.columns %}<li class="flow-step s-{{ col.state }}{% if col.state == 'submitted' and col.count %} is-action{% endif %}"><span class="flow-count">{{ col.count }}</span><span class="flow-label">{{ col.label }}</span>
+<ul>{% for e in col.events %}<li><a href="{% if col.state == 'submitted' %}{% url 'kaizen_review_detail' site.code e.pk %}{% else %}{% url 'kaizen_detail' site.code e.pk %}{% endif %}">{{ e.title|truncatechars:42 }}</a>{% if col.state == 'submitted' %}<span class="small muted"> since {{ e.submitted_at|date:'d M' }}</span>{% endif %}</li>{% endfor %}{% if col.count > col.events|length %}<li class="small muted">+{{ col.count|add:-4 }} more</li>{% endif %}</ul></li>{% endfor %}</ol>
+{% else %}<p class="empty">No Kaizen events at this site yet.</p>{% endif %}
+</section>
