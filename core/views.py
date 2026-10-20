@@ -975,7 +975,7 @@ def preparation(request,site_code):
         writer=csv.writer(response)
         writer.writerow(['Requirement ID','Category','Level','Official detail','Expected evidence','Response','Accepted evidence records','Action type','Owner','Due date'])
         for row in items:
-            r=row['requirement'];writer.writerow([r.code,r.category.name,r.level_code,r.detail_text,r.expected_evidence,row['response'],row['accepted'],row['action_type'],row['owner'],row['due_date'] or ''])
+            r=row['requirement'];writer.writerow([r.label,r.section_name,r.level_code,r.detail_text,r.expected_evidence,row['response'],row['accepted'],row['action_type'],row['owner'],row['due_date'] or ''])
         return response
     active_filters=[(filter_form[key].label,dict(filter_form.fields[key].choices).get(value,value) if hasattr(filter_form.fields[key],'choices') else value)
                     for key,value in filters.items() if value]
@@ -983,7 +983,8 @@ def preparation(request,site_code):
     selected=request.session.get('preparation_selected',{}).get(site.code,[])
     for item in page.object_list:item['is_selected']=item['requirement'].code in selected
     from .readiness import evidence_state
-    every=evidence_state(site,list(Requirement.objects.all()))
+    from .catalogue import working_requirements
+    every=evidence_state(site,list(working_requirements(site)))
     missing_total=sum(1 for value in every.values() if not value['complete'])
     return render(request,'preparation.html',{'site':site,'items':items,'visible_items':page.object_list,'page':page,
         'missing_total':missing_total,'scope_total':len(every),'selecting':request.GET.get('select')=='1' or bool(selected),
@@ -1029,7 +1030,10 @@ def report(request,site_code):
         data['assessment']={'version':latest.version,'status':latest.status,'approved_at':latest.approved_at.isoformat() if latest.approved_at else None}
         codes,unverified=accepted_codes(site,latest)
         data['unverified_yes']=unverified
-        for cat in Category.objects.all(): data['categories'].append({'name':cat.name,'result':category_result({r.position:codes.get(r.code,'') for r in cat.requirements.all()},latest.policy_version)})
+        from .catalogue import assessment_requirements,section_titles
+        reqs=list(assessment_requirements(latest).select_related('category'))
+        for number,name in sorted(section_titles(reqs).items()):
+            data['categories'].append({'name':name,'result':category_result({r.position:codes.get(r.code,'') for r in reqs if r.category_id==number},latest.policy_version)})
     return JsonResponse(data,json_dumps_params={'indent':2})
 
 @login_required
@@ -1039,9 +1043,10 @@ def assessment_archive(request,site_code):
     responses={r.requirement_id:r for r in obj.responses.all()} if obj else {}
     codes,unverified=accepted_codes(site,obj)
     rows=[]
-    for req in Requirement.objects.select_related('category','source_version').prefetch_related('clauses'):
+    from .catalogue import assessment_requirements
+    for req in assessment_requirements(obj,site).select_related('category','source_version').prefetch_related('clauses'):
         response=responses.get(req.code)
-        rows.append({'id':req.code,'category':req.category.name,'level_code':req.level_code,
+        rows.append({'id':req.label,'variant_key':req.code,'category':req.section_name,'level_code':req.level_code,
                      'official_details':req.detail_text,'reasoning':req.reasoning,'expected_evidence':req.expected_evidence,
                      'remote_method':req.remote_method,'source_address':req.source_address,
                      'source_sha256':req.source_version.sha256,

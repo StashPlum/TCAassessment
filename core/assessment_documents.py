@@ -27,8 +27,8 @@ def preparation_records(site, items):
     for item in items:
         req=item['requirement'];need=item['need'];question=item['question']
         records.append({'Site':site.name,'Assessment version':'Preparation, current site guidance',
-            'Record status':'Working list','Rule version':'No response scored','Category':req.category.name,
-            'Requirement ID':req.code,'Official obligation':req.detail_text,
+            'Record status':'Working list','Rule version':'No response scored','Category':req.section_name,
+            'Requirement ID':req.label,'Official obligation':req.detail_text,
             'Frozen site question':question['question_text'],
             'Evidence needed':'\n'.join(need['evidence_items']),
             'Document owner':need['owner'] or 'Not assigned','Relevant period':_period(need),
@@ -72,8 +72,8 @@ def assessment_records(assessment, allowed_classifications=None):
         refs=[]
         for clause in req.clauses.all(): refs.extend(coverage_by_clause.get(clause.pk,[]))
         records.append({'Site':assessment.site.name,'Assessment version':str(assessment.version),
-            'Record status':assessment.status,'Rule version':assessment.policy_version,'Category':req.category.name,
-            'Requirement ID':req.code,'Official obligation':req.detail_text,
+            'Record status':assessment.status,'Rule version':assessment.policy_version,'Category':req.section_name,
+            'Requirement ID':req.label,'Official obligation':req.detail_text,
             'Frozen site question':question['question_text'],'Evidence needed':'\n'.join(need['evidence_items']),
             'Document owner':need['owner'] or 'Not assigned','Relevant period':_period(need),
             'Answer':response.get('code') or 'Unanswered','Assessor comment':response.get('conclusion',''),

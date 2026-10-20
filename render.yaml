@@ -1,14 +1,15 @@
-# Render Blueprint for TCA Progress 3.2 (isolated redesign; free plan, fictional data).
+# Render Blueprint for TCA Progress 3.3 (V3 catalogue, guided workspace; free plan, fictional data).
 # Distinct names so a Blueprint from this branch can never attach to the old tca-progress-demo service or database.
 # Secrets (TCA_DEMO_PASSWORD, TCA_TESTERS and the optional private source files) are entered in the
-# Render dashboard and are never committed.
+# Render dashboard and are never committed. The V3 catalogue comes from the secret file tca-v3-source.json
+# (made with tools/extract_v3_source.py); without it the service runs on the legacy catalogue.
 services:
   - type: web
-    name: tca-progress-v32
+    name: tca-progress-v33
     runtime: python
     plan: free
     region: frankfurt
-    branch: TCA-progress-v3-redesign
+    branch: TCA-progress-v33
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
     startCommand: python manage.py migrate --noinput && python manage.py prepare_demo && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
     healthCheckPath: /healthz/
@@ -27,9 +28,9 @@ services:
         sync: false
       - key: DATABASE_URL
         fromDatabase:
-          name: tca-progress-v32-db
+          name: tca-progress-v33-db
           property: connectionString
 databases:
-  - name: tca-progress-v32-db
+  - name: tca-progress-v33-db
     plan: free
     region: frankfurt

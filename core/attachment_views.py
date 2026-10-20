@@ -41,6 +41,8 @@ def attachment_form(request,event,stage):
     allowed=allowed_classifications(request.user,event.site)
     form=AttachmentForm(request.POST or None,request.FILES or None,initial={'stage':stage,'revision':event.revision,'classification':'internal'},auto_id='attachment_%s')
     form.fields['evidence'].queryset=Evidence.objects.filter(site=event.site,classification__in=allowed)
+    from .catalogue import working_requirements
+    form.fields['requirement'].queryset=working_requirements(event.site)
     form.fields['classification'].choices=[c for c in form.fields['classification'].choices if c[0] in allowed]
     return form
 
