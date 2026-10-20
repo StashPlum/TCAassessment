@@ -2,7 +2,7 @@
 import json, re, sys
 from playwright.sync_api import sync_playwright
 BASE='http://127.0.0.1:8000'; PW=__import__('os').environ['TCA_DEMO_PASSWORD']
-ROLES=['auditor_demo','manager_demo','sensei_demo','team_demo','team_demo2']
+ROLES=__import__('os').environ.get('V3_ROLES','auditor_demo,manager_demo,sensei_demo,team_demo,team_demo2,admin_demo').split(',')
 OUT=__import__('os').environ.get('V3_OUT','output/v3-crawl')
 METRICS="""() => {const vis=e=>{const r=e.getBoundingClientRect();const s=getComputedStyle(e);return r.width>0&&r.height>0&&s.visibility!='hidden'&&s.display!='none'};
 const q=s=>[...document.querySelectorAll(s)].filter(vis);
@@ -14,7 +14,7 @@ forms:q('main form').length, words, tables:q('main table').length, details:docum
 docWidth:document.documentElement.scrollWidth, primary:q('.btn-primary, .button.primary, button.primary, .primary').length}}"""
 def login(page,u):
     page.goto(BASE+'/login/'); page.fill('input[name=username]',u); page.fill('input[name=password]',PW)
-    page.click('form button'); page.wait_for_load_state('networkidle')
+    page.click('form button'); page.wait_for_load_state('networkidle'); page.wait_for_load_state('networkidle')
 res={}
 with sync_playwright() as p:
     b=p.chromium.launch(executable_path=__import__('os').environ.get('CHROMIUM_PATH') or None)

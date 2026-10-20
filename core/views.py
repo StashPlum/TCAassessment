@@ -64,7 +64,40 @@ def home(request):
         context['progress_choices']=(0,20,40,60,80,100)
         context['review_improvements']=Kaizen.objects.filter(site=site).order_by('-updated_at')[:5]
         context['advisory_followups']=Response.objects.filter(assessment=latest,code='A').select_related('requirement')[:5] if latest else []
+        context.update(next_action_context(request.user,site,latest,codes))
     return render(request,'home.html',context)
+
+def next_action_context(user,site,latest,codes):
+    """What each role should do next: one primary action plus the exceptions that need attention."""
+    from .progress import scope_for
+    today=timezone.localdate()
+    draft=site.assessments.filter(status='draft').first()
+    scope=scope_for(draft).get('requirements',[]) if draft else []
+    answered=set(draft.responses.filter(code__in=('Y','A','N')).values_list('requirement_id',flat=True)) if draft else set()
+    # Blockers describe the verified position: the latest approved record, never an unfinished draft.
+    latest=site.assessments.filter(status='approved').first()
+    codes,_=accepted_codes(site,latest)
+    passing=pass_codes(latest.policy_version if latest else 'draft-v1')
+    levels=(('Certified',5),('Advanced',8),('Showcase',10))
+    ranking={None:0,'Certified':1,'Advanced':2,'Showcase':3}
+    lowest=None
+    if latest:
+        results=[category_result({r.position:codes.get(r.code,'') for r in c.requirements.all()},latest.policy_version)['earned'] for c in Category.objects.prefetch_related('requirements')]
+        lowest=min(results,key=lambda v:ranking[v]) if results else None
+    next_level=next(((name,limit) for name,limit in levels if ranking[name]>ranking[lowest]),None)
+    next_blockers=list(Requirement.objects.filter(position__lte=next_level[1]).exclude(code__in=[k for k,v in codes.items() if v in passing]).select_related('category')) if next_level else []
+    overdue_actions=list(Opportunity.objects.filter(site=site,status='open',due_date__lt=today).order_by('due_date')[:5])
+    overdue_tasks=list(KaizenAction.objects.filter(event__site=site,end_date__lt=today).exclude(progress=100).select_related('event').order_by('end_date')[:5])
+    events=list(Kaizen.objects.filter(site=site).exclude(status='reassessment_accepted').prefetch_related('review_notes'))
+    waiting=sorted([e for e in events if review_state(e)=='submitted'],key=lambda e:e.submitted_at)
+    returned=[e for e in events if review_state(e)=='returned' and (e.created_by_id==user.pk or e.participants.filter(user=user).exists())]
+    return {'today':today,'draft':draft,'draft_answered':len(answered&set(scope)),'draft_total':len(scope),
+            'draft_next':next((code for code in scope if code not in answered),None),
+            'next_level':next_level[0] if next_level else None,'next_blockers':next_blockers,
+            'next_blocker_sections':sorted({r.category for r in next_blockers},key=lambda c:c.number),
+            'overdue_actions':overdue_actions,'overdue_tasks':overdue_tasks,
+            'sessions_to_confirm':AssessmentSession.objects.filter(site=site,availability='proposed',date__gte=today).order_by('date')[:3],
+            'review_waiting':waiting,'my_returned':returned}
 
 @login_required
 @require_POST

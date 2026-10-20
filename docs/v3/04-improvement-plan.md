@@ -47,5 +47,6 @@
 | 0 | Done (with recorded deviation O7) | 00-isolation-baseline.md |
 | 1 | Done | 01–03, 05 |
 | 2 | P2.2–P2.5 done; P2.1 (official catalogue on Render) waits for the owner's secret file; P2.6 (matrix) unchanged from baseline, reworked in phase 3 | `core/test_v32_assessment.py` (6 tests); source-free CI 56/56; `tools/v3_auditor_journey.py` → `docs/v3/phase2/` |
+| 3 | P3.1, P3.3 and part of P3.4 done: role navigation from `core/policy.py`, role start pages with one next step, admin demo account, plain header, 390 px overflow fixed. P3.2 waits for decision O3 | `core/test_v32_roles.py` (3 tests); CI 59/59; `docs/v3/phase3/` |
 
 Phase 2 journey 1 measured in the browser: menu → Start new assessment → Y = **3 deliberate clicks**, 0 mandatory inputs, 2 screens (baseline: 5 clicks, 1 mandatory input, 4 screens plus an evidence detour).

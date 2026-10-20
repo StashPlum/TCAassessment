@@ -11,7 +11,7 @@ from core.models import Membership, Site
 
 ROLE_MAP={'auditor':'assessor','manager':'manager','sensei':'coach','team':'staff'}
 DEMO_SITES=('fictional-stage-one','fictional-matrix-pilot','fictional-harbor')
-DEMO_USERS=('demo','auditor_demo','manager_demo','sensei_demo','team_demo','team_demo2')
+DEMO_USERS=('demo','auditor_demo','manager_demo','sensei_demo','team_demo','team_demo2','admin_demo')
 
 class Command(BaseCommand):
     help='Seed the hosted demo with fictional data and set demo/tester accounts.'
@@ -23,9 +23,11 @@ class Command(BaseCommand):
         for name in ('seed_demo','seed_stage1_demo','seed_stage2_demo','seed_stage4_demo','seed_stage5_demo'):
             call_command(name,verbosity=0)
         User=get_user_model()
+        sites=list(Site.objects.filter(code__in=DEMO_SITES))
+        admin,_=User.objects.get_or_create(username='admin_demo',defaults={'first_name':'Fictional','last_name':'Administrator'})
+        for site in sites: Membership.objects.get_or_create(user=admin,site=site,role='admin')
         for user in User.objects.filter(username__in=DEMO_USERS):
             user.set_password(password);user.save(update_fields=['password'])
-        sites=list(Site.objects.filter(code__in=DEMO_SITES))
         created=[]
         for entry in [e.strip() for e in os.environ.get('TCA_TESTERS','').split(',') if e.strip()]:
             if ':' not in entry: raise CommandError(f'Tester "{entry}" needs a role: name:auditor|manager|sensei|team')

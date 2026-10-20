@@ -4,9 +4,9 @@ Status vocabulary: Not started / Implemented-unverified / Verified / Failed / Bl
 
 | ID | Check | Component | Status | Evidence |
 |---|---|---|---|---|
-| AC-01 | Role navigation | P3.1 | Failed (baseline) | crawl.json: same menu for all roles |
-| AC-02 | Technical RBAC | policy module, tests | Implemented-unverified (baseline GET probe passed cross-site; POST matrix pending) | rbac_probe.json |
-| AC-03 | Role landing | P2.4, P3.1 | Implemented-unverified (auditor start/continue only; other roles phase 3) | test_v32: start page per role |
+| AC-01 | Role navigation | P3.1 | Verified | `core/policy.py`; test_v32_roles `navigation_is_role_specific`; phase3/crawl.json (team 5, sensei 6, auditor 11, manager 12 items; baseline 12–13 for all) |
+| AC-02 | Technical RBAC | policy module, tests | Implemented-unverified (cross-site GET probe, POST denial for new draft/answer/approve/admin per role and outsider in test_v32_roles; export/download POST matrix in phase 6) | rbac_probe.json, test_v32_roles |
+| AC-03 | Role landing | P3.1 | Verified | test_v32_roles `each_role_start_page_names_one_next_step`; phase3/*-landing-1440.png |
 | AC-04 | Screen purpose | all screens | Not started | |
 | AC-05 | Progressive disclosure | P3.4, P5 | Not started | |
 | AC-06 | Poka-Yoke | P2.2, P6 | Implemented-unverified (approval completeness, stale write 409, read-only roles) | test_v32_assessment |
@@ -24,7 +24,7 @@ Status vocabulary: Not started / Implemented-unverified / Verified / Failed / Bl
 | AC-18 | Maturity | scoring tests | Implemented-unverified (existing tests) | |
 | AC-19 – AC-21 | Guided tools, diagrams, PDCA | P4 | Not started | |
 | AC-22 | Efficiency | 03 §2 | Baseline measured | 03-screens-and-journeys.md |
-| AC-23 – AC-24 | Visual system, responsive | P3.4 | Partly verified: Focus and Section 390 px wide at 390; in-page navs visible on mobile again (D16); evidence library overflow open | phase2/06,07 |
+| AC-23 – AC-24 | Visual system, responsive | P3.4 | Partly verified: every menu target of 6 roles is 390 px wide at 390 (D12 fixed); in-page navs visible on mobile (D16); 1024/768 checks and visual regression pending | phase3/crawl.json |
 | AC-25 – AC-26 | Exports, history | P5 | Not started | |
 | AC-27 | New deployment SHA | P7 | Blocked (owner creates the Render Blueprint, see 06) | |
 | AC-28 | Regression / feature preservation | 03 §4 | Baseline register made | |

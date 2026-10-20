@@ -47,12 +47,15 @@ def workspace(request):
     from .kaizen import initials
     from .demo_views import can_read_feedback
     demo['can_read_feedback']=demo['demo_mode'] and can_read_feedback(request.user)
-    return {**demo,'user_initials':initials(request.user.get_full_name() or request.user.username),'workspace_site':site,'authorized_sites':sites,**role_context(request.user,site),
+    from .policy import navigation
+    site_roles=set(Membership.objects.filter(user=request.user,site=site).values_list('role',flat=True)) if site else set()
+    can_administer=Membership.objects.filter(user=request.user,role='admin').exists()
+    return {**demo,'navigation':navigation(site_roles,site,name,can_administer),'user_initials':initials(request.user.get_full_name() or request.user.username),'workspace_site':site,'authorized_sites':sites,**role_context(request.user,site),
             'authorized_countries':[(code,dict(Site.COUNTRY_CHOICES).get(code,'Country not assigned')) for code in sorted({s.country_code for s in sites})],
             'workspace_assessment':site.assessments.first() if site else None,
             'baseline_reference':source.sha256[:8] if source else 'Not imported',
             'nav_area':area,'page_label':title,'current_route':name,'area_url':area_url,
             'site_switch_area':name if name in ('site','assessment','sessions','opportunities','kaizens','evidence','preparation','resources') else 'home',
-            'can_administer':Membership.objects.filter(user=request.user,role='admin').exists(),
+            'can_administer':can_administer,
             'can_sensei':bool(site and Membership.objects.filter(user=request.user,site=site,role__in=['coach','manager','admin']).exists()),
             'can_configure':bool(site and Membership.objects.filter(user=request.user,site=site,role='assessor').exists())}

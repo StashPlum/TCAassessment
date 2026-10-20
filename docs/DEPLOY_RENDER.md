@@ -40,6 +40,7 @@ This puts the TCA Progress demo online with a link for invited testers. It uses 
 | `manager_demo` | Site manager: results, sharing learning, reading feedback |
 | `sensei_demo` | Sensei: review queue, return or finalise Kaizens |
 | `team_demo`, `team_demo2` | Kaizen team members |
+| `admin_demo` | Technical administrator: Administration page (3.2) |
 | `demo` | All roles on the original fictional sites |
 
 Sites to open: **Fictional Matrix Pilot** (56 Y / 19 A / 75 N matrix, learning for 4.C.3) and **Fictional Advisory Pilot** (Kaizens with team, Gantt and review).

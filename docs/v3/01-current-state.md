@@ -22,8 +22,8 @@ Functional inventory (status per capability in 03-screens-and-journeys.md §Feat
 | D8 | **Uploads are not durable on Render.** `FileSystemStorage` on the free plan's ephemeral disk; docs state files disappear on sleep/redeploy. | [C] settings; [D] DEPLOY_RENDER | P0 for production, P1 for pilot |
 | D9 | **Free Render Postgres is deleted after its free period** [D]. Not acceptable for a pilot holding assessment history. | [D] | P1 |
 | D10 | **Site managers hold `assessment_write` and `local_snapshot_approve`**, so the audited site's manager can answer and approve its own TCA assessment. Separation of duties is not enforced. | [C] `roles.RIGHTS`, `views.respond/approve` role lists | P1 — governance decision needed |
-| D11 | **No administrator demo account; `/administration/` returns 404 for every demo role.** The admin experience cannot be demonstrated or tested. | [L] RBAC probe | P2 |
-| D12 | Evidence library overflows at 390 px for auditor/manager (document 587 px wide). | [L] crawl | P2 |
+| D11 | **No administrator demo account; `/administration/` returns 404 for every demo role.** The admin experience cannot be demonstrated or tested. | [L] RBAC probe | P2 — fixed in phase 3 (`admin_demo`) |
+| D12 | Evidence library overflows at 390 px for auditor/manager (document 587 px wide). | [L] crawl | P2 — fixed in phase 3 (absolute helpers escaped the scroll region) |
 | D13 | Landing pages lead with a percentage/progress block rather than "what do I do next"; the auditor's next action ("Conduct assessment") lands on a locked record (see D4). | [L] screenshots | P1 |
 | D14 | Prepare evidence screen shows ~1,060 words and 30 inputs at once; Lean toolbox ~700 words; matrix page ~565 words with 157 links. | [L] crawl metrics | P2 |
 | D16 | **Every in-page `<nav>` is hidden below 760 px** (pagination, view tabs) by a leftover rule `body.js nav:not(.expanded){display:none}` written for the old top menu. Found while testing the 390 px Focus view. | [L] | P1 — fixed in phase 2 |
