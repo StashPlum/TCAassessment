@@ -189,3 +189,28 @@ class V32AssessmentTests(TestCase):
         # The manager start page uses the same rule as the matrix.
         self.client.force_login(self.manager)
         self.assertContains(self.client.get(reverse('home')), '74 requirements block Certified')
+
+    def test_prepare_evidence_leads_with_what_is_missing(self):
+        self.accept_evidence(self.req)
+        self.client.force_login(self.manager)
+        url = reverse('preparation', args=[self.site.code])
+        page = self.client.get(url)
+        self.assertContains(page, '149 of 150 requirements still need complete evidence')
+        self.assertNotContains(page, 'name="selected"')
+        missing = self.client.get(url, {'evidence': 'missing'})
+        self.assertEqual(missing.context['page'].paginator.count, 149)
+        complete = self.client.get(url, {'evidence': 'complete'})
+        self.assertEqual([x['requirement'].code for x in complete.context['items']], ['1.C.1'])
+        self.assertContains(self.client.get(url, {'select': '1'}), 'name="selected"')
+
+    def test_history_and_planning_speak_plainly_per_role(self):
+        Assessment.objects.create(site=self.site, version=1, created_by=self.auditor, policy_version='advisory-v2', status='approved', approved_at=timezone.now())
+        history = reverse('assessment_history', args=[self.site.code])
+        self.client.force_login(self.manager)
+        page = self.client.get(history)
+        self.assertContains(page, 'Y and A pass with evidence')
+        self.assertContains(page, 'checked aria-label="Select Synthetic 3.2 Site version 1"')
+        self.assertNotContains(page, '>Conduct assessment</a>')
+        self.client.force_login(self.auditor)
+        self.assertContains(self.client.get(history), '>Conduct assessment</a>')
+        self.assertContains(self.client.get(reverse('sessions', args=[self.site.code])), '<details class="disclosure" open><summary>Propose a session')

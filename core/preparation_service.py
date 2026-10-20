@@ -2,7 +2,7 @@
 from collections import defaultdict
 from .assessment_config import current_preparation, current_question
 from .models import Coverage, Opportunity, Requirement
-from .readiness import accepted_codes
+from .readiness import accepted_codes, evidence_state
 
 
 def preparation_items(site,filters,selected=None):
@@ -22,12 +22,16 @@ def preparation_items(site,filters,selected=None):
     if owner:query=query.filter(owner__icontains=owner)
     if due:query=query.filter(due_date__lte=due)
     for item in query:opportunities[item.requirement_id].append(item)
+    reqs=list(reqs)
+    state=evidence_state(site,reqs)
+    wanted=filters.get('evidence','')
+    if wanted in ('missing','complete'): reqs=[r for r in reqs if state[r.code]['complete']==(wanted=='complete')]
     items=[]
     for req in reqs:
         options=opportunities.get(req.code,[])
         if (owner or due) and not options:continue
         first=options[0] if options else None
-        items.append({'requirement':req,'response':codes.get(req.code,''),'accepted':len(accepted_by_req[req.code]),
+        items.append({'requirement':req,'response':codes.get(req.code,''),'accepted':len(accepted_by_req[req.code]),'evidence':state[req.code],
             'action_type':first.get_kind_display() if first else 'Pending verification',
             'owner':first.owner if first else '', 'due_date':first.due_date if first else None,
             'need':current_preparation(site,req),'question':current_question(site,req)})

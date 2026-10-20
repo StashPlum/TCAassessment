@@ -8,7 +8,7 @@ Status vocabulary: Not started / Implemented-unverified / Verified / Failed / Bl
 | AC-02 | Technical RBAC | policy module, tests | Implemented-unverified (cross-site GET probe, POST denial for new draft/answer/approve/admin per role and outsider in test_v32_roles; export/download POST matrix in phase 6) | rbac_probe.json, test_v32_roles |
 | AC-03 | Role landing | P3.1 | Verified | test_v32_roles `each_role_start_page_names_one_next_step`; phase3/*-landing-1440.png |
 | AC-04 | Screen purpose | all screens | Not started | |
-| AC-05 | Progressive disclosure | P3.4, P5 | Not started | |
+| AC-05 | Progressive disclosure | P3.4, P5 | Implemented-verified for Prepare evidence, Kaizen workspace, toolbox, matrix and conduct filters: one next-step card first; filters, exports and export selection in disclosures (Prepare evidence: ~1,060 → 780 words, 25 selection checkboxes hidden until asked for) | test_v32 `prepare_evidence_leads_with_what_is_missing`; phase5/metrics.json |
 | AC-06 | Poka-Yoke | P2.2, P6 | Implemented-unverified (approval completeness, stale write 409, read-only roles) | test_v32_assessment |
 | AC-07 | Draft preservation | P2.2 | Verified (assessment drafts; Kaizen drafts already autosave) | test_v32 `draft_saves_any_answer…`; browser: Y/A/N kept after reload and logout/login |
 | AC-08 | Submission rules | P2.2 | Verified | test_v32 `approval_lists_what_is_missing…`: blocked with 4 actionable messages, then accepted |
@@ -25,7 +25,7 @@ Status vocabulary: Not started / Implemented-unverified / Verified / Failed / Bl
 | AC-19 – AC-21 | Guided tools, diagrams, PDCA | P4 | AC-19 Implemented-verified for the chooser: 8 plain-language questions lead to 2–3 methods in order (`core/lean_guide.py`), on the site toolbox and the event toolbox; Kaizen workspace shows one primary action per stage and explains why sensei submission and local closure are not yet available. AC-20/21: existing diagrams and PDCA gates kept (stage 4 tests) | test_v32_roles `kaizen_offers_one_primary_action…`; phase4/*.png, kaizen_toolbox.json (no overflow at 390) |
 | AC-22 | Efficiency | 03 §2 | Baseline measured | 03-screens-and-journeys.md |
 | AC-23 – AC-24 | Visual system, responsive | P3.4 | Partly verified: every menu target of 6 roles is 390 px wide at 390 (D12 fixed); in-page navs visible on mobile (D16); 1024/768 checks and visual regression pending | phase3/crawl.json |
-| AC-25 – AC-26 | Exports, history | P5 | Not started | |
+| AC-25 – AC-26 | Exports, history | P5 | Implemented-unverified: existing PDF/XLSX/CSV export tests (stage 3/5) pass; history shows the rule in plain words, preselects a single version, shows Conduct only to auditors. Export content check per role in phase 6 | test_v32 `history_and_planning_speak_plainly…` |
 | AC-27 | New deployment SHA | P7 | Blocked (owner creates the Render Blueprint, see 06) | |
 | AC-28 | Regression / feature preservation | 03 §4 | Baseline register made | |
 | AC-29 | First-use clarity | heuristic walkthrough | Not started (real-user test outstanding) | |

@@ -894,7 +894,7 @@ def preparation(request,site_code):
     if request.GET.get('clear'):
         saved.pop(site.code,None);request.session['preparation_filters']=saved
         return redirect('preparation',site_code=site.code)
-    filter_keys=('category','level','evidence_type','owner','due')
+    filter_keys=('category','level','evidence','evidence_type','owner','due')
     parameters=request.GET if any(key in request.GET for key in filter_keys) else saved.get(site.code,{})
     filter_form=PreparationFilterForm(parameters)
     valid=filter_form.is_valid()
@@ -918,7 +918,12 @@ def preparation(request,site_code):
     page=Paginator(items,25).get_page(request.GET.get('page'))
     selected=request.session.get('preparation_selected',{}).get(site.code,[])
     for item in page.object_list:item['is_selected']=item['requirement'].code in selected
+    from .readiness import evidence_state
+    every=evidence_state(site,list(Requirement.objects.all()))
+    missing_total=sum(1 for value in every.values() if not value['complete'])
     return render(request,'preparation.html',{'site':site,'items':items,'visible_items':page.object_list,'page':page,
+        'missing_total':missing_total,'scope_total':len(every),'selecting':request.GET.get('select')=='1' or bool(selected),
+        'filters_open':bool(active_filters),
         'selected_count':len(selected),'filter_form':filter_form,'active_filters':active_filters,
         'filter_query':request.GET.urlencode()})
 

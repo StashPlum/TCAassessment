@@ -198,6 +198,7 @@ class KaizenStageForm(forms.Form):
 class PreparationFilterForm(forms.Form):
     category=forms.ChoiceField(required=False,label='Category')
     level=forms.ChoiceField(required=False,choices=[('','All levels'),('C','Certified'),('B','Advanced'),('A','Showcase')])
+    evidence=forms.ChoiceField(required=False,label='Evidence',choices=[('','All requirements'),('missing','Evidence not complete'),('complete','Evidence complete')])
     evidence_type=forms.ChoiceField(required=False,choices=[('','All types'),('document','Document'),('observation','Observation'),('interview','Interview'),('audit','Other audit')])
     owner=forms.CharField(required=False,max_length=160)
     due=forms.DateField(required=False,label='Due by',widget=forms.DateInput(attrs={'type':'date'}))

@@ -407,3 +407,4 @@ button.compact{min-height:40px;padding:0 12px;font-size:15px;align-self:flex-end
 .need-tip{padding:12px;border-left:4px solid var(--navy);background:#edf2fa}
 .kz-actions{margin-top:var(--space-4,16px)}
 .kz-layout>*,.kz-main,.kz-section{min-width:0}.scroll-region{position:relative}
+.preparation-table .status-chip{white-space:nowrap}

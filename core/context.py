@@ -50,7 +50,7 @@ def workspace(request):
     from .policy import navigation
     site_roles=set(Membership.objects.filter(user=request.user,site=site).values_list('role',flat=True)) if site else set()
     can_administer=Membership.objects.filter(user=request.user,role='admin').exists()
-    return {**demo,'navigation':navigation(site_roles,site,name,can_administer),'user_initials':initials(request.user.get_full_name() or request.user.username),'workspace_site':site,'authorized_sites':sites,**role_context(request.user,site),
+    return {**demo,'navigation':navigation(site_roles,site,name,can_administer),'user_initials':initials(request.user.get_full_name() or request.user.username),'workspace_site':site,'site_roles':site_roles,'authorized_sites':sites,**role_context(request.user,site),
             'authorized_countries':[(code,dict(Site.COUNTRY_CHOICES).get(code,'Country not assigned')) for code in sorted({s.country_code for s in sites})],
             'workspace_assessment':site.assessments.first() if site else None,
             'baseline_reference':source.sha256[:8] if source else 'Not imported',
