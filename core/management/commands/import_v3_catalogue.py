@@ -21,15 +21,20 @@ class DryRun(Exception):
     pass
 
 
-def variant_codes(records):
-    """Variant key per record: the QuestionID, or QuestionID~n (n in Master Order sequence) when a QuestionID repeats."""
+def variant_codes(records, tag=''):
+    """Variant key per record: the QuestionID, or QuestionID~n (n in Master Order sequence) when a QuestionID repeats.
+
+    The first V3 version uses no tag. Later versions add a letter (QuestionID~b, QuestionID~b2) so a new catalogue
+    version never collides with, or changes, the records an earlier version and its assessments refer to.
+    """
     seen, totals = {}, {}
     for r in records: totals[r['question_id']] = totals.get(r['question_id'], 0) + 1
     codes = {}
     for r in records:
         q = r['question_id']
         seen[q] = seen.get(q, 0) + 1
-        codes[r['master_order']] = q if totals[q] == 1 else f'{q}~{seen[q]}'
+        variant = '' if totals[q] == 1 else str(seen[q])
+        codes[r['master_order']] = f'{q}~{tag}{variant}' if tag or variant else q
     return codes
 
 
@@ -100,7 +105,8 @@ class Command(BaseCommand):
         for number, name in sorted(names.items()):
             category, made = Category.objects.get_or_create(number=number, defaults={'name': name, 'source_address': f"{source['sheet']}!D (section)"})
             if not made and category.name != name: differences.append({'section': number, 'stored': category.name, 'v3': name})
-        codes = variant_codes(records)
+        sequence = CatalogueVersion.objects.filter(pk__lte=catalogue.pk).count()
+        codes = variant_codes(records, '' if sequence == 1 else chr(ord('a') + sequence - 1))
         verified = 0
         for r in records:
             code = codes[r['master_order']]
