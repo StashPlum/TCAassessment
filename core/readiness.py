@@ -55,10 +55,12 @@ def assessment_snapshot(site, assessment):
                   .select_related('evidence','clause','reviewed_by').order_by('clause_id','id'))
     all_references=list(Coverage.objects.filter(evidence__site=site)
         .select_related('evidence','clause').order_by('clause_id','id'))
+    from .catalogue import assessment_requirements
+    in_scope=list(assessment_requirements(assessment))
     categories=[]
-    for cat in Category.objects.all():
+    for cat in Category.objects.filter(number__in={r.category_id for r in in_scope}):
         categories.append({'category':cat.number,'name':cat.name,
-                           'result':category_result({r.position:codes.get(r.code,'') for r in cat.requirements.all()},assessment.policy_version)})
+                           'result':category_result({r.position:codes.get(r.code,'') for r in in_scope if r.category_id==cat.number},assessment.policy_version)})
     return {'policy':assessment.policy_version,'approved_policy':False,'accepted_codes':codes,
             'responses':[{'requirement':r.requirement_id,'code':r.code,'conclusion':r.conclusion,
                           'advisory_follow_up':r.advisory_follow_up,'advisory_retest_status':r.advisory_retest_status,
@@ -85,7 +87,9 @@ def level_blockers(site, assessment, requirements=None):
     codes,_=accepted_codes(site,assessment)
     policy=assessment.policy_version if assessment else 'draft-v1'
     passing=pass_codes(policy)
-    if requirements is None: requirements=list(Requirement.objects.select_related('category'))
+    if requirements is None:
+        from .catalogue import assessment_requirements
+        requirements=list(assessment_requirements(assessment,site).select_related('category'))
     by_section={}
     for r in requirements: by_section.setdefault(r.category_id,{})[r.position]=codes.get(r.code,'')
     ranking={None:0,'Certified':1,'Advanced':2,'Showcase':3}

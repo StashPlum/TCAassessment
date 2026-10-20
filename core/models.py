@@ -12,6 +12,8 @@ class Site(models.Model):
     region = models.CharField(max_length=120, blank=True)
     grouping = models.CharField(max_length=120, blank=True)
     target_level = models.CharField(max_length=1, choices=[('C','Certified'),('B','Advanced'),('A','Showcase')], default='C')
+    # Validated TCA group for group-specific catalogues (V3). Empty means not configured: never defaulted.
+    tca_group = models.ForeignKey('TCAGroup', null=True, blank=True, on_delete=models.PROTECT, related_name='sites')
     def __str__(self): return self.name
 
 class Membership(models.Model):
@@ -25,6 +27,35 @@ class SourceVersion(models.Model):
     filename = models.CharField(max_length=255, unique=True)
     sha256 = models.CharField(max_length=64)
     imported_at = models.DateTimeField(auto_now_add=True)
+
+class CatalogueVersion(models.Model):
+    """A versioned requirement catalogue imported from an authoritative workbook. No row means the legacy global catalogue."""
+    key = models.CharField(max_length=60, unique=True)
+    label = models.CharField(max_length=120)
+    release_label = models.CharField(max_length=200, blank=True)  # exact header text from the source sheet
+    source_filename = models.CharField(max_length=255)
+    sha256 = models.CharField(max_length=64)
+    sheet = models.CharField(max_length=60)
+    status = models.CharField(max_length=10, default='draft', choices=[('draft','Imported, not active'),('active','Active for new assessments'),('retired','Retired')])
+    imported_at = models.DateTimeField(auto_now_add=True)
+    imported_by = models.CharField(max_length=150, blank=True)
+    activated_at = models.DateTimeField(null=True, blank=True)
+    activated_by = models.CharField(max_length=150, blank=True)
+    report = models.JSONField(default=dict)  # reconciliation counts and anomalies from the import
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['status'], condition=models.Q(status='active'), name='one_active_catalogue')]
+    def __str__(self): return self.label
+
+class TCAGroup(models.Model):
+    """Source group identifier exactly as written in the workbook (e.g. TCA_v3_GROUP_02); no invented names."""
+    catalogue = models.ForeignKey(CatalogueVersion, on_delete=models.PROTECT, related_name='groups')
+    code = models.CharField(max_length=60)
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['catalogue','code'], name='unique_catalogue_group')]
+        ordering = ['code']
+    def __str__(self): return self.code
+    @property
+    def short(self): return self.code.rsplit('_',1)[-1]
 
 class Category(models.Model):
     number = models.PositiveSmallIntegerField(primary_key=True)
@@ -45,10 +76,22 @@ class Requirement(models.Model):
     source_version = models.ForeignKey(SourceVersion, on_delete=models.PROTECT)
     tags = models.CharField(max_length=300, blank=True)
     plain_explanation = models.TextField(blank=True)
+    # Group-specific catalogues (V3): code is the variant key; question_id is the canonical identity shown to people.
+    catalogue = models.ForeignKey(CatalogueVersion, null=True, blank=True, on_delete=models.PROTECT, related_name='requirements')
+    question_id = models.CharField(max_length=20, blank=True)
+    master_order = models.PositiveIntegerField(null=True, blank=True)
+    section_label = models.CharField(max_length=200, blank=True)  # exact source section text
+    groups = models.ManyToManyField(TCAGroup, blank=True, related_name='requirements')
+    source_record = models.JSONField(default=dict, blank=True)  # raw source rows (row numbers and cell values)
     class Meta:
         ordering = ['category_id','position']
         indexes = [models.Index(fields=['category','position'])]
-    def __str__(self): return self.code
+        constraints = [models.UniqueConstraint(fields=['catalogue','master_order'], name='unique_catalogue_master_order')]
+    def __str__(self): return self.label
+    @property
+    def label(self): return self.question_id or self.code
+    @property
+    def section_name(self): return self.section_label.split('. ',1)[-1] if self.section_label else self.category.name
 
 class Clause(models.Model):
     requirement = models.ForeignKey(Requirement, on_delete=models.CASCADE, related_name='clauses')
@@ -79,13 +122,14 @@ class Assessment(models.Model):
     def save(self,*args,**kwargs):
         if self._state.adding and not self.scope_snapshot:
             from .progress import baseline_scope
-            self.scope_snapshot=baseline_scope()
+            self.scope_snapshot=baseline_scope(self.site)
+        codes=self.scope_snapshot.get('requirements') if self.scope_snapshot else None
         if self._state.adding and not self.configuration_snapshot:
             from .assessment_config import frozen_configuration
-            self.configuration_snapshot=frozen_configuration(self.site)
+            self.configuration_snapshot=frozen_configuration(self.site,codes)
         if self._state.adding and not self.preparation_snapshot:
             from .assessment_config import frozen_preparation
-            self.preparation_snapshot=frozen_preparation(self.site)
+            self.preparation_snapshot=frozen_preparation(self.site,codes)
         return super().save(*args,**kwargs)
     class Meta:
         constraints = [models.UniqueConstraint(fields=['site','version'], name='unique_site_assessment_version')]

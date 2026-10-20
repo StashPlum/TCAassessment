@@ -51,10 +51,13 @@ def home(request):
         context['progress']=coverage_progress(site)
         latest=site.assessments.first()
         codes,_=accepted_codes(site,latest)
-        categories=Category.objects.prefetch_related('requirements')
-        context['ready_sections']=sum(category_result({r.position:codes.get(r.code,'') for r in c.requirements.all()},latest.policy_version if latest else 'draft-v1')['earned'] is not None for c in categories)
+        from .catalogue import assessment_requirements
+        in_scope=assessment_requirements(latest,site)
+        by_section={}
+        for r in in_scope: by_section.setdefault(r.category_id,{})[r.position]=codes.get(r.code,'')
+        context['ready_sections']=sum(category_result(answers,latest.policy_version if latest else 'draft-v1')['earned'] is not None for answers in by_section.values())
         target={'C':5,'B':8,'A':10}[site.target_level]
-        context['blockers']=Requirement.objects.filter(position__lte=target).exclude(code__in=[key for key,value in codes.items() if value in pass_codes(latest.policy_version if latest else 'draft-v1')])[:5]
+        context['blockers']=in_scope.filter(position__lte=target).exclude(code__in=[key for key,value in codes.items() if value in pass_codes(latest.policy_version if latest else 'draft-v1')])[:5]
         context['priority_actions']=Opportunity.objects.filter(site=site,status='open').order_by('-immediate_corrective','-prerequisite','due_date','pk')[:5]
         context['my_actions']=Opportunity.objects.filter(site=site,status='open',owner__iexact=request.user.username)[:5]
         context['upcoming_sessions']=AssessmentSession.objects.filter(site=site,date__gte=timezone.localdate()).order_by('date')[:3]
@@ -109,12 +112,6 @@ def resources(request,site_code):
     return render(request,'resources.html',{'site':site})
 
 @login_required
-def administration(request):
-    sites=authorized_sites(request.user).filter(membership__user=request.user,membership__role='admin').distinct()
-    if not sites.exists(): raise Http404
-    return render(request,'administration.html',{'sites':sites})
-
-@login_required
 def site_progress(request, site_code):
     site = site_access(request, site_code)
     draft = site.assessments.filter(status='draft').first()
@@ -122,9 +119,11 @@ def site_progress(request, site_code):
     latest = draft or approved
     codes,unverified=accepted_codes(site,latest)
     dated={row['category']:row['result']['earned'] for row in approved.snapshot.get('categories',[])} if approved else {}
+    from .catalogue import assessment_requirements
+    in_scope=list(assessment_requirements(latest,site))
     rows = []
-    for category in Category.objects.all():
-        requirements = list(category.requirements.all())
+    for category in Category.objects.filter(number__in={r.category_id for r in in_scope}):
+        requirements = [r for r in in_scope if r.category_id==category.number]
         result = category_result({r.position:codes.get(r.code,'') for r in requirements},latest.policy_version if latest else 'draft-v1')
         blockers = [r for r in requirements if r.position <= {'C':5,'B':8,'A':10}[site.target_level] and codes.get(r.code) not in pass_codes(latest.policy_version if latest else 'draft-v1')]
         rows.append((category,result,dated.get(category.number),blockers))
@@ -143,7 +142,9 @@ def assessment(request, site_code):
         obj=site.assessments.filter(status='draft').first() or site.assessments.first()
         if obj is None:
             # Reading never creates a record; responders get a one-click start instead.
-            return render(request,'assessment_start.html',{'site':site,'can_respond':can_respond,'sessions':AssessmentSession.objects.filter(site=site,availability='confirmed').order_by('-date')[:3]})
+            from .catalogue import setup_blocker
+            return render(request,'assessment_start.html',{'site':site,'can_respond':can_respond,'sessions':AssessmentSession.objects.filter(site=site,availability='confirmed').order_by('-date')[:3],
+                'setup_blocker':setup_blocker(site),'can_administer_site':Membership.objects.filter(user=request.user,site=site,role='admin').exists()})
     query = request.GET.get('q','').strip()[:200]
     category = request.GET.get('category','')
     if category and (not category.isdigit() or not Category.objects.filter(number=int(category)).exists()):category=''
@@ -192,7 +193,37 @@ def assessment(request, site_code):
         req.evidence=evidence.get(req.code)
         req.level_label={'C':'Certified','B':'Advanced','A':'Showcase'}.get(req.level_code,'')
     scope_codes=scope.get('requirements',[])
+    from .catalogue import section_map, section_titles
+    ordered=list(Requirement.objects.filter(code__in=scope_codes).order_by('category_id','position'))
+    titles=section_titles(ordered)
+    current_code=page.object_list[0].code if view=='single' and page.object_list else None
+    order_codes=[r.code for r in ordered]
+    after=order_codes[order_codes.index(current_code)+1:] if current_code in order_codes else order_codes
+    next_after=next((c for c in after if c not in answered),None) or next((c for c in order_codes if c not in answered and c!=current_code),None)
+    for req in page.object_list: req.section_title=titles.get(req.category_id,req.category.name)
+    site_evidence=[]
+    if view=='single' and page.object_list:
+        from .access import allowed_classifications
+        visible=allowed_classifications(request.user,site)
+        for req in page.object_list:
+            links=Coverage.objects.filter(evidence__site=site,clause__requirement=req,evidence__classification__in=visible).select_related('evidence','clause')
+            grouped={}
+            for link in links:
+                entry=grouped.setdefault(link.evidence_id,{'item':link.evidence,'parts':0,'accepted':0})
+                entry['parts']+=1;entry['accepted']+=link.accepted
+            req.linked_evidence=list(grouped.values())
+            req.parts=list(req.clauses.order_by('ordinal'))
+        site_evidence=list(Evidence.objects.filter(site=site,classification__in=visible).order_by('-created_at')[:60])
+    from .journey import assessment_journey
+    from .catalogue import setup_blocker
     context_extra={'editable':editable,'can_respond':can_respond,'prior':prior,
+                   'section_map':section_map(obj,ordered,current_code) if view=='single' else None,
+                   'next_unanswered_page':order_codes.index(next_after)+1 if next_after else None,
+                   'next_unanswered':next((r for r in ordered if r.code==next_after),None),
+                   'filtered':bool(query or category or answer or evidence_type),
+                   'site_evidence':site_evidence,'journey':assessment_journey(site,obj,len(answered&set(scope_codes)),len(scope_codes)),
+                   'setup_blocker':setup_blocker(site) if obj.status!='draft' else '','group_label':scope.get('group',''),
+                   'can_administer_site':Membership.objects.filter(user=request.user,site=site,role='admin').exists(),
                    'answered_count':len(answered&set(scope_codes)),'scope_count':len(scope_codes),
                    'next_open':next((code for code in scope_codes if code not in answered),None)}
     context={'site':site,'assessment':obj,'page':page,'query':query,'category':category,'answer':answer,
@@ -201,7 +232,8 @@ def assessment(request, site_code):
              'section':Category.objects.filter(number=int(category)).first() if view=='section' and category.isdigit() else None,
              'section_prev':Category.objects.filter(number__lt=int(category)).order_by('-number').first() if view=='section' and category.isdigit() else None,
              'section_next':Category.objects.filter(number__gt=int(category)).order_by('number').first() if view=='section' and category.isdigit() else None,
-             'categories':Category.objects.all(),'assessments':site.assessments.all(),
+             'categories':[{'number':n,'name':t} for n,t in sorted(titles.items())],'assessments':site.assessments.all(),
+             'section_title':titles.get(int(category)) if category.isdigit() else '',
              'history':site.assessments.all(),**context_extra}
     return render(request,'assessment_results.html' if request.headers.get('HX-Request')=='true' else 'assessment.html',context)
 
@@ -276,8 +308,8 @@ def respond(request, site_code, req_code):
                     Response.objects.update_or_create(assessment=obj,requirement=req,defaults=defaults)
                     obj.revision += 1; obj.save(update_fields=['revision'])
                     log(site,request.user,'response_saved',req,{'code':form.cleaned_data['code'],'assessment':obj.pk})
-                    if request.POST.get('autosave')=='1':return JsonResponse({'saved':True,'revision':obj.revision,'message':f'{req.code} saved.'})
-                    messages.success(request,f'{req.code} saved.')
+                    if request.POST.get('autosave')=='1':return JsonResponse({'saved':True,'revision':obj.revision,'message':f'{req.label} saved.'})
+                    messages.success(request,f'{req.label} saved.')
                     if request.POST.get('go')=='next' and next_req:
                         target=redirect('respond',site_code=site.code,req_code=next_req.code)
                         if selected_id:target['Location']+=f'?assessment={obj.pk}'
@@ -318,11 +350,19 @@ def new_draft(request,site_code):
     plan=get_object_or_404(AssessmentSession,site=site,pk=int(plan_id)) if plan_id.isdigit() else None
     if plan_id and not plan:raise Http404
     if plan and plan.availability!='confirmed':return HttpResponse('Resolve manager availability before starting this planned assessment.',status=422)
+    from .catalogue import SiteSetupBlocker
+    from .progress import baseline_scope
+    try:
+        # A new version uses the catalogue that is active now (frozen from here on); older versions keep theirs.
+        scope=baseline_scope(site)
+    except SiteSetupBlocker as blocker:
+        messages.error(request,str(blocker))
+        return redirect('assessment',site_code=site.code)
     with transaction.atomic():
         if not site.assessments.filter(status='draft').exists():
             previous=site.assessments.first()
             obj=Assessment.objects.create(site=site,version=previous.version+1 if previous else 1,created_by=request.user,
-                planned_session=plan,rationale=request.POST.get('rationale',''),scope_snapshot=scope_for(previous),configuration_snapshot=frozen_configuration(site))
+                planned_session=plan,rationale=request.POST.get('rationale',''),scope_snapshot=scope,configuration_snapshot=frozen_configuration(site,scope['requirements']))
             log(site,request.user,'new_draft',obj,{'from':previous.pk if previous else None})
         else: messages.info(request,'An editable draft already exists with its own frozen snapshot; open it before scheduling a new version.')
     return redirect('assessment',site_code=site.code)

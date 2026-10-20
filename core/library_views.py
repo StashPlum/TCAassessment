@@ -13,6 +13,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from .catalogue import working_requirements
 from django.views.decorators.http import require_POST
 from .access import allowed_classifications
 from .kaizen import REVIEW_STATE_LABELS, review_state
@@ -31,9 +32,14 @@ def _csv(name,header,rows):
     for row in rows: writer.writerow([safe(v) for v in row])
     return response
 
-def _code(value):
+def _code(value,site=None):
+    """A requirement code; with a site, a QuestionID resolves to that site's own variant."""
     value=(value or '').strip().upper()
-    return value if value and Requirement.objects.filter(code=value).exists() else ''
+    if not value: return ''
+    if site is not None:
+        match=working_requirements(site).filter(Q(code=value)|Q(question_id=value)).first()
+        if match: return match.code
+    return value if Requirement.objects.filter(code=value).exists() else ''
 
 def _section(value):
     return value if value.isdigit() and Category.objects.filter(number=int(value)).exists() else ''
@@ -153,7 +159,7 @@ def evidence_library(request,site_code):
             ('Owner',filters['owner']),('Search',filters['q']),('From',filters['from']),('To',filters['to'])] if value]
     return render(request,'evidence.html',{'site':site,'rows':rows,'counts':counts,'filters':filters,'active_filters':active,'base_query':query.urlencode(),
         'form':EvidenceForm(),'requested_requirement':filters['req'],'categories':Category.objects.all(),
-        'types':Evidence._meta.get_field('evidence_type').choices,'statuses':EVIDENCE_STATUS,'requirement_codes':Requirement.objects.values_list('code',flat=True),
+        'types':Evidence._meta.get_field('evidence_type').choices,'statuses':EVIDENCE_STATUS,'requirement_codes':working_requirements(site).values_list('code',flat=True),
         'can_add':Membership.objects.filter(user=request.user,site=site,role__in=['assessor','coach','manager','admin']).exists(),
         'can_link':Membership.objects.filter(user=request.user,site=site,role__in=['assessor','manager','admin']).exists(),
         'can_review':Membership.objects.filter(user=request.user,site=site,role__in=['assessor','manager','admin']).exists(),
@@ -165,7 +171,7 @@ def evidence_link_requirement(request,site_code,pk):
     """Reuse an existing evidence object for another requirement; never a second upload or duplicate link."""
     site=site_access(request,site_code,['assessor','manager','admin'])
     item=get_object_or_404(Evidence,site=site,pk=pk,classification__in=allowed_classifications(request.user,site))
-    code=_code(request.POST.get('requirement_code',''))
+    code=_code(request.POST.get('requirement_code',''),site)
     back=reverse('evidence',args=[site.code])+('?'+request.POST.get('back','') if request.POST.get('back') else '')
     if not code:
         messages.error(request,'Choose an existing TCA requirement ID.');return redirect(back)

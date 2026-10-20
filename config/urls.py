@@ -10,6 +10,8 @@ from core import journey_views as jv
 from core import kaizen_views as kv
 from core import library_views as lv
 from core import demo_views as dv
+from core import catalogue_views as catv
+from core import focus_views as fv
 
 urlpatterns = [
     path('feedback/', dv.feedback_add, name='feedback_add'),
@@ -44,13 +46,15 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('location/', views.switch_site, name='switch_site'),
     path('locations/', views.locations, name='locations'),
-    path('administration/', views.administration, name='administration'),
+    path('administration/', catv.administration, name='administration'),
+    path('administration/sites/<slug:site_code>/tca-group/', catv.site_group_map, name='site_group_map'),
     path('sites/<slug:site_code>/resources/', lv.resources, name='resources'),
     path('sites/<slug:site_code>/', views.site_progress, name='site'),
     path('sites/<slug:site_code>/assessment/', views.assessment, name='assessment'),
     path('sites/<slug:site_code>/assessment/configuration/', qv.configuration, name='assessment_configuration'),
     path('sites/<slug:site_code>/assessment/configuration/<str:req_code>/', qv.question_configuration, name='question_configuration'),
     path('sites/<slug:site_code>/assessment/respond/<str:req_code>/', views.respond, name='respond'),
+    path('sites/<slug:site_code>/assessment/evidence/<str:req_code>/', fv.attach_evidence, name='attach_evidence'),
     path('sites/<slug:site_code>/assessment/approve/', views.approve, name='approve'),
     path('sites/<slug:site_code>/assessment/new/', views.new_draft, name='new_draft'),
     path('sites/<slug:site_code>/assessment/archive/', views.assessment_archive, name='assessment_archive'),

@@ -5,13 +5,25 @@ from .models import Requirement,ApplicabilityException,VerificationClaim,Kaizen,
 from .readiness import accepted_codes
 from .scoring import category_result,pass_codes
 
-def baseline_scope():
-    rows=list(Requirement.objects.select_related('source_version'))
-    hashes={r.source_version.sha256 for r in rows}
-    return {'version':'global-'+next(iter(hashes))[:12] if len(hashes)==1 else 'unknown',
-            'source_hash':next(iter(hashes)) if len(hashes)==1 else None,
-            'requirements':[r.code for r in rows],'basis':'Original global baseline; no applicability subtraction',
-            'known':len(hashes)==1 and bool(rows),'frozen_at':timezone.now().isoformat()}
+def baseline_scope(site=None):
+    """Frozen denominator for a new assessment. With an active group catalogue (V3) the site's mapped group decides
+    the variant of every question; an unmapped site raises SiteSetupBlocker rather than receiving a default group."""
+    from .catalogue import active_catalogue, site_group, site_requirements
+    catalogue=active_catalogue() if site is not None else None
+    if catalogue is None:
+        rows=list(Requirement.objects.filter(catalogue__isnull=True).select_related('source_version'))
+        hashes={r.source_version.sha256 for r in rows}
+        return {'version':'global-'+next(iter(hashes))[:12] if len(hashes)==1 else 'unknown',
+                'source_hash':next(iter(hashes)) if len(hashes)==1 else None,
+                'requirements':[r.code for r in rows],'basis':'Original global baseline; no applicability subtraction',
+                'known':len(hashes)==1 and bool(rows),'frozen_at':timezone.now().isoformat()}
+    rows=list(site_requirements(site,catalogue).order_by('category_id','position'))
+    group=site_group(site,catalogue)
+    ids=[r.question_id for r in rows]
+    return {'version':f'{catalogue.key}-{group.short}','source_hash':catalogue.sha256,'catalogue':catalogue.key,
+            'catalogue_label':catalogue.label,'group':group.code,'requirements':[r.code for r in rows],
+            'basis':f'{catalogue.label}, variants for {group.code}',
+            'known':len(rows)==len(set(ids))==150,'frozen_at':timezone.now().isoformat()}
 
 def scope_for(assessment):
     if assessment and assessment.scope_snapshot: return assessment.scope_snapshot

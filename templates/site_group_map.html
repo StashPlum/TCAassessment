@@ -1,0 +1,11 @@
+{% extends 'base.html' %}{% load tca %}{% block content %}
+<div class="page-heading"><div><span class="eyebrow">{{ site.name }}</span><h1>TCA group</h1><p class="muted">The group decides which wording of each question this site receives. Choose it from the site's validated configuration; preview before saving.</p></div></div>
+<form method="get" class="filter-bar"><div class="filter-primary"><div class="field"><label for="group">Group in {{ catalogue.label }}</label><select id="group" name="group"><option value="">Choose…</option>{% for g in groups %}<option value="{{ g.code }}" {% if group and g.pk == group.pk %}selected{% elif not group and current and g.pk == current.pk %}selected{% endif %}>{{ g.code }}{% if current and g.pk == current.pk %} (current){% endif %}</option>{% endfor %}</select></div><button class="secondary">Preview</button></div></form>
+{% if preview %}
+<section class="admin-block"><h2>Preview: {{ group.code }}</h2>
+<p class="{% if preview.valid %}success{% else %}notice{% endif %}">{% if preview.valid %}✓ Resolves to {{ preview.count }} questions, one wording per QuestionID, ten per section.{% else %}This group resolves to {{ preview.count }} records ({{ preview.distinct }} distinct). It cannot be used.{% endif %}</p>
+{% if preview.variants %}<h3>Questions with group-specific wording ({{ preview.variants|length }})</h3><ul class="variant-list">{% for r in preview.variants %}<li><strong>{{ r.label }}</strong> <span class="muted small">source record {{ r.master_order }}</span><p class="source-text">{{ r.detail_text|truncatechars:220 }}</p></li>{% endfor %}</ul>{% endif %}
+{% if has_draft %}<p class="notice">An assessment is in progress. It keeps its own frozen questions; the new group applies from the next assessment.</p>{% endif %}
+<form method="post">{% csrf_token %}<input type="hidden" name="group" value="{{ group.code }}"><label class="check-row"><input type="checkbox" name="confirm" value="yes" required> {{ site.name }} belongs to {{ group.code }} according to its validated site configuration</label><button {% if not preview.valid %}disabled{% endif %}>Save group</button> <a class="button secondary" href="{% url 'administration' %}">Cancel</a></form></section>
+{% endif %}
+{% endblock %}

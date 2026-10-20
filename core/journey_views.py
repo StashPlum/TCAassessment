@@ -30,7 +30,8 @@ def _download(content, filename, fmt):
 @login_required
 def preparation_need(request,site_code,req_code):
     site=site_access(request,site_code)
-    req=get_object_or_404(Requirement.objects.select_related('category').prefetch_related('clauses'),code=req_code)
+    from .catalogue import working_requirements
+    req=get_object_or_404(working_requirements(site).select_related('category').prefetch_related('clauses'),code=req_code)
     history=list(PreparationNeedVersion.objects.filter(site=site,requirement=req).select_related('author'))
     current=current_preparation(site,req)
     can_edit=site.membership_set.filter(user=request.user,role='assessor').exists()

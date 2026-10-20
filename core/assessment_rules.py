@@ -8,7 +8,7 @@ def approval_problems(site, assessment, allow_unanswered=False):
     from .progress import scope_for
     scope = scope_for(assessment).get('requirements', [])
     order = {code: i for i, code in enumerate(scope)}
-    _codes = lambda codes: ', '.join(sorted(codes, key=lambda code: order.get(code, len(order))))
+    _codes = lambda codes: ', '.join(code.split('~')[0] for code in sorted(codes, key=lambda code: order.get(code, len(order))))
     rows = {r.requirement_id: r for r in assessment.responses.all()}
     passing = pass_codes(assessment.policy_version)
     problems = []

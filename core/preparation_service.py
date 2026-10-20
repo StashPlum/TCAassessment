@@ -7,7 +7,8 @@ from .readiness import accepted_codes, evidence_state
 
 def preparation_items(site,filters,selected=None):
     current=site.assessments.first();codes,_=accepted_codes(site,current)
-    reqs=Requirement.objects.select_related('category','source_version')
+    from .catalogue import working_requirements
+    reqs=working_requirements(site).select_related('category','source_version')
     if selected is not None: reqs=reqs.filter(code__in=selected)
     category=filters.get('category','');level=filters.get('level','')
     kind=filters.get('evidence_type','');owner=filters.get('owner','');due=filters.get('due')

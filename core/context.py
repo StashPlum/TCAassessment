@@ -22,7 +22,7 @@ AREAS = {
     'claim_review': ('Assessments','Targeted requirement decision'),
     'assessment_configuration': ('Assessments','Site question guidance'), 'question_configuration': ('Assessments','Question version'),
     'evidence': ('Resources','Evidence library'), 'other_audit': ('Resources','Audit scope'),
-    'resources': ('Resources','Reports and guidance'), 'administration': ('Administration','Access and configuration'),
+    'resources': ('Resources','Reports and guidance'), 'administration': ('Administration','Access and configuration'), 'site_group_map': ('Administration','TCA group'),
 }
 
 def authorized_sites(user):

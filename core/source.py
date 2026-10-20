@@ -9,6 +9,8 @@ ROOT=Path(__file__).resolve().parents[1]
 SECRET_DIR=Path(os.environ.get('TCA_SOURCE_DIR','/etc/secrets'))
 KAIZEN_FILES=(ROOT/'sources/extracted/Global_Kaizen_Template_20241219.json',SECRET_DIR/'kaizen-template.json')
 CATALOG_FILES=(ROOT/'sources/extracted/TCA assessment work categorisation.json',SECRET_DIR/'tca-catalog.json')
+# TCA V3 workbook (private): the original .xlsx or its JSON row extract, from TCA_V3_SOURCE or a secret file.
+V3_FILES=tuple(Path(p) for p in [os.environ.get('TCA_V3_SOURCE',''),SECRET_DIR/'tca-v3-source.json',SECRET_DIR/'V3assessment .xlsx',ROOT/'sources/original/V3assessment .xlsx'] if str(p))
 
 def first_existing(paths):
     return next((path for path in paths if path.is_file()),None)

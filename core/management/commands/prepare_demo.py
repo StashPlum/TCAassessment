@@ -7,11 +7,14 @@ import os, re
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
-from core.models import Membership, Site
+from core.models import CatalogueVersion, Membership, Site, TCAGroup
+from core.source import V3_FILES, first_existing
 
 ROLE_MAP={'auditor':'assessor','manager':'manager','sensei':'coach','team':'staff'}
 DEMO_SITES=('fictional-stage-one','fictional-matrix-pilot','fictional-harbor')
 DEMO_USERS=('demo','auditor_demo','manager_demo','sensei_demo','team_demo','team_demo2','admin_demo')
+# Fictional demo configuration only: two sites on groups whose 01.01.C wording differs; Harbor stays unmapped to show the setup blocker.
+DEMO_GROUPS={'fictional-stage-one':'TCA_v3_GROUP_02','fictional-matrix-pilot':'TCA_v3_GROUP_12'}
 
 class Command(BaseCommand):
     help='Seed the hosted demo with fictional data and set demo/tester accounts.'
@@ -26,6 +29,7 @@ class Command(BaseCommand):
         sites=list(Site.objects.filter(code__in=DEMO_SITES))
         admin,_=User.objects.get_or_create(username='admin_demo',defaults={'first_name':'Fictional','last_name':'Administrator'})
         for site in sites: Membership.objects.get_or_create(user=admin,site=site,role='admin')
+        self.prepare_v3()
         for user in User.objects.filter(username__in=DEMO_USERS):
             user.set_password(password);user.save(update_fields=['password'])
         created=[]
@@ -40,3 +44,16 @@ class Command(BaseCommand):
             for site in sites: Membership.objects.get_or_create(user=user,site=site,role=ROLE_MAP[role])
             created.append(f'{username} ({role})')
         self.stdout.write('Demo ready. Accounts: '+', '.join(list(DEMO_USERS)+created))
+
+    def prepare_v3(self):
+        """Import and activate the private V3 catalogue when its source is provided; otherwise leave the global catalogue."""
+        source=first_existing(V3_FILES)
+        if source is None:
+            self.stdout.write('TCA V3 source not provided; the demo keeps the global catalogue.');return
+        call_command('import_v3_catalogue',source=str(source),activate=not CatalogueVersion.objects.filter(status='active').exists(),operator='prepare_demo')
+        catalogue=CatalogueVersion.objects.filter(status='active').first()
+        if catalogue is None: return
+        for code,group in DEMO_GROUPS.items():
+            site=Site.objects.filter(code=code,tca_group__isnull=True).first()
+            match=TCAGroup.objects.filter(catalogue=catalogue,code=group).first()
+            if site and match: site.tca_group=match;site.save(update_fields=['tca_group'])

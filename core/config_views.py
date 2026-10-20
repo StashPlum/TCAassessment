@@ -26,7 +26,8 @@ class SiteQuestionForm(forms.Form):
 def configuration(request,site_code):
     site=site_access(request,site_code)
     query=request.GET.get('q','').strip()
-    reqs=Requirement.objects.select_related('category')
+    from .catalogue import working_requirements
+    reqs=working_requirements(site).select_related('category')
     if query: reqs=reqs.filter(Q(code__icontains=query)|Q(detail_text__icontains=query)|Q(expected_evidence__icontains=query))
     page=Paginator(reqs,25).get_page(request.GET.get('page'))
     latest={v.requirement_id:v for v in SiteQuestionVersion.objects.filter(site=site,kind='local_guidance').order_by('version')}
@@ -51,7 +52,8 @@ def configuration(request,site_code):
 @require_http_methods(['GET','POST'])
 def question_configuration(request,site_code,req_code):
     site=site_access(request,site_code)
-    req=get_object_or_404(Requirement.objects.prefetch_related('clauses'),code=req_code)
+    from .catalogue import working_requirements
+    req=get_object_or_404(working_requirements(site).prefetch_related('clauses'),code=req_code)
     history=list(SiteQuestionVersion.objects.filter(site=site,requirement=req).select_related('author'))
     current=current_question(site,req)
     latest=history[0].version if history else 0

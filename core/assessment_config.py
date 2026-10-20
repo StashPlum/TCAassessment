@@ -20,8 +20,14 @@ def current_question(site, req):
     return base
 
 
-def frozen_configuration(site):
-    reqs=Requirement.objects.select_related('source_version').prefetch_related('clauses')
+def _requirements(site,codes):
+    from .catalogue import working_requirements
+    reqs=Requirement.objects.filter(code__in=codes) if codes is not None else working_requirements(site)
+    return reqs.select_related('source_version').prefetch_related('clauses')
+
+
+def frozen_configuration(site,codes=None):
+    reqs=_requirements(site,codes)
     effective={}
     for version in SiteQuestionVersion.objects.filter(site=site,kind='local_guidance').order_by('requirement_id','-version'):
         effective.setdefault(version.requirement_id,version)
@@ -59,8 +65,8 @@ def current_preparation(site, req):
             'change_reason':''}
 
 
-def frozen_preparation(site):
-    items={req.code:current_preparation(site,req) for req in Requirement.objects.select_related('source_version').all()}
+def frozen_preparation(site,codes=None):
+    items={req.code:current_preparation(site,req) for req in _requirements(site,codes)}
     return {'schema':'site-preparation-v1','site_id':site.pk,'frozen_at':timezone.now().isoformat(),'requirements':items}
 
 

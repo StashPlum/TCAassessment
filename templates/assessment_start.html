@@ -1,5 +1,9 @@
 {% extends 'base.html' %}{% block content %}
 <div class="page-heading"><div><span class="eyebrow">{{ site.name }}</span><h1>Assessment</h1></div></div>
+{% if setup_blocker %}
+<section class="blocker-panel" role="alert"><h2>Set the site's TCA group first</h2><p>{{ setup_blocker }}</p>
+{% if can_administer_site %}<a class="button" href="{% url 'site_group_map' site.code %}">Choose TCA group</a>{% else %}<p class="small">Ask a site administrator to choose the group. The app does not pick one for you, because the group decides which official wording applies.</p>{% endif %}</section>
+{% else %}
 <section class="next-action">
 {% if can_respond %}
 <h2>No assessment has been started for this site</h2>
@@ -12,4 +16,5 @@
 <p>A TCA auditor starts the assessment for this site. Results appear here once answers are recorded.</p>
 {% endif %}
 </section>
+{% endif %}
 {% endblock %}
